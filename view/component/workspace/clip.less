@@ -1,6 +1,16 @@
+@import "../../constants/gradients.less";
+@import "../../constants/sizes.less";
+
 .clip {
   width: 300px;
   height: 150px;
   border-radius: 16px;
-  background: linear-gradient(-45deg, rgba(242, 153, 74, 1), rgba(235, 87, 87, 1));
+  background: @gradient-passion;
+  display: flex;
+  cursor: pointer;
+
+  img {
+    height: @play-control-height;
+    margin: auto;
+  }
 }

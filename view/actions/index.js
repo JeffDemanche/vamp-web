@@ -1,5 +1,5 @@
-import { ADD_CLIP } from '../constants/action-types'
+import { SET_PLAYING } from '../constants/action-types'
 
-export const addClip = (payload) => {
-  return { type: ADD_CLIP, payload }
+export const setPlaying = (payload) => {
+  return { type: SET_PLAYING, payload }
 }

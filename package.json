@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "copy-webpack-plugin": "^5.0.4",
     "express": "^4.17.1",
     "file-loader": "^4.2.0",
     "less": "^3.10.3",

@@ -1,5 +1,6 @@
 const path = require("path");
 const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const isProduction = process.env.NODE_ENV === 'production'
@@ -42,5 +43,9 @@ module.exports = {
         path: path.join(__dirname, "view/build"),
         filename: "vamp.bundle.js",
     }, 
-    plugins: isProduction ? [new MiniCssExtractPlugin()] : []
+    plugins: [
+      new CopyWebpackPlugin([
+        { from: './favicon.png' }
+      ])
+    ]
 };
