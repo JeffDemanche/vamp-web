@@ -5,6 +5,7 @@ module.exports = {
         "node": true
     },
     "extends": [
+        "prettier",
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",
         "plugin:react/recommended"
@@ -23,9 +24,12 @@ module.exports = {
     },
     "plugins": [
         "react",
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "prettier"
     ],
     "rules": {
-        "react/jsx-uses-react": 1
+        "prettier/prettier": ["error"],
+        "react/jsx-uses-react": 1,
+        "max-len": [2, {"code": 80, "comments": 120, "tabWidth": 2}]
     }
 };

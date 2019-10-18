@@ -1,14 +1,14 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import { Provider } from 'react-redux'
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
 
-import store from './store/index'
+import store from "./store/index";
 
-import { VampApp } from './component/vamp-app.jsx'
+import { VampApp } from "./component/vamp-app.jsx";
 
 ReactDOM.render(
   <Provider store={store}>
-    <VampApp/>
+    <VampApp />
   </Provider>,
-  document.getElementById('app')
-)
+  document.getElementById("app")
+);
