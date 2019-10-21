@@ -1,10 +1,12 @@
 import { EXCLUSIVE } from "../constants/action-types";
-import { ExclusiveActionTypes } from "../actions/workspace/exclusive"
+import { ExclusiveActionTypes } from "../actions/workspace/exclusive";
 
-const initialPrivateState = { playing: false };
+const initialPrivateState = { playing: false,
+  metronomeSound: "Hi-Hat" };
 
 export interface ExclusiveType {
-  playing: boolean
+  playing: boolean;
+  metronomeSound: string;
 }
 
 /**
@@ -12,13 +14,18 @@ export interface ExclusiveType {
  *
  * These are split between "shared" and "private" state objects.
  */
-export const exclusive = (state = initialPrivateState, action: ExclusiveActionTypes) => {
+export const exclusive = (
+  state = initialPrivateState,
+  action: ExclusiveActionTypes
+) => {
   switch (action.type) {
     case EXCLUSIVE.SET_PLAYING:
       return {
         ...state,
         playing: action.payload
       };
+    case EXCLUSIVE.SET_METRONOME_SOUND:
+      return { ...state, metronomeSound: action.payload };
     default:
       return state;
   }

@@ -1,14 +1,18 @@
 import * as React from "react";
 import { useState, useEffect, useRef, MouseEvent } from "react";
-import * as PropTypes from "prop-types";
 
 const _ = require("underscore");
 
 const styles = require("./setting-select.less");
 
-const useOutsideClick = (ref: any, setEditing: (editing: boolean) => any) => {
+const useOutsideClick = (
+  ref: any,
+  setEditing: (editing: boolean) => void,
+  onOutsideChange: (payload: string) => void
+) => {
   const handleClickOutside = (e: any) => {
     if (ref.current && !ref.current.contains(e.target)) {
+      onOutsideChange(ref.current.value);
       setEditing(false);
     }
   };
@@ -22,16 +26,20 @@ const useOutsideClick = (ref: any, setEditing: (editing: boolean) => any) => {
 };
 
 interface SettingSelectProps {
-  initValue: string;
+  value: string;
   options: {
     index: number;
     value: string;
   }[];
+  reduxDispatch?: (payload: string) => void;
 }
 
-const SettingSelect = ({ initValue, options }: SettingSelectProps) => {
+const SettingSelect = ({
+  value,
+  options,
+  reduxDispatch
+}: SettingSelectProps) => {
   const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(initValue);
 
   const selectOptions = options.map(option => (
     <option key={option.index} value={option.value}>
@@ -40,14 +48,14 @@ const SettingSelect = ({ initValue, options }: SettingSelectProps) => {
   ));
 
   const wrapperRef = useRef(null);
-  useOutsideClick(wrapperRef, setEditing);
+  useOutsideClick(wrapperRef, setEditing, reduxDispatch);
 
   if (editing)
     return (
       <select
         ref={wrapperRef}
         value={value}
-        onChange={e => setValue(e.target.value)}
+        onChange={e => reduxDispatch(e.target.value)}
       >
         {selectOptions}
       </select>
