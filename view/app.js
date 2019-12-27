@@ -1,10 +1,10 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 
 import store from "./store/index";
 
-import { VampApp } from "./component/vamp-app.jsx";
+import { VampApp } from "./component/vamp-app";
 
 ReactDOM.render(
   <Provider store={store}>

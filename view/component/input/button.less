@@ -1,0 +1,22 @@
+@import "../../constants/colors.less";
+@import "../../constants/fonts.less";
+
+.default-button {
+  background-color: @button-inactive-background;
+  color: @button-inactive-foreground;
+  font-family: @font-default;
+  font-size: 16pt;
+  font-weight: normal;
+  border: 0px;
+  border-radius: 4px;
+  padding: 5px;
+  padding-left: 8px;
+  padding-right: 8px;
+  text-decoration: none;
+}
+
+.default-button:hover {
+  cursor: pointer;
+  background-color: @button-active-background;
+  color: @button-active-foreground;
+}

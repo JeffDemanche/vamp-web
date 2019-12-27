@@ -85,6 +85,9 @@ const SettingNumeric = ({
   const wrapperRef = useRef(null);
   useOutsideClick(wrapperRef, setEditing, onOutsideClick);
 
+  useEffect(() => {
+  });
+
   if (editing)
     return (
       <div className={styles["setting-numeric"]}>

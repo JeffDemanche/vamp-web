@@ -4,8 +4,11 @@ import { exclusive, ExclusiveType } from "./exclusive";
 import { shared, SharedType } from "./shared";
 
 export interface WorkspaceType {
-  exclusive: ExclusiveType,
-  shared: SharedType
+  exclusive: ExclusiveType;
+  shared: SharedType;
 }
 
-export const workspace = combineReducers({ exclusive, shared });
+export const workspace = combineReducers({
+  exclusive,
+  shared
+});
