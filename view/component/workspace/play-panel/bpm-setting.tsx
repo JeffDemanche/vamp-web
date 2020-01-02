@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { setBPM, SharedActionTypes } from "../../../actions/workspace/shared";
+import { setBPM, SharedActionTypes } from "../../../actions/workspace/workspace";
 
 import { StateType } from "../../../reducers/index";
 import { SettingNumeric } from "../../input/setting-numeric";

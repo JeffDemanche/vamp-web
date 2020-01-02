@@ -3,7 +3,7 @@ import * as React from "react";
 import {
   setMetronomeSound,
   ExclusiveActionTypes
-} from "../../../actions/workspace/exclusive";
+} from "../../../actions/workspace/workspace";
 
 import { StateType } from "../../../reducers/index";
 import { SettingSelect } from "../../input/setting-select";

@@ -1,9 +1,9 @@
 import * as React from "react";
 
-import { setPlaying } from "../../../actions/workspace/exclusive";
+import { setPlaying } from "../../../actions/workspace/workspace";
 
 import { StateType } from "../../../reducers/index";
-import { ExclusiveActionTypes } from "../../../actions/workspace/exclusive";
+import { ExclusiveActionTypes } from "../../../actions/workspace/workspace";
 
 const { connect } = require("react-redux");
 const styles = require("./play-stop-button.less");

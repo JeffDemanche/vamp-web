@@ -1,5 +1,5 @@
 import { SHARED } from "../constants/action-types";
-import { SharedActionTypes } from "../actions/workspace/shared";
+import { SharedActionTypes } from "../actions/workspace/workspace";
 
 const initialSharedState = {
   bpm: 120,

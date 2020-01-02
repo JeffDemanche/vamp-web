@@ -3,7 +3,7 @@ import * as React from "react";
 import {
   setBeatsPerBar,
   SharedActionTypes
-} from "../../../actions/workspace/shared";
+} from "../../../actions/workspace/workspace";
 
 import { StateType } from "../../../reducers/index";
 import { SettingNumeric } from "../../input/setting-numeric";

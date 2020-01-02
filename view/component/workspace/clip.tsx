@@ -1,12 +1,12 @@
 import * as React from "react";
 
 const { connect } = require("react-redux");
-import { setPlaying } from "../../actions/workspace/exclusive";
+import { setPlaying } from "../../actions/workspace/workspace";
 
 const styles = require("./clip.less");
 
 import { StateType } from "../../reducers/index";
-import { ExclusiveActionTypes } from "../../actions/workspace/exclusive";
+import { ExclusiveActionTypes } from "../../actions/workspace/workspace";
 
 const mapStateToProps = (state: StateType) => {
   return { playing: state.workspace.exclusive.playing };

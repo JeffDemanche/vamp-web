@@ -5,18 +5,19 @@ const styles = require("./view-login.less");
 
 const ViewLogin = () => {
   const onSignIn = async (googleUser: any) => {
-    
+    console.log(googleUser);
   };
 
   return (
     <div className={styles["login"]}>
-      <h2>Log In</h2>
-      <GoogleLogin
+      <h2>Login</h2>
+      <a href="/auth/google">Sing In with Google</a>
+      {/* <GoogleLogin
         clientId="110184616480-aool6fignv26lonakn0epqkd1l10a4lu.apps.googleusercontent.com"
         onSuccess={onSignIn}
         onFailure={onSignIn}
         cookiePolicy={"single_host_origin"}
-      />
+      /> */}
     </div>
   );
 };

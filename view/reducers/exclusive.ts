@@ -1,5 +1,5 @@
 import { EXCLUSIVE } from "../constants/action-types";
-import { ExclusiveActionTypes } from "../actions/workspace/exclusive";
+import { ExclusiveActionTypes } from "../actions/workspace/workspace";
 
 const initialPrivateState = { playing: false,
   metronomeSound: "Hi-Hat" };
