@@ -27,6 +27,14 @@ module.exports = {
         "@typescript-eslint",
         "prettier"
     ],
+    "settings": {
+        'import/parsers': {
+          '@typescript-eslint/parser': ['.ts', '.tsx'],
+        },
+        'import/resolver': {
+          "typescript": {},
+        },
+      },
     "rules": {
         "prettier/prettier": ["error"],
         "react/jsx-uses-react": 1,

@@ -6,7 +6,7 @@ import { ApolloProvider } from "@apollo/react-hooks";
 
 const client = new ApolloClient({
   uri: "http://localhost:4567/api"
-})
+});
 
 const { withRouter } = require("react-router");
 const { BrowserRouter, Route } = require("react-router-dom");
@@ -33,16 +33,13 @@ const VampAppBackdrop = withRouter(
     history: any;
   }) => {
     const [background, setBackground] = useState(gradientVibes);
-    
+
     useEffect(() => {
       if (location.pathname === "/login") setBackground(gradientLogin);
     }, [location.pathname]);
 
     return (
-      <div
-        className={styles["vamp-app"]}
-        style={{ background: background }}
-      >
+      <div className={styles["vamp-app"]} style={{ background: background }}>
         {children}
       </div>
     );

@@ -1,5 +1,5 @@
-const path = require("path");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
+import path from "path";
+import CopyWebpackPlugin from "copy-webpack-plugin";
 
 module.exports = {
   entry: path.join(__dirname, "view", "app.js"),
@@ -32,6 +32,10 @@ module.exports = {
           },
           "less-loader"
         ]
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"]
       },
       {
         test: /\.(gif|svg|jpg|png)$/,

@@ -2,21 +2,32 @@ import * as React from "react";
 
 import {
   setBeatsPerBar,
-  SharedActionTypes
+  SetBeatsPerBarAction
 } from "../../../actions/workspace/workspace";
 
 import { StateType } from "../../../reducers/index";
-import { SettingNumeric } from "../../input/setting-numeric";
+import { SettingNumeric } from "../../element/setting-numeric";
 
-const { connect } = require("react-redux");
+import { connect } from "react-redux";
+import { Dispatch } from "redux";
 
-const mapStateToProps = (state: StateType) => {
+interface StateProps {
+  beatsPerBar: number;
+}
+
+interface DispatchProps {
+  setBeatsPerBar: (beatsPerBar: number) => SetBeatsPerBarAction;
+}
+
+interface BeatsPerBarSettingProps extends DispatchProps, StateProps {}
+
+const mapStateToProps = (state: StateType): StateProps => {
   return { beatsPerBar: state.workspace.shared.beatsPerBar };
 };
 
-const mapDispatchToProps = (dispatch: any) => {
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
-    setBeatsPerBar: (beatsPerBar: number) =>
+    setBeatsPerBar: (beatsPerBar: number): SetBeatsPerBarAction =>
       dispatch(setBeatsPerBar(beatsPerBar))
   };
 };
@@ -24,10 +35,7 @@ const mapDispatchToProps = (dispatch: any) => {
 const ConnectedBeatsPerBarSetting = ({
   beatsPerBar,
   setBeatsPerBar
-}: {
-  beatsPerBar: number;
-  setBeatsPerBar: (payload: number) => SharedActionTypes;
-}) => {
+}: BeatsPerBarSettingProps): JSX.Element => {
   return (
     <SettingNumeric
       value={beatsPerBar}

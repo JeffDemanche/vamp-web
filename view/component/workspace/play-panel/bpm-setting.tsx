@@ -1,21 +1,32 @@
 import * as React from "react";
 
-import { setBPM, SharedActionTypes } from "../../../actions/workspace/workspace";
+import {
+  setBPM,
+  SharedActionTypes,
+  SetBPMAction
+} from "../../../actions/workspace/workspace";
 
 import { StateType } from "../../../reducers/index";
-import { SettingNumeric } from "../../input/setting-numeric";
+import { SettingNumeric } from "../../element/setting-numeric";
 
-const { connect } = require("react-redux");
+import { connect } from "react-redux";
+import { Dispatch } from "redux";
 
-const mapStateToProps = (state: StateType) => {
+interface StateProps {
+  bpm: number;
+}
+
+interface DispatchProps {
+  setBPM: (bpm: number) => SetBPMAction;
+}
+
+const mapStateToProps = (state: StateType): StateProps => {
   return { bpm: state.workspace.shared.bpm };
 };
 
-const mapDispatchToProps = (dispatch: any) => {
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
-    setBPM: (bpm: number) => {
-      dispatch(setBPM(bpm))
-    }
+    setBPM: (bpm: number): SetBPMAction => dispatch(setBPM(bpm))
   };
 };
 
@@ -25,7 +36,7 @@ const ConnectedBPMSetting = ({
 }: {
   bpm: number;
   setBPM: (payload: number) => SharedActionTypes;
-}) => {
+}): JSX.Element => {
   return (
     <SettingNumeric
       value={bpm}

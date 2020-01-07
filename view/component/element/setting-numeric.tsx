@@ -28,7 +28,7 @@ const useOutsideClick = (
 };
 
 /**
- * Ensures input is a valid integer, then calls back to redux action for 
+ * Ensures input is a valid integer, then calls back to redux action for
  * state change (see bpm-setting.tsx for example).
  */
 const validateAndUpdateState = (
@@ -79,14 +79,13 @@ const SettingNumeric = ({
       value,
       reduxDispatch
     );
-  }
+  };
 
   // Use the input text field as a ref, clicks outside the ref are observed in useOutsideClick.
   const wrapperRef = useRef(null);
   useOutsideClick(wrapperRef, setEditing, onOutsideClick);
 
-  useEffect(() => {
-  });
+  useEffect(() => {});
 
   if (editing)
     return (
@@ -96,7 +95,7 @@ const SettingNumeric = ({
           type="text"
           onKeyPress={e => {
             if (e.which == 13) {
-              onOutsideClick((e.target as HTMLInputElement));
+              onOutsideClick(e.target as HTMLInputElement);
               setEditing(false);
             }
           }}

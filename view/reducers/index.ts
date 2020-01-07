@@ -1,4 +1,4 @@
-const { combineReducers } = require("redux");
+import { combineReducers } from "redux";
 
 import { workspace, WorkspaceType } from "./workspace";
 
@@ -8,7 +8,7 @@ import { workspace, WorkspaceType } from "./workspace";
 //  - https://www.valentinog.com/blog/redux/
 
 export interface StateType {
-  workspace: WorkspaceType
+  workspace: WorkspaceType;
 }
 
 export default combineReducers({ workspace });

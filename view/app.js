@@ -3,6 +3,9 @@ import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import store from "./store/index";
 
+import "bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+
 import { VampApp } from "./component/vamp-app";
 
 ReactDOM.render(
