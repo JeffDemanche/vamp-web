@@ -2,7 +2,7 @@ import * as React from "react";
 
 const { connect } = require("redux");
 const styles = require("./track-settings.less");
-import { StateType } from "../../../reducers/index";
+import { StateType } from "../../../redux/reducers/index";
 
 const mapStateToProps = (state: StateType) => {
   return {};

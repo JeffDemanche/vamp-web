@@ -1,15 +1,15 @@
 import * as React from "react";
 
 const { connect } = require("react-redux");
-import { setPlaying } from "../../actions/workspace/workspace";
+import { setPlaying } from "../../redux/actions/workspace";
 
 const styles = require("./clip.less");
 
-import { StateType } from "../../reducers/index";
-import { ExclusiveActionTypes } from "../../actions/workspace/workspace";
+import { StateType } from "../../redux/reducers/index";
+import { WorkspaceActionTypes } from "../../redux/actions/workspace";
 
 const mapStateToProps = (state: StateType) => {
-  return { playing: state.workspace.exclusive.playing };
+  return { playing: state.workspace.playing };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
@@ -20,7 +20,7 @@ const mapDispatchToProps = (dispatch: any) => {
 
 const handleClick = (
   playing: boolean,
-  setPlaying: (payload: boolean) => ExclusiveActionTypes
+  setPlaying: (payload: boolean) => WorkspaceActionTypes
 ) => {
   setPlaying(!playing);
 };
@@ -30,7 +30,7 @@ const ConenctedClip = ({
   setPlaying
 }: {
   playing: boolean;
-  setPlaying: (payload: boolean) => ExclusiveActionTypes;
+  setPlaying: (payload: boolean) => WorkspaceActionTypes;
 }) => {
   return (
     <div
@@ -39,14 +39,11 @@ const ConenctedClip = ({
         handleClick(playing, setPlaying);
       }}
     >
-      <img src="../../img/vector/record.svg" />
+      <img src={require("../../img/vector/record.svg")} />
     </div>
   );
 };
 
-const Clip = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ConenctedClip);
+const Clip = connect(mapStateToProps, mapDispatchToProps)(ConenctedClip);
 
 export { Clip };

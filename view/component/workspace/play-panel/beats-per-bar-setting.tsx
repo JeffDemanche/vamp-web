@@ -3,9 +3,9 @@ import * as React from "react";
 import {
   setBeatsPerBar,
   SetBeatsPerBarAction
-} from "../../../actions/workspace/workspace";
+} from "../../../redux/actions/workspace";
 
-import { StateType } from "../../../reducers/index";
+import { StateType } from "../../../redux/reducers/index";
 import { SettingNumeric } from "../../element/setting-numeric";
 
 import { connect } from "react-redux";
@@ -22,7 +22,7 @@ interface DispatchProps {
 interface BeatsPerBarSettingProps extends DispatchProps, StateProps {}
 
 const mapStateToProps = (state: StateType): StateProps => {
-  return { beatsPerBar: state.workspace.shared.beatsPerBar };
+  return { beatsPerBar: state.workspace.beatsPerBar };
 };
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {

@@ -46,16 +46,29 @@ const VampAppBackdrop = withRouter(
   }
 );
 
+/**
+ * All this component does is check the user's status through
+ * user-api-endpoint.ts. If a user is logged in, this should update the user
+ * value in the Redux store. If not, the Redux user should become null. This
+ * call dispatches through Redux, so any components mapped to the store should
+ * update if this changes.
+ */
+const UserWrapper = ({ children }: { children: React.ReactNode }) => {
+  return <>{children}</>;
+};
+
 const VampApp = () => {
   // ViewWorkspace should be able to be changed.
   return (
     <BrowserRouter>
       <ApolloProvider client={client}>
-        <VampAppBackdrop>
-          <VampHeader></VampHeader>
-          <Route path="/v/:vampid" component={ViewWorkspace} />
-          <Route path="/login" component={ViewLogin} />
-        </VampAppBackdrop>
+        <UserWrapper>
+          <VampAppBackdrop>
+            <VampHeader></VampHeader>
+            <Route path="/v/:vampid" component={ViewWorkspace} />
+            <Route path="/login" component={ViewLogin} />
+          </VampAppBackdrop>
+        </UserWrapper>
       </ApolloProvider>
     </BrowserRouter>
   );

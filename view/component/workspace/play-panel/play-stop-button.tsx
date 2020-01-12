@@ -1,15 +1,15 @@
 import * as React from "react";
 
-import { setPlaying } from "../../../actions/workspace/workspace";
+import { setPlaying } from "../../../redux/actions/workspace";
 
-import { StateType } from "../../../reducers/index";
-import { ExclusiveActionTypes } from "../../../actions/workspace/workspace";
+import { StateType } from "../../../redux/reducers/index";
+import { WorkspaceActionTypes } from "../../../redux/actions/workspace";
 
 const { connect } = require("react-redux");
 const styles = require("./play-stop-button.less");
 
 const mapStateToProps = (state: StateType) => {
-  return { playing: state.workspace.exclusive.playing };
+  return { playing: state.workspace.playing };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
@@ -20,7 +20,7 @@ const mapDispatchToProps = (dispatch: any) => {
 
 const handleClick = (
   playing: boolean,
-  setPlaying: (payload: boolean) => ExclusiveActionTypes
+  setPlaying: (payload: boolean) => WorkspaceActionTypes
 ) => {
   setPlaying(!playing);
 };
@@ -30,7 +30,7 @@ const ConnectedPlayStopButton = ({
   setPlaying
 }: {
   playing: boolean;
-  setPlaying: (payload: boolean) => ExclusiveActionTypes;
+  setPlaying: (payload: boolean) => WorkspaceActionTypes;
 }) => {
   const image = playing
     ? require("../../../img/vector/stop.svg")

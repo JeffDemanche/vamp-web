@@ -1,8 +1,7 @@
 import * as React from "react";
 
 import { gql } from "apollo-boost";
-import { graphql } from "react-apollo";
-import { useQuery } from "@apollo/react-hooks";
+import { Query, QueryResult } from "react-apollo";
 
 const styles = require("./header.less");
 import { VampLogo } from "./logo";
@@ -13,49 +12,53 @@ import LoggedInUserButton from "./logged-in-user-button";
 const ME_QUERY = gql`
   {
     me {
+      id
       username
+      email
     }
   }
 `;
 
-interface MeUser {
+interface Me {
+  id: string;
   username: string;
+  email: string;
 }
-
-interface MeData {
-  me: MeUser;
-}
-
-interface MeVars {}
 
 const VampHeader = () => {
-  // RE APOLLO RE GRAPHQL
-  // https://www.apollographql.com/docs/react/development-testing/static-typing/
-  // This is the functional way to do GraphQL queries with TS. Note the
-  // interfaces above.
-  const { loading, data } = useQuery<MeData, MeVars>(ME_QUERY, {
-    variables: {}
-  });
-
-  const button =
-    loading || data.me == null ? (
-      <ButtonLinkDefault
-        text="Log In"
-        // style={{ marginTop: "auto", marginBottom: "auto" }}
-        href="/login"
-      ></ButtonLinkDefault>
-    ) : (
-      <LoggedInUserButton username={data.me.username}></LoggedInUserButton>
-    );
+  const buttonLoggedOut = () => (
+    <ButtonLinkDefault
+      text="Log In"
+      style={{ marginTop: "auto", marginBottom: "auto" }}
+      href="/login"
+    ></ButtonLinkDefault>
+  );
+  const buttonLoggedIn = (me: Me) => (
+    <LoggedInUserButton username={me.username}></LoggedInUserButton>
+  );
 
   return (
     <div className={styles["vamp-header"]}>
       <div className={styles["header-logo-panel"]}>
         <VampLogo></VampLogo>
       </div>
-      <div className={styles["header-right-panel"]}>{button}</div>
+      <div className={styles["header-right-panel"]}>
+        <Query query={ME_QUERY}>
+          {({ loading, error, data }: QueryResult) => {
+            if (loading) {
+              return <div>Loading...</div>;
+            } else {
+              if (data.me == null) {
+                return buttonLoggedOut();
+              } else {
+                return buttonLoggedIn(data.me);
+              }
+            }
+          }}
+        </Query>
+      </div>
     </div>
   );
 };
 
-export default graphql(ME_QUERY)(VampHeader);
+export default VampHeader;

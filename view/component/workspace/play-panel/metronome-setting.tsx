@@ -2,11 +2,11 @@ import * as React from "react";
 
 import {
   setMetronomeSound,
-  ExclusiveActionTypes,
+  WorkspaceActionTypes,
   SetMetronomeSoundAction
-} from "../../../actions/workspace/workspace";
+} from "../../../redux/actions/workspace";
 
-import { StateType } from "../../../reducers/index";
+import { StateType } from "../../../redux/reducers/index";
 import { SettingSelect } from "../../element/setting-select";
 
 import { connect } from "react-redux";
@@ -21,7 +21,7 @@ interface DispatchProps {
 }
 
 const mapStateToProps = (state: StateType): StateProps => {
-  return { metronomeSound: state.workspace.exclusive.metronomeSound };
+  return { metronomeSound: state.workspace.metronomeSound };
 };
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
@@ -36,7 +36,7 @@ const ConnectedMetronomeSetting = ({
   setMetronomeSound
 }: {
   metronomeSound: string;
-  setMetronomeSound: (payload: string) => ExclusiveActionTypes;
+  setMetronomeSound: (payload: string) => WorkspaceActionTypes;
 }): JSX.Element => {
   return (
     <SettingSelect
