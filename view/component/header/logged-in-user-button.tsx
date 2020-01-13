@@ -6,6 +6,7 @@ import { gql } from "apollo-boost";
 
 interface LoggedInUserButtonProps {
   username: string;
+  style?: React.CSSProperties;
 }
 
 const LoggedInUserButton = (props: LoggedInUserButtonProps): JSX.Element => {
@@ -36,7 +37,7 @@ const LoggedInUserButton = (props: LoggedInUserButtonProps): JSX.Element => {
       }
       title="User Settings"
     >
-      <VampButton text={props.username}></VampButton>
+      <VampButton style={props.style}>{props.username}</VampButton>
     </VampPopover>
   );
 };

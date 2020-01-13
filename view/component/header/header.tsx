@@ -34,7 +34,10 @@ const VampHeader = () => {
     ></ButtonLinkDefault>
   );
   const buttonLoggedIn = (me: Me) => (
-    <LoggedInUserButton username={me.username}></LoggedInUserButton>
+    <LoggedInUserButton
+      username={me.username}
+      style={{ marginTop: "auto", marginBottom: "auto" }}
+    ></LoggedInUserButton>
   );
 
   return (

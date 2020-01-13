@@ -3,20 +3,54 @@ import { Button } from "react-bootstrap";
 
 import { Link } from "react-router-dom";
 
+import classnames from "classnames";
+
 const styles = require("./button.less");
 
+type ButtonVariants =
+  | "primary"
+  | "secondary"
+  | "success"
+  | "danger"
+  | "warning"
+  | "info"
+  | "dark"
+  | "light"
+  | "link"
+  | "outline-primary"
+  | "outline-secondary"
+  | "outline-success"
+  | "outline-danger"
+  | "outline-warning"
+  | "outline-info"
+  | "outline-dark"
+  | "outline-light";
+
+const variantToClassname = (variant: ButtonVariants): string => {
+  return "";
+};
+
 const VampButton = ({
-  text,
   style,
-  onClick
+  variant,
+  onClick,
+  children
 }: {
-  text: string;
   style?: React.CSSProperties;
+  variant?: ButtonVariants;
   onClick?: () => void;
+  children?: string;
 }): JSX.Element => {
+  const classes = classnames(styles.btn);
+
   return (
-    <Button variant="primary" style={style} onClick={(): void => onClick()}>
-      {text}
+    <Button
+      variant={variant}
+      className={classes}
+      style={style}
+      onClick={(): void => onClick && onClick()}
+    >
+      {children}
     </Button>
   );
 };
@@ -31,7 +65,7 @@ const ButtonLinkDefault = ({
   style?: React.CSSProperties;
 }): JSX.Element => {
   return (
-    <Link to={href} className={styles["button-default"]} style={style}>
+    <Link to={href} className={styles["btn"]} style={style}>
       {text}
     </Link>
   );

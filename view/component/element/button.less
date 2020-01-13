@@ -1,7 +1,7 @@
 @import "../../constants/colors.less";
 @import "../../constants/fonts.less";
 
-.button-default {
+.btn {
   background-color: @button-inactive-background;
   color: @button-inactive-foreground;
   font-family: @font-default;
@@ -15,8 +15,18 @@
   text-decoration: none;
 }
 
-.button-default:hover {
-  cursor: pointer;
+.btn:hover {
   background-color: @button-active-background;
   color: @button-active-foreground;
+}
+
+.btn:active .btn:focus {
+  background-color: @button-active-background !important;
+  color: @button-active-foreground !important;
+}
+
+.btn-primary {
+}
+
+.btn-primary:hover {
 }
