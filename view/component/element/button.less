@@ -7,7 +7,7 @@
   font-family: @font-default;
   font-size: 16pt;
   font-weight: normal;
-  border: 0px;
+  border: 0px black;
   border-radius: 4px;
   padding: 5px;
   padding-left: 8px;
@@ -21,12 +21,14 @@
 }
 
 .btn:active .btn:focus {
-  background-color: @button-active-background !important;
-  color: @button-active-foreground !important;
+  background-color: @button-active-background;
+  color: @button-active-foreground;
 }
 
 .btn-primary {
+  background-color: @button-primary-inactive-background !important;
 }
 
 .btn-primary:hover {
+  background-color: @button-primary-active-background !important;
 }

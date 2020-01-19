@@ -21,7 +21,6 @@ interface DispatchProps {
 }
 
 const mapStateToProps = (state: StateType): StateProps => {
-  console.log(state);
   return { bpm: state.workspace.bpm };
 };
 

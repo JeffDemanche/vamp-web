@@ -8,22 +8,7 @@ import { VampLogo } from "./logo";
 
 import { ButtonLinkDefault } from "../element/button";
 import LoggedInUserButton from "./logged-in-user-button";
-
-const ME_QUERY = gql`
-  {
-    me {
-      id
-      username
-      email
-    }
-  }
-`;
-
-interface Me {
-  id: string;
-  username: string;
-  email: string;
-}
+import { User, ME } from "../../queries/user-queries";
 
 const VampHeader = () => {
   const buttonLoggedOut = () => (
@@ -33,10 +18,10 @@ const VampHeader = () => {
       href="/login"
     ></ButtonLinkDefault>
   );
-  const buttonLoggedIn = (me: Me) => (
+  const buttonLoggedIn = (me: User) => (
     <LoggedInUserButton
-      username={me.username}
       style={{ marginTop: "auto", marginBottom: "auto" }}
+      me={me}
     ></LoggedInUserButton>
   );
 
@@ -46,7 +31,7 @@ const VampHeader = () => {
         <VampLogo></VampLogo>
       </div>
       <div className={styles["header-right-panel"]}>
-        <Query query={ME_QUERY}>
+        <Query query={ME}>
           {({ loading, error, data }: QueryResult) => {
             if (loading) {
               return <div>Loading...</div>;

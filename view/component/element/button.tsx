@@ -7,7 +7,7 @@ import classnames from "classnames";
 
 const styles = require("./button.less");
 
-type ButtonVariants =
+type ButtonVariant =
   | "primary"
   | "secondary"
   | "success"
@@ -26,8 +26,13 @@ type ButtonVariants =
   | "outline-dark"
   | "outline-light";
 
-const variantToClassname = (variant: ButtonVariants): string => {
-  return "";
+const variantToClassname = (variant: ButtonVariant): string => {
+  switch (variant) {
+    case "primary":
+      return "btn-primary";
+    case "secondary":
+      return "btn-secondary";
+  }
 };
 
 const VampButton = ({
@@ -37,11 +42,11 @@ const VampButton = ({
   children
 }: {
   style?: React.CSSProperties;
-  variant?: ButtonVariants;
+  variant?: ButtonVariant;
   onClick?: () => void;
   children?: string;
 }): JSX.Element => {
-  const classes = classnames(styles.btn);
+  const classes = classnames(styles.btn, variantToClassname(variant));
 
   return (
     <Button

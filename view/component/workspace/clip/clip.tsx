@@ -1,12 +1,12 @@
 import * as React from "react";
 
 const { connect } = require("react-redux");
-import { setPlaying } from "../../redux/actions/workspace";
+import { setPlaying } from "../../../redux/actions/workspace";
 
 const styles = require("./clip.less");
 
-import { StateType } from "../../redux/reducers/index";
-import { WorkspaceActionTypes } from "../../redux/actions/workspace";
+import { StateType } from "../../../redux/reducers/index";
+import { WorkspaceActionTypes } from "../../../redux/actions/workspace";
 
 const mapStateToProps = (state: StateType) => {
   return { playing: state.workspace.playing };
@@ -39,7 +39,7 @@ const ConenctedClip = ({
         handleClick(playing, setPlaying);
       }}
     >
-      <img src={require("../../img/vector/record.svg")} />
+      <img src={require("../../../img/vector/record.svg")} />
     </div>
   );
 };
