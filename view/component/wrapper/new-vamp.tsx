@@ -33,7 +33,7 @@ export const NewVamp = (props: NewVampPropsType): JSX.Element => {
 
   return (
     <div
-      onClick={() => {
+      onClick={(): void => {
         addVamp({ variables: { creatorId: props.creatorId } });
         setRedirect(true);
       }}

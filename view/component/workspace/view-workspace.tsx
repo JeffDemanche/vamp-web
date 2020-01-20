@@ -6,23 +6,22 @@ import { Query, QueryResult } from "react-apollo";
 import { VAMP } from "../../queries/vamp-queries";
 import { RouteComponentProps } from "react-router";
 
-const styles = require("./view-workspace.less");
+import styles = require("./view-workspace.less");
 
 interface MatchParams {
   vampid: string;
 }
 
-interface ViewWorkspaceProps extends RouteComponentProps<MatchParams> {}
+type ViewWorkspaceProps = RouteComponentProps<MatchParams>;
 
-const ViewWorkspace = (props: ViewWorkspaceProps) => {
+const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
   return (
     <Query query={VAMP} variables={{ id: props.match.params.vampid }}>
-      {({ loading, error, data }: QueryResult) => {
+      {({ loading, error, data }: QueryResult): JSX.Element => {
         if (loading) {
           // TODO Loading screen?
           return <div>Loading...</div>;
         } else {
-          console.log(data);
           if (!data || data.vamp == null) {
             return <div>Vamp not found :(</div>;
           } else {

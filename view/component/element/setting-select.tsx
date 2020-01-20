@@ -1,16 +1,14 @@
 import * as React from "react";
-import { useState, useEffect, useRef, MouseEvent } from "react";
+import { useState, useEffect, useRef } from "react";
 
-const _ = require("underscore");
-
-const styles = require("./setting-select.less");
+import styles = require("./setting-select.less");
 
 const useOutsideClick = (
-  ref: any,
+  ref: React.MutableRefObject<any>,
   setEditing: (editing: boolean) => void,
   onOutsideChange: (payload: string) => void
-) => {
-  const handleClickOutside = (e: any) => {
+): void => {
+  const handleClickOutside = (e: KeyboardEvent): void => {
     if (ref.current && !ref.current.contains(e.target)) {
       onOutsideChange(ref.current.value);
       setEditing(false);
@@ -19,7 +17,7 @@ const useOutsideClick = (
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
+    return (): void => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   });
@@ -34,11 +32,11 @@ interface SettingSelectProps {
   reduxDispatch?: (payload: string) => void;
 }
 
-const SettingSelect = ({
+const SettingSelect: React.FunctionComponent<SettingSelectProps> = ({
   value,
   options,
   reduxDispatch
-}: SettingSelectProps) => {
+}) => {
   const [editing, setEditing] = useState(false);
 
   const selectOptions = options.map(option => (
@@ -55,7 +53,7 @@ const SettingSelect = ({
       <select
         ref={wrapperRef}
         value={value}
-        onChange={e => reduxDispatch(e.target.value)}
+        onChange={(e): void => reduxDispatch(e.target.value)}
       >
         {selectOptions}
       </select>
@@ -64,7 +62,7 @@ const SettingSelect = ({
     return (
       <div
         className={styles["setting-select"]}
-        onClick={e => {
+        onClick={(): void => {
           setEditing(true);
         }}
       >

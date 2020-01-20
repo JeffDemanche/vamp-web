@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 import classnames from "classnames";
 
-const styles = require("./button.less");
+import styles = require("./button.less");
 
 type ButtonVariant =
   | "primary"
@@ -46,7 +46,7 @@ const VampButton = ({
   onClick?: () => void;
   children?: string;
 }): JSX.Element => {
-  const classes = classnames(styles.btn, variantToClassname(variant));
+  const classes = classnames(styles["btn"], variantToClassname(variant));
 
   return (
     <Button

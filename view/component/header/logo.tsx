@@ -1,8 +1,8 @@
-import React from "react";
+import * as React from "react";
 
-import styles from "./logo.less";
+import styles = require("./logo.less");
 
-const VampLogo = () => {
+const VampLogo: React.FunctionComponent = () => {
   return (
     <div className={styles["vamp-logo"]}>
       <a href="/">

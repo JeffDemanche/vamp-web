@@ -18,7 +18,7 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-        test: /\.less$/i,
+        test: /\.less$/,
         use: [
           "style-loader",
           {

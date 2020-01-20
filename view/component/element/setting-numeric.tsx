@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 
-const styles = require("./setting-numeric.less");
+import styles = require("./setting-numeric.less");
 
 /**
  * Registers clicks outside the text input element, updates state and
@@ -11,8 +11,8 @@ const useOutsideClick = (
   ref: any,
   setEditing: (editing: boolean) => void,
   onOutsideClick: (target: HTMLInputElement) => void
-) => {
-  const handleClickOutside = (e: any) => {
+): void => {
+  const handleClickOutside = (e: KeyboardEvent): void => {
     if (ref.current && !ref.current.contains(e.target)) {
       onOutsideClick(ref.current);
       setEditing(false);
@@ -21,7 +21,7 @@ const useOutsideClick = (
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
+    return (): void => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   });
@@ -38,7 +38,7 @@ const validateAndUpdateState = (
   maxValue: number,
   fallback: number,
   reduxDispatch: (payload: number) => void
-) => {
+): void => {
   const parsed = parseInt(input);
   const clamped = Math.min(
     Math.max(isNaN(parsed) ? fallback : parsed, minValue),
@@ -60,17 +60,17 @@ interface SettingNumeric {
   reduxDispatch?: (payload: number) => void;
 }
 
-const SettingNumeric = ({
+const SettingNumeric: React.FunctionComponent<SettingNumeric> = ({
   value,
   integer,
   minValue,
   maxValue,
   text,
   reduxDispatch
-}: SettingNumeric) => {
+}) => {
   const [editing, setEditing] = useState(false);
 
-  const onOutsideClick = (inputTarget: HTMLInputElement) => {
+  const onOutsideClick = (inputTarget: HTMLInputElement): void => {
     validateAndUpdateState(
       inputTarget.value,
       integer,
@@ -85,15 +85,13 @@ const SettingNumeric = ({
   const wrapperRef = useRef(null);
   useOutsideClick(wrapperRef, setEditing, onOutsideClick);
 
-  useEffect(() => {});
-
   if (editing)
     return (
       <div className={styles["setting-numeric"]}>
         <input
           ref={wrapperRef}
           type="text"
-          onKeyPress={e => {
+          onKeyPress={(e): void => {
             if (e.which == 13) {
               onOutsideClick(e.target as HTMLInputElement);
               setEditing(false);
@@ -107,7 +105,7 @@ const SettingNumeric = ({
     return (
       <div
         className={styles["setting-numeric"]}
-        onClick={e => {
+        onClick={(): void => {
           setEditing(true);
         }}
       >

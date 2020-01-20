@@ -1,24 +1,23 @@
 import * as React from "react";
 
-import { gql } from "apollo-boost";
 import { Query, QueryResult } from "react-apollo";
 
-const styles = require("./header.less");
+import styles = require("./header.less");
 import { VampLogo } from "./logo";
 
 import { ButtonLinkDefault } from "../element/button";
 import LoggedInUserButton from "./logged-in-user-button";
 import { User, ME } from "../../queries/user-queries";
 
-const VampHeader = () => {
-  const buttonLoggedOut = () => (
+const VampHeader: React.FunctionComponent = () => {
+  const buttonLoggedOut = (): JSX.Element => (
     <ButtonLinkDefault
       text="Log In"
       style={{ marginTop: "auto", marginBottom: "auto" }}
       href="/login"
     ></ButtonLinkDefault>
   );
-  const buttonLoggedIn = (me: User) => (
+  const buttonLoggedIn = (me: User): JSX.Element => (
     <LoggedInUserButton
       style={{ marginTop: "auto", marginBottom: "auto" }}
       me={me}
@@ -32,7 +31,7 @@ const VampHeader = () => {
       </div>
       <div className={styles["header-right-panel"]}>
         <Query query={ME}>
-          {({ loading, error, data }: QueryResult) => {
+          {({ loading, error, data }: QueryResult): JSX.Element => {
             if (loading) {
               return <div>Loading...</div>;
             } else {

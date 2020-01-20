@@ -1,41 +1,50 @@
 import * as React from "react";
 
-const { connect } = require("react-redux");
-import { setPlaying } from "../../../redux/actions/workspace";
+import { connect } from "react-redux";
+import { setPlaying, SetPlayingAction } from "../../../redux/actions/workspace";
 
-const styles = require("./clip.less");
+import styles = require("./clip.less");
 
 import { StateType } from "../../../redux/reducers/index";
 import { WorkspaceActionTypes } from "../../../redux/actions/workspace";
+import { Dispatch } from "redux";
 
-const mapStateToProps = (state: StateType) => {
+interface StateProps {
+  playing: boolean;
+}
+
+interface DispatchProps {
+  setPlaying: (playing: boolean) => SetPlayingAction;
+}
+
+interface ClipSettingProps extends StateProps, DispatchProps {}
+
+const mapStateToProps = (state: StateType): StateProps => {
   return { playing: state.workspace.playing };
 };
 
-const mapDispatchToProps = (dispatch: any) => {
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
-    setPlaying: (playing: boolean) => dispatch(setPlaying(playing))
+    setPlaying: (playing: boolean): SetPlayingAction =>
+      dispatch(setPlaying(playing))
   };
 };
 
 const handleClick = (
   playing: boolean,
   setPlaying: (payload: boolean) => WorkspaceActionTypes
-) => {
+): void => {
   setPlaying(!playing);
 };
 
-const ConenctedClip = ({
+const ConnectedClip: React.FunctionComponent<ClipSettingProps> = ({
   playing,
   setPlaying
-}: {
-  playing: boolean;
-  setPlaying: (payload: boolean) => WorkspaceActionTypes;
-}) => {
+}: ClipSettingProps) => {
   return (
     <div
       className={styles["clip"]}
-      onClick={e => {
+      onClick={(): void => {
         handleClick(playing, setPlaying);
       }}
     >
@@ -44,6 +53,6 @@ const ConenctedClip = ({
   );
 };
 
-const Clip = connect(mapStateToProps, mapDispatchToProps)(ConenctedClip);
+const Clip = connect(mapStateToProps, mapDispatchToProps)(ConnectedClip);
 
 export { Clip };

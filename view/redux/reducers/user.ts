@@ -19,12 +19,15 @@ export interface UserType {
   user: User;
 }
 
-export const user = (state = intialUserState, action: UserActionTypes) => {
+export const user = (
+  state = intialUserState,
+  action: UserActionTypes
+): UserType => {
   switch (action.type) {
     case USER.LOGIN_USER:
-      return { ...state, user: action.payload };
+      return { user: action.payload, ...state };
     case USER.LOGOUT_USER:
-      return { ...state, user: action.payload };
+      return { user: action.payload, ...state };
     default:
       return state;
   }

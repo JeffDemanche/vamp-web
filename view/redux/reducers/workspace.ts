@@ -1,5 +1,3 @@
-import { combineReducers } from "redux";
-
 import { WORKSPACE } from "../action-types";
 import { WorkspaceActionTypes } from "../actions/workspace";
 
@@ -20,19 +18,19 @@ export interface WorkspaceType {
 export const workspace = (
   state = initialWorkspaceState,
   action: WorkspaceActionTypes
-) => {
+): WorkspaceType => {
   switch (action.type) {
     case WORKSPACE.SET_BPM:
-      return { ...state, bpm: action.payload };
+      return { bpm: action.payload, ...state };
     case WORKSPACE.SET_BEATS_PER_BAR:
-      return { ...state, beatsPerBar: action.payload };
+      return { beatsPerBar: action.payload, ...state };
     case WORKSPACE.SET_PLAYING:
       return {
-        ...state,
-        playing: action.payload
+        playing: action.payload,
+        ...state
       };
     case WORKSPACE.SET_METRONOME_SOUND:
-      return { ...state, metronomeSound: action.payload };
+      return { metronomeSound: action.payload, ...state };
     default:
       return state;
   }

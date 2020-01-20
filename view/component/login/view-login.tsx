@@ -1,12 +1,11 @@
 import * as React from "react";
-import { GoogleLogin } from "react-google-login";
 
-const styles = require("./view-login.less");
+import styles = require("./view-login.less");
 
-const ViewLogin = () => {
-  const onSignIn = async (googleUser: any) => {
-    console.log(googleUser);
-  };
+const ViewLogin: React.FunctionComponent = () => {
+  // const onSignIn = async (googleUser: any) => {
+  //   console.log(googleUser);
+  // };
 
   return (
     <div className={styles["login"]}>

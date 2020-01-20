@@ -3,7 +3,7 @@ import { Popover } from "react-bootstrap";
 import { OverlayTrigger } from "react-bootstrap";
 import { Placement } from "react-bootstrap/Overlay";
 
-const styles = require("./popover.less");
+import styles = require("./popover.less");
 
 interface VampPopoverProps {
   id: string;
@@ -24,7 +24,7 @@ const VampPopover = (props: VampPopoverProps): JSX.Element => {
       placement={props.placement}
       rootClose
       overlay={
-        <Popover id={props.id} className={styles.popover}>
+        <Popover id={props.id} className={styles["popover"]}>
           {title}
           <Popover.Content>{props.content}</Popover.Content>
         </Popover>

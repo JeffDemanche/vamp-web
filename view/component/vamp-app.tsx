@@ -8,10 +8,10 @@ const client = new ApolloClient({
   uri: "http://localhost:4567/api"
 });
 
-const { withRouter } = require("react-router");
-const { BrowserRouter, Route } = require("react-router-dom");
+import { withRouter } from "react-router";
+import { BrowserRouter, Route } from "react-router-dom";
 
-const styles = require("./vamp-app.less");
+import styles = require("./vamp-app.less");
 import VampHeader from "./header/header";
 import { ViewWorkspace } from "./workspace/view-workspace";
 import { ViewLogin } from "./login/view-login";
@@ -46,7 +46,7 @@ const VampAppBackdrop = withRouter(
   }
 );
 
-const VampApp = () => {
+const VampApp: React.FunctionComponent = () => {
   // ViewWorkspace should be able to be changed.
   return (
     <BrowserRouter>

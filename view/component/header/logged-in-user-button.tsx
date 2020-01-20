@@ -25,7 +25,7 @@ const LoggedInUserButton = (props: LoggedInUserButtonProps): JSX.Element => {
           </NewVamp>
           <a
             href="/"
-            onClick={() => {
+            onClick={(): void => {
               logout({ variables: {} });
             }}
           >

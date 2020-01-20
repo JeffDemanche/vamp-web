@@ -6,9 +6,9 @@ import { BPMSetting } from "./bpm-setting";
 import { BeatsPerBarSetting } from "./beats-per-bar-setting";
 import { MetronomeSetting } from "./metronome-setting";
 
-const styles = require("./play-panel.less");
+import styles = require("./play-panel.less");
 
-const PlayPanel = () => {
+const PlayPanel: React.FunctionComponent = () => {
   const metronomeOptions = [
     {
       index: 1,
