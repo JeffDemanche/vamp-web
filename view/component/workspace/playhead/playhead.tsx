@@ -3,7 +3,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { setPlaying, SetPlayingAction } from "../../../redux/actions/workspace";
 
-import styles = require("./clip.less");
+import styles = require("./playhead.less");
 
 import { StateType } from "../../../redux/reducers/index";
 import { WorkspaceActionTypes } from "../../../redux/actions/workspace";
@@ -17,7 +17,7 @@ interface DispatchProps {
   setPlaying: (playing: boolean) => SetPlayingAction;
 }
 
-interface ClipSettingProps extends StateProps, DispatchProps {}
+interface PlayheadSettingProps extends StateProps, DispatchProps {}
 
 const mapStateToProps = (state: StateType): StateProps => {
   return { playing: state.workspace.playing };
@@ -37,10 +37,10 @@ const handleClick = (
   setPlaying(!playing);
 };
 
-const ConnectedClip: React.FunctionComponent<ClipSettingProps> = ({
+const ConnectedPlayhead: React.FunctionComponent<PlayheadSettingProps> = ({
   playing,
   setPlaying
-}: ClipSettingProps) => {
+}: PlayheadSettingProps) => {
   return (
     <div
       className={styles["clip"]}
@@ -53,6 +53,9 @@ const ConnectedClip: React.FunctionComponent<ClipSettingProps> = ({
   );
 };
 
-const Clip = connect(mapStateToProps, mapDispatchToProps)(ConnectedClip);
+const Playhead = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ConnectedPlayhead);
 
-export { Clip };
+export { Playhead };

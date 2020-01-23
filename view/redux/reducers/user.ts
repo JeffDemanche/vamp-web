@@ -1,5 +1,5 @@
-import { UserActionTypes } from "../actions/user";
 import { USER } from "../action-types";
+import { Reducer } from "redux";
 
 const intialUserState: UserType = null;
 
@@ -19,15 +19,12 @@ export interface UserType {
   user: User;
 }
 
-export const user = (
-  state = intialUserState,
-  action: UserActionTypes
-): UserType => {
+export const user: Reducer<UserType> = (state = intialUserState, action) => {
   switch (action.type) {
     case USER.LOGIN_USER:
-      return { user: action.payload, ...state };
+      return { ...state, user: action.payload };
     case USER.LOGOUT_USER:
-      return { user: action.payload, ...state };
+      return { ...state, user: action.payload };
     default:
       return state;
   }

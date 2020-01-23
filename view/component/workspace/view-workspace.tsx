@@ -1,12 +1,14 @@
 import * as React from "react";
+import { useEffect } from "react";
 
-import { Clip } from "./clip/clip";
+import { Playhead } from "./playhead/playhead";
 import { PlayPanel } from "./play-panel/play-panel";
 import { Query, QueryResult } from "react-apollo";
 import { VAMP } from "../../queries/vamp-queries";
 import { RouteComponentProps } from "react-router";
 
 import styles = require("./view-workspace.less");
+import { initializeWorkspaceAudio } from "../../audio/vamp-audio";
 
 interface MatchParams {
   vampid: string;
@@ -15,6 +17,13 @@ interface MatchParams {
 type ViewWorkspaceProps = RouteComponentProps<MatchParams>;
 
 const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
+  useEffect(() => {
+    // Initializes the audio module, which is kinda important. Note this
+    // function only does anything if the workspace hasn't been initialized, so
+    // don't worry about updates.
+    initializeWorkspaceAudio();
+  });
+
   return (
     <Query query={VAMP} variables={{ id: props.match.params.vampid }}>
       {({ loading, error, data }: QueryResult): JSX.Element => {
@@ -32,7 +41,7 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
                     <PlayPanel></PlayPanel>
                   </div>
                   <div className={styles["clips-panel"]}>
-                    <Clip></Clip>
+                    <Playhead></Playhead>
                   </div>
                 </div>
               </div>
