@@ -1,4 +1,5 @@
 import { WORKSPACE } from "../action-types";
+import workspaceAudio from "../../audio/workspace-audio-interface";
 
 export interface SetPlayingAction {
   type: typeof WORKSPACE.SET_PLAYING;
@@ -21,6 +22,7 @@ export interface SetBeatsPerBarAction {
 }
 
 export const setPlaying = (payload: boolean): SetPlayingAction => {
+  workspaceAudio.setPlaying(payload);
   return { type: WORKSPACE.SET_PLAYING, payload };
 };
 

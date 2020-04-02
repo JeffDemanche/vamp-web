@@ -642,7 +642,7 @@ eval("// Imports\nvar ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../.
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("// Imports\nvar ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ \"./node_modules/css-loader/dist/runtime/api.js\");\nexports = ___CSS_LOADER_API_IMPORT___(false);\n// Module\nexports.push([module.i, \".playhead__clip___2cjQD {\\n  width: 300px;\\n  height: 150px;\\n  border-radius: 16px;\\n  background: linear-gradient(-45deg, #f2994a, #eb5757);\\n  display: flex;\\n  cursor: pointer;\\n}\\n.playhead__clip___2cjQD img {\\n  height: 90px;\\n  margin: auto;\\n}\\n\", \"\"]);\n// Exports\nexports.locals = {\n\t\"clip\": \"playhead__clip___2cjQD\"\n};\nmodule.exports = exports;\n\n\n//# sourceURL=webpack:///./view/component/workspace/playhead/playhead.less?./node_modules/css-loader/dist/cjs.js??ref--6-1!./node_modules/less-loader/dist/cjs.js");
+eval("// Imports\nvar ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ \"./node_modules/css-loader/dist/runtime/api.js\");\nexports = ___CSS_LOADER_API_IMPORT___(false);\n// Module\nexports.push([module.i, \".playhead__playhead-new___1iBDl {\\n  width: 300px;\\n  height: 150px;\\n  border-radius: 16px;\\n  background: linear-gradient(-45deg, #f2994a, #eb5757);\\n  display: flex;\\n  cursor: pointer;\\n}\\n.playhead__playhead-new___1iBDl img {\\n  height: 90px;\\n  margin: auto;\\n}\\n\", \"\"]);\n// Exports\nexports.locals = {\n\t\"playhead-new\": \"playhead__playhead-new___1iBDl\"\n};\nmodule.exports = exports;\n\n\n//# sourceURL=webpack:///./view/component/workspace/playhead/playhead.less?./node_modules/css-loader/dist/cjs.js??ref--6-1!./node_modules/less-loader/dist/cjs.js");
 
 /***/ }),
 
@@ -3660,6 +3660,18 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var reac
 
 /***/ }),
 
+/***/ "./view/audio/music.ts":
+/*!*****************************!*\
+  !*** ./view/audio/music.ts ***!
+  \*****************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\r\n/**\r\n * Handles music logic like timing, etc.\r\n */\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar workspaceMusic = {\r\n    play: function () { },\r\n    stop: function () { }\r\n};\r\nexports.workspaceMusic = workspaceMusic;\r\n\n\n//# sourceURL=webpack:///./view/audio/music.ts?");
+
+/***/ }),
+
 /***/ "./view/audio/vamp-audio.ts":
 /*!**********************************!*\
   !*** ./view/audio/vamp-audio.ts ***!
@@ -3668,7 +3680,19 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var reac
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\n/**\r\n * Root of all audio-interface-related code. I'm thinking taking a stab at\r\n * making this object-oriented might be a good first-attempt.\r\n */\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar WorkspaceAudio = /** @class */ (function () {\r\n    function WorkspaceAudio() {\r\n        this.context = this.startAudioContext();\r\n    }\r\n    WorkspaceAudio.prototype.startAudioContext = function () {\r\n        try {\r\n            // Typing for window augmented in externals.d.ts.\r\n            // The webkit thing is Safari bullshit.\r\n            window.AudioContext = window.AudioContext || window.webkitAudioContext;\r\n            return new AudioContext();\r\n        }\r\n        catch (e) {\r\n            // TODO error handling.\r\n            alert(\"Web audio not supported in this browser (TODO)\");\r\n        }\r\n    };\r\n    return WorkspaceAudio;\r\n}());\r\nvar workspaceAudioInstance;\r\nvar initializeWorkspaceAudio = function () {\r\n    if (!workspaceAudioInstance)\r\n        workspaceAudioInstance = new WorkspaceAudio();\r\n};\r\nexports.initializeWorkspaceAudio = initializeWorkspaceAudio;\r\nvar getWorkspaceAudio = function () { return workspaceAudioInstance; };\r\nexports.getWorkspaceAudio = getWorkspaceAudio;\r\n\n\n//# sourceURL=webpack:///./view/audio/vamp-audio.ts?");
+eval("\r\n/**\r\n * Root of all audio-interface-related code. I'm thinking taking a stab at\r\n * making this object-oriented might be a good first-attempt.\r\n */\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar music_1 = __webpack_require__(/*! ./music */ \"./view/audio/music.ts\");\r\nvar WorkspaceAudio = /** @class */ (function () {\r\n    function WorkspaceAudio() {\r\n        this.context = this.startAudioContext();\r\n        this.music = music_1.workspaceMusic;\r\n    }\r\n    WorkspaceAudio.prototype.startAudioContext = function () {\r\n        try {\r\n            // Typing for window augmented in externals.d.ts.\r\n            // The webkit thing is Safari bullshit.\r\n            window.AudioContext = window.AudioContext || window.webkitAudioContext;\r\n            return new AudioContext();\r\n        }\r\n        catch (e) {\r\n            // TODO error handling.\r\n            alert(\"Web audio not supported in this browser (TODO)\");\r\n        }\r\n    };\r\n    WorkspaceAudio.prototype.getMusic = function () {\r\n        return this.music;\r\n    };\r\n    WorkspaceAudio.prototype.beginRecord = function () { };\r\n    return WorkspaceAudio;\r\n}());\r\nvar workspaceAudioInstance;\r\nvar initializeWorkspaceAudio = function () {\r\n    if (!workspaceAudioInstance)\r\n        workspaceAudioInstance = new WorkspaceAudio();\r\n};\r\nexports.initializeWorkspaceAudio = initializeWorkspaceAudio;\r\nvar getWorkspaceAudio = function () { return workspaceAudioInstance; };\r\nexports.getWorkspaceAudio = getWorkspaceAudio;\r\n\n\n//# sourceURL=webpack:///./view/audio/vamp-audio.ts?");
+
+/***/ }),
+
+/***/ "./view/audio/workspace-audio-interface.ts":
+/*!*************************************************!*\
+  !*** ./view/audio/workspace-audio-interface.ts ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\r\n/**\r\n * Connects the audio scripts in this folder with the Redux state/Apollo stuff.\r\n */\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar vamp_audio_1 = __webpack_require__(/*! ./vamp-audio */ \"./view/audio/vamp-audio.ts\");\r\n/**\r\n * Describes all the interactions from Redux actions to the vamp audio endpoint.\r\n */\r\nvar audioInterface = {\r\n    setPlaying: function (val) {\r\n        if (val) {\r\n            vamp_audio_1.getWorkspaceAudio()\r\n                .getMusic()\r\n                .play();\r\n        }\r\n        else {\r\n            vamp_audio_1.getWorkspaceAudio()\r\n                .getMusic()\r\n                .stop();\r\n        }\r\n    }\r\n};\r\nexports.default = audioInterface;\r\n\n\n//# sourceURL=webpack:///./view/audio/workspace-audio-interface.ts?");
 
 /***/ }),
 
@@ -3950,6 +3974,30 @@ eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nva
 
 /***/ }),
 
+/***/ "./view/component/workspace/playhead/playhead-new.tsx":
+/*!************************************************************!*\
+  !*** ./view/component/workspace/playhead/playhead-new.tsx ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar React = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\r\nvar react_redux_1 = __webpack_require__(/*! react-redux */ \"./node_modules/react-redux/es/index.js\");\r\nvar workspace_1 = __webpack_require__(/*! ../../../redux/actions/workspace */ \"./view/redux/actions/workspace.ts\");\r\nvar styles = __webpack_require__(/*! ./playhead.less */ \"./view/component/workspace/playhead/playhead.less\");\r\nvar vamp_audio_1 = __webpack_require__(/*! ../../../audio/vamp-audio */ \"./view/audio/vamp-audio.ts\");\r\nvar mapStateToProps = function (state) {\r\n    return { playing: state.workspace.playing };\r\n};\r\nvar mapDispatchToProps = function (dispatch) {\r\n    return {\r\n        setPlaying: function (playing) {\r\n            return dispatch(workspace_1.setPlaying(playing));\r\n        }\r\n    };\r\n};\r\nvar handleClick = function (playing, setPlaying) {\r\n    setPlaying(!playing);\r\n    vamp_audio_1.getWorkspaceAudio().beginRecord();\r\n};\r\nvar ConnectedPlayheadNew = function (_a) {\r\n    var playing = _a.playing, setPlaying = _a.setPlaying;\r\n    return (React.createElement(\"div\", { className: styles[\"playhead-new\"], onClick: function () {\r\n            handleClick(playing, setPlaying);\r\n        } },\r\n        React.createElement(\"img\", { src: __webpack_require__(/*! ../../../img/vector/record.svg */ \"./view/img/vector/record.svg\") })));\r\n};\r\nvar PlayheadNew = react_redux_1.connect(mapStateToProps, mapDispatchToProps)(ConnectedPlayheadNew);\r\nexports.PlayheadNew = PlayheadNew;\r\n\n\n//# sourceURL=webpack:///./view/component/workspace/playhead/playhead-new.tsx?");
+
+/***/ }),
+
+/***/ "./view/component/workspace/playhead/playhead-recording.tsx":
+/*!******************************************************************!*\
+  !*** ./view/component/workspace/playhead/playhead-recording.tsx ***!
+  \******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar React = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\r\nvar styles = __webpack_require__(/*! ./playhead.less */ \"./view/component/workspace/playhead/playhead.less\");\r\nvar PlayheadRecording = function () {\r\n    return React.createElement(\"div\", { className: styles[\"playhead-new\"] });\r\n};\r\nexports.PlayheadRecording = PlayheadRecording;\r\n\n\n//# sourceURL=webpack:///./view/component/workspace/playhead/playhead-recording.tsx?");
+
+/***/ }),
+
 /***/ "./view/component/workspace/playhead/playhead.less":
 /*!*********************************************************!*\
   !*** ./view/component/workspace/playhead/playhead.less ***!
@@ -3969,7 +4017,7 @@ eval("var api = __webpack_require__(/*! ../../../../node_modules/style-loader/di
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar React = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\r\nvar react_redux_1 = __webpack_require__(/*! react-redux */ \"./node_modules/react-redux/es/index.js\");\r\nvar workspace_1 = __webpack_require__(/*! ../../../redux/actions/workspace */ \"./view/redux/actions/workspace.ts\");\r\nvar styles = __webpack_require__(/*! ./playhead.less */ \"./view/component/workspace/playhead/playhead.less\");\r\nvar mapStateToProps = function (state) {\r\n    return { playing: state.workspace.playing };\r\n};\r\nvar mapDispatchToProps = function (dispatch) {\r\n    return {\r\n        setPlaying: function (playing) {\r\n            return dispatch(workspace_1.setPlaying(playing));\r\n        }\r\n    };\r\n};\r\nvar handleClick = function (playing, setPlaying) {\r\n    setPlaying(!playing);\r\n};\r\nvar ConnectedPlayhead = function (_a) {\r\n    var playing = _a.playing, setPlaying = _a.setPlaying;\r\n    return (React.createElement(\"div\", { className: styles[\"clip\"], onClick: function () {\r\n            handleClick(playing, setPlaying);\r\n        } },\r\n        React.createElement(\"img\", { src: __webpack_require__(/*! ../../../img/vector/record.svg */ \"./view/img/vector/record.svg\") })));\r\n};\r\nvar Playhead = react_redux_1.connect(mapStateToProps, mapDispatchToProps)(ConnectedPlayhead);\r\nexports.Playhead = Playhead;\r\n\n\n//# sourceURL=webpack:///./view/component/workspace/playhead/playhead.tsx?");
+eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar React = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\r\nvar react_1 = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\r\nvar playhead_new_1 = __webpack_require__(/*! ./playhead-new */ \"./view/component/workspace/playhead/playhead-new.tsx\");\r\nvar playhead_recording_1 = __webpack_require__(/*! ./playhead-recording */ \"./view/component/workspace/playhead/playhead-recording.tsx\");\r\nvar Playhead = function (_a) {\r\n    var initialState = _a.initialState;\r\n    var _b = react_1.useState(initialState), playheadState = _b[0], setPlayheadState = _b[1];\r\n    switch (playheadState) {\r\n        case \"new\":\r\n            return React.createElement(playhead_new_1.PlayheadNew, null);\r\n        case \"recording\":\r\n            return React.createElement(playhead_recording_1.PlayheadRecording, null);\r\n    }\r\n};\r\nexports.Playhead = Playhead;\r\n\n\n//# sourceURL=webpack:///./view/component/workspace/playhead/playhead.tsx?");
 
 /***/ }),
 
@@ -3992,7 +4040,7 @@ eval("var api = __webpack_require__(/*! ../../../node_modules/style-loader/dist/
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar React = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\r\nvar react_1 = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\r\nvar playhead_1 = __webpack_require__(/*! ./playhead/playhead */ \"./view/component/workspace/playhead/playhead.tsx\");\r\nvar play_panel_1 = __webpack_require__(/*! ./play-panel/play-panel */ \"./view/component/workspace/play-panel/play-panel.tsx\");\r\nvar react_apollo_1 = __webpack_require__(/*! react-apollo */ \"./node_modules/react-apollo/lib/react-apollo.esm.js\");\r\nvar vamp_queries_1 = __webpack_require__(/*! ../../queries/vamp-queries */ \"./view/queries/vamp-queries.ts\");\r\nvar styles = __webpack_require__(/*! ./view-workspace.less */ \"./view/component/workspace/view-workspace.less\");\r\nvar vamp_audio_1 = __webpack_require__(/*! ../../audio/vamp-audio */ \"./view/audio/vamp-audio.ts\");\r\nvar ViewWorkspace = function (props) {\r\n    react_1.useEffect(function () {\r\n        // Initializes the audio module, which is kinda important. Note this\r\n        // function only does anything if the workspace hasn't been initialized, so\r\n        // don't worry about updates.\r\n        vamp_audio_1.initializeWorkspaceAudio();\r\n    });\r\n    return (React.createElement(react_apollo_1.Query, { query: vamp_queries_1.VAMP, variables: { id: props.match.params.vampid } }, function (_a) {\r\n        var loading = _a.loading, error = _a.error, data = _a.data;\r\n        if (loading) {\r\n            // TODO Loading screen?\r\n            return React.createElement(\"div\", null, \"Loading...\");\r\n        }\r\n        else {\r\n            if (!data || data.vamp == null) {\r\n                return React.createElement(\"div\", null, \"Vamp not found :(\");\r\n            }\r\n            else {\r\n                return (React.createElement(\"div\", { className: styles[\"workspace\"] },\r\n                    React.createElement(\"div\", { className: styles[\"play-and-tracks\"] },\r\n                        React.createElement(\"div\", { className: styles[\"play-panel\"] },\r\n                            React.createElement(play_panel_1.PlayPanel, null)),\r\n                        React.createElement(\"div\", { className: styles[\"clips-panel\"] },\r\n                            React.createElement(playhead_1.Playhead, null)))));\r\n            }\r\n        }\r\n    }));\r\n};\r\nexports.ViewWorkspace = ViewWorkspace;\r\n\n\n//# sourceURL=webpack:///./view/component/workspace/view-workspace.tsx?");
+eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar React = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\r\nvar react_1 = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\r\nvar playhead_1 = __webpack_require__(/*! ./playhead/playhead */ \"./view/component/workspace/playhead/playhead.tsx\");\r\nvar play_panel_1 = __webpack_require__(/*! ./play-panel/play-panel */ \"./view/component/workspace/play-panel/play-panel.tsx\");\r\nvar react_apollo_1 = __webpack_require__(/*! react-apollo */ \"./node_modules/react-apollo/lib/react-apollo.esm.js\");\r\nvar vamp_queries_1 = __webpack_require__(/*! ../../queries/vamp-queries */ \"./view/queries/vamp-queries.ts\");\r\nvar styles = __webpack_require__(/*! ./view-workspace.less */ \"./view/component/workspace/view-workspace.less\");\r\nvar vamp_audio_1 = __webpack_require__(/*! ../../audio/vamp-audio */ \"./view/audio/vamp-audio.ts\");\r\nvar ViewWorkspace = function (props) {\r\n    react_1.useEffect(function () {\r\n        // Initializes the audio module, which is kinda important. Note this\r\n        // function only does anything if the workspace hasn't been initialized, so\r\n        // don't worry about updates.\r\n        vamp_audio_1.initializeWorkspaceAudio();\r\n    });\r\n    return (React.createElement(react_apollo_1.Query, { query: vamp_queries_1.VAMP, variables: { id: props.match.params.vampid } }, function (_a) {\r\n        var loading = _a.loading, error = _a.error, data = _a.data;\r\n        if (loading) {\r\n            // TODO Loading screen?\r\n            return React.createElement(\"div\", null, \"Loading...\");\r\n        }\r\n        else {\r\n            if (!data || data.vamp == null) {\r\n                return React.createElement(\"div\", null, \"Vamp not found :(\");\r\n            }\r\n            else {\r\n                return (React.createElement(\"div\", { className: styles[\"workspace\"] },\r\n                    React.createElement(\"div\", { className: styles[\"play-and-tracks\"] },\r\n                        React.createElement(\"div\", { className: styles[\"play-panel\"] },\r\n                            React.createElement(play_panel_1.PlayPanel, null)),\r\n                        React.createElement(\"div\", { className: styles[\"clips-panel\"] },\r\n                            React.createElement(playhead_1.Playhead, { initialState: \"new\" })))));\r\n            }\r\n        }\r\n    }));\r\n};\r\nexports.ViewWorkspace = ViewWorkspace;\r\n\n\n//# sourceURL=webpack:///./view/component/workspace/view-workspace.tsx?");
 
 /***/ }),
 
@@ -4096,7 +4144,7 @@ eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nex
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar action_types_1 = __webpack_require__(/*! ../action-types */ \"./view/redux/action-types.ts\");\r\nexports.setPlaying = function (payload) {\r\n    return { type: action_types_1.WORKSPACE.SET_PLAYING, payload: payload };\r\n};\r\nexports.setMetronomeSound = function (payload) {\r\n    return { type: action_types_1.WORKSPACE.SET_METRONOME_SOUND, payload: payload };\r\n};\r\nexports.setBPM = function (payload) {\r\n    return { type: action_types_1.WORKSPACE.SET_BPM, payload: payload };\r\n};\r\nexports.setBeatsPerBar = function (payload) {\r\n    return { type: action_types_1.WORKSPACE.SET_BEATS_PER_BAR, payload: payload };\r\n};\r\n\n\n//# sourceURL=webpack:///./view/redux/actions/workspace.ts?");
+eval("\r\nObject.defineProperty(exports, \"__esModule\", { value: true });\r\nvar action_types_1 = __webpack_require__(/*! ../action-types */ \"./view/redux/action-types.ts\");\r\nvar workspace_audio_interface_1 = __webpack_require__(/*! ../../audio/workspace-audio-interface */ \"./view/audio/workspace-audio-interface.ts\");\r\nexports.setPlaying = function (payload) {\r\n    workspace_audio_interface_1.default.setPlaying(payload);\r\n    return { type: action_types_1.WORKSPACE.SET_PLAYING, payload: payload };\r\n};\r\nexports.setMetronomeSound = function (payload) {\r\n    return { type: action_types_1.WORKSPACE.SET_METRONOME_SOUND, payload: payload };\r\n};\r\nexports.setBPM = function (payload) {\r\n    return { type: action_types_1.WORKSPACE.SET_BPM, payload: payload };\r\n};\r\nexports.setBeatsPerBar = function (payload) {\r\n    return { type: action_types_1.WORKSPACE.SET_BEATS_PER_BAR, payload: payload };\r\n};\r\n\n\n//# sourceURL=webpack:///./view/redux/actions/workspace.ts?");
 
 /***/ }),
 

@@ -3,11 +3,15 @@
  * making this object-oriented might be a good first-attempt.
  */
 
+import { Music, workspaceMusic } from "./music";
+
 class WorkspaceAudio {
   context: AudioContext;
+  music: Music;
 
   constructor() {
     this.context = this.startAudioContext();
+    this.music = workspaceMusic;
   }
 
   private startAudioContext(): AudioContext {
@@ -21,6 +25,12 @@ class WorkspaceAudio {
       alert("Web audio not supported in this browser (TODO)");
     }
   }
+
+  getMusic(): Music {
+    return this.music;
+  }
+
+  beginRecord(): void {}
 }
 
 let workspaceAudioInstance: WorkspaceAudio;

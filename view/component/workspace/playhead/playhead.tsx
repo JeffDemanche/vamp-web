@@ -1,61 +1,34 @@
 import * as React from "react";
 
-import { connect } from "react-redux";
-import { setPlaying, SetPlayingAction } from "../../../redux/actions/workspace";
+import { SetPlayingAction } from "../../../redux/actions/workspace";
+import { useState } from "react";
 
-import styles = require("./playhead.less");
+import { PlayheadNew } from "./playhead-new";
+import { PlayheadRecording } from "./playhead-recording";
 
-import { StateType } from "../../../redux/reducers/index";
-import { WorkspaceActionTypes } from "../../../redux/actions/workspace";
-import { Dispatch } from "redux";
+/**
+ * This component is the root for all playhead types.
+ */
 
-interface StateProps {
-  playing: boolean;
+type PlayheadState = "new" | "recording";
+
+interface PlayheadProps {
+  initialState: PlayheadState;
 }
 
-interface DispatchProps {
-  setPlaying: (playing: boolean) => SetPlayingAction;
-}
-
-interface PlayheadSettingProps extends StateProps, DispatchProps {}
-
-const mapStateToProps = (state: StateType): StateProps => {
-  return { playing: state.workspace.playing };
-};
-
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
-  return {
-    setPlaying: (playing: boolean): SetPlayingAction =>
-      dispatch(setPlaying(playing))
-  };
-};
-
-const handleClick = (
-  playing: boolean,
-  setPlaying: (payload: boolean) => WorkspaceActionTypes
-): void => {
-  setPlaying(!playing);
-};
-
-const ConnectedPlayhead: React.FunctionComponent<PlayheadSettingProps> = ({
-  playing,
-  setPlaying
-}: PlayheadSettingProps) => {
-  return (
-    <div
-      className={styles["clip"]}
-      onClick={(): void => {
-        handleClick(playing, setPlaying);
-      }}
-    >
-      <img src={require("../../../img/vector/record.svg")} />
-    </div>
+const Playhead: React.FunctionComponent<PlayheadProps> = ({
+  initialState
+}: PlayheadProps) => {
+  const [playheadState, setPlayheadState] = useState<PlayheadState>(
+    initialState
   );
-};
 
-const Playhead = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ConnectedPlayhead);
+  switch (playheadState) {
+    case "new":
+      return <PlayheadNew></PlayheadNew>;
+    case "recording":
+      return <PlayheadRecording></PlayheadRecording>;
+  }
+};
 
 export { Playhead };

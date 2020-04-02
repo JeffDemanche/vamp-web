@@ -41,7 +41,7 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
                     <PlayPanel></PlayPanel>
                   </div>
                   <div className={styles["clips-panel"]}>
-                    <Playhead></Playhead>
+                    <Playhead initialState="new"></Playhead>
                   </div>
                 </div>
               </div>
