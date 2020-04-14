@@ -1,5 +1,6 @@
 import { WORKSPACE } from "../action-types";
 import workspaceAudio from "../../audio/workspace-audio-interface";
+import { workspace } from "../../build/view/redux/reducers/workspace";
 
 export interface SetPlayingAction {
   type: typeof WORKSPACE.SET_PLAYING;
@@ -27,14 +28,17 @@ export const setPlaying = (payload: boolean): SetPlayingAction => {
 };
 
 export const setMetronomeSound = (payload: string): SetMetronomeSoundAction => {
+  workspaceAudio.setMetronomeSound(payload);
   return { type: WORKSPACE.SET_METRONOME_SOUND, payload };
 };
 
 export const setBPM = (payload: number): SetBPMAction => {
+  workspaceAudio.setBPM(payload);
   return { type: WORKSPACE.SET_BPM, payload };
 };
 
 export const setBeatsPerBar = (payload: number): SetBeatsPerBarAction => {
+  workspaceAudio.setBeatsPerBar(payload);
   return { type: WORKSPACE.SET_BEATS_PER_BAR, payload };
 };
 

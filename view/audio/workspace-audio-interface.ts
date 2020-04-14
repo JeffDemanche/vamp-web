@@ -10,14 +10,19 @@ import { getWorkspaceAudio } from "./vamp-audio";
 const audioInterface = {
   setPlaying: (val: boolean): void => {
     if (val) {
-      getWorkspaceAudio()
-        .getMusic()
-        .play();
+      getWorkspaceAudio().play();
     } else {
-      getWorkspaceAudio()
-        .getMusic()
-        .stop();
+      getWorkspaceAudio().stop();
     }
+  },
+  setBPM: (val: number): void => {
+    getWorkspaceAudio().metronome.bpm = val;
+  },
+  setBeatsPerBar: (val: number): void => {
+    getWorkspaceAudio().metronome.beatsPerBar = val;
+  },
+  setMetronomeSound: (val: string): void => {
+    getWorkspaceAudio().metronome.metronomeSound = val;
   }
 };
 

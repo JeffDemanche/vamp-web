@@ -3,15 +3,20 @@
  * making this object-oriented might be a good first-attempt.
  */
 
-import { Music, workspaceMusic } from "./music";
+import { Scheduler } from "./scheduler";
+import store from "../redux/store/index";
+import { WorkspaceType } from "../redux/reducers/workspace";
+import Metronome from "./metronome";
 
 class WorkspaceAudio {
-  context: AudioContext;
-  music: Music;
+  _context: AudioContext;
+  _scheduler: Scheduler;
+  _metronome: Metronome;
 
   constructor() {
-    this.context = this.startAudioContext();
-    this.music = workspaceMusic;
+    this._context = this.startAudioContext();
+    this._scheduler = new Scheduler(this._context);
+    this._metronome = new Metronome(this.getWorkspaceState());
   }
 
   private startAudioContext(): AudioContext {
@@ -26,8 +31,34 @@ class WorkspaceAudio {
     }
   }
 
-  getMusic(): Music {
-    return this.music;
+  /**
+   * Triggered from Redux interface.
+   */
+  play(): void {
+    this._scheduler.play();
+  }
+
+  /**
+   * Triggered from Redux interface.
+   */
+  stop(): void {
+    this._scheduler.stop();
+  }
+
+  /**
+   * Gets the current state of the workspace, taken directly from the Redux
+   * store object.
+   */
+  getWorkspaceState(): WorkspaceType {
+    return store.getState().workspace;
+  }
+
+  get scheduler(): Scheduler {
+    return this._scheduler;
+  }
+
+  get metronome(): Metronome {
+    return this._metronome;
   }
 
   beginRecord(): void {}
