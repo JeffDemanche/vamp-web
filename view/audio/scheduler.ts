@@ -2,20 +2,11 @@ import { Heap } from "typescript-collections";
 import { ICompareFunction } from "typescript-collections/dist/lib/util";
 
 interface WorkspaceEvent {
+  id: string;
   start: number;
-
-  dispatch: (context: AudioContext) => Promise<void>;
+  dispatch: (context: AudioContext, scheduler: Scheduler) => Promise<void>;
+  repeat?: number;
 }
-
-/** Used for heap to prioritize upcoming events. */
-const WorkspaceEventComparison: ICompareFunction<WorkspaceEvent> = (
-  a: WorkspaceEvent,
-  b: WorkspaceEvent
-): number => {
-  if (a.start === b.start) return 0;
-  else if (a.start < b.start) return -1;
-  else return 1;
-};
 
 /**
  * Handles timing, accumulates events that need to take place at some point in
@@ -32,7 +23,7 @@ class Scheduler {
    */
   private _loopTimeout: number;
 
-  private _events: Heap<WorkspaceEvent>;
+  private _events: { [id: string]: WorkspaceEvent };
 
   constructor(context: AudioContext) {
     this._context = context;
@@ -40,17 +31,27 @@ class Scheduler {
     this._seconds = 0;
 
     this._loopTimeout = 1;
-    this._events = new Heap(WorkspaceEventComparison);
+    this._events = {};
   }
 
-  play(): void {
+  play = async (): Promise<void> => {
     this._isPlaying = true;
     this.loop();
-  }
+  };
 
-  stop(): void {
+  stop = async (): Promise<void> => {
     this._isPlaying = false;
-  }
+  };
+
+  private postStop = (): void => {
+    this._seconds = 0;
+  };
+
+  time = (): number => this._seconds;
+
+  addEvent = (event: WorkspaceEvent): void => {
+    this._events[event.id] = event;
+  };
 
   /**
    * This is a shot in the dark for now. Runs an asynchronous timer with a given
@@ -71,22 +72,37 @@ class Scheduler {
       if (this._isPlaying) {
         setTimeout(() => {
           const elapsedUnix = Date.now() - loopBeginUnix;
+          const preTime = this._seconds;
           this._seconds = 0.001 * elapsedUnix + loopBeginWorkspace;
 
           // Do all scheduled audio tasks.
-          while (
-            this._events.peek() &&
-            this._events.peek().start < this._seconds
-          ) {
-            this._events.removeRoot().dispatch(this._context);
+
+          for (const eventId in this._events) {
+            const repeat = this._events[eventId].repeat;
+            const start = this._events[eventId].start;
+            const dispatch = this._events[eventId].dispatch;
+
+            if (repeat) {
+              // Play repeating events if this is negative.
+              const timeDiff = (this._seconds % repeat) - (preTime % repeat);
+              if (start == preTime || timeDiff < 0) {
+                dispatch(this._context, this);
+              }
+            } else {
+              if (start > preTime && start <= this._seconds) {
+                dispatch(this._context, this);
+              }
+            }
           }
 
           runTimeout();
         }, this._loopTimeout);
+      } else {
+        this.postStop();
       }
     };
     runTimeout();
   }
 }
 
-export { Scheduler };
+export { WorkspaceEvent, Scheduler };

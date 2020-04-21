@@ -35,14 +35,16 @@ class WorkspaceAudio {
    * Triggered from Redux interface.
    */
   play(): void {
-    this._scheduler.play();
+    this.scheduler.play();
+    this.metronome.play();
   }
 
   /**
    * Triggered from Redux interface.
    */
   stop(): void {
-    this._scheduler.stop();
+    this.scheduler.stop();
+    this.metronome.stop();
   }
 
   /**
