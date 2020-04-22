@@ -22,9 +22,6 @@ class Metronome {
   }
 
   play = async (): Promise<void> => {
-    const initialTime = getWorkspaceAudio().scheduler.time();
-    const tbt = this.timeBetweenTicks();
-
     this._isPlaying = true;
     getWorkspaceAudio().scheduler.addEvent({
       id: "METRONOME",
@@ -34,7 +31,6 @@ class Metronome {
         scheduler: Scheduler
       ): Promise<void> => {
         if (this._isPlaying) {
-          console.log("t");
           this.tick(context);
         }
       },

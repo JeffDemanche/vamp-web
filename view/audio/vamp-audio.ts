@@ -7,16 +7,19 @@ import { Scheduler } from "./scheduler";
 import store from "../redux/store/index";
 import { WorkspaceType } from "../redux/reducers/workspace";
 import Metronome from "./metronome";
+import Recorder from "./recorder";
 
 class WorkspaceAudio {
   _context: AudioContext;
   _scheduler: Scheduler;
   _metronome: Metronome;
+  _recorder: Recorder;
 
   constructor() {
     this._context = this.startAudioContext();
     this._scheduler = new Scheduler(this._context);
     this._metronome = new Metronome(this.getWorkspaceState());
+    this._recorder = new Recorder(this._context);
   }
 
   private startAudioContext(): AudioContext {
@@ -37,6 +40,7 @@ class WorkspaceAudio {
   play(): void {
     this.scheduler.play();
     this.metronome.play();
+    this._recorder.startRecording();
   }
 
   /**
@@ -45,6 +49,7 @@ class WorkspaceAudio {
   stop(): void {
     this.scheduler.stop();
     this.metronome.stop();
+    this._recorder.stopRecording();
   }
 
   /**

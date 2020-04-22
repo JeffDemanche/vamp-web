@@ -27,6 +27,7 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
   return (
     <Query query={VAMP} variables={{ id: props.match.params.vampid }}>
       {({ loading, error, data }: QueryResult): JSX.Element => {
+        console.log(data);
         if (loading) {
           // TODO Loading screen?
           return <div>Loading...</div>;

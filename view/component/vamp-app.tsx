@@ -5,7 +5,7 @@ import ApolloClient from "apollo-boost";
 import { ApolloProvider } from "@apollo/react-hooks";
 
 const client = new ApolloClient({
-  uri: "http://localhost:4567/api"
+  uri: "http://localhost:4567/graphql"
 });
 
 import { withRouter } from "react-router";
