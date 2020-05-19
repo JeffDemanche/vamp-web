@@ -31,18 +31,35 @@ class Recorder {
       .then(gotMedia);
   }
 
+  /**
+   * This is called when _mediaRecorder.stop() is called, or when the audio
+   * stream stops giving data (for instance if the user microphone is
+   * disconnected).
+   */
   private handleData = (e: BlobEvent): void => {
     if (e.data.size > 0) {
       console.log(e);
     }
   };
 
-  startRecording = (): void => {
-    this._mediaRecorder.start();
+  /**
+   * Start recording from the MediaRecorder object, which will only work if we
+   * have access to the user's microphone. If that's not the case, return false.
+   */
+  startRecording = (): boolean => {
+    if (this._mediaRecorder) {
+      this._mediaRecorder.start();
+      return true;
+    }
+    return false;
   };
 
-  stopRecording = (): void => {
-    this._mediaRecorder.stop();
+  stopRecording = (): boolean => {
+    if (this._mediaRecorder) {
+      this._mediaRecorder.stop();
+      return true;
+    }
+    return false;
   };
 }
 

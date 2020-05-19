@@ -1,6 +1,3 @@
-import { Heap } from "typescript-collections";
-import { ICompareFunction } from "typescript-collections/dist/lib/util";
-
 interface WorkspaceEvent {
   id: string;
   start: number;
@@ -51,6 +48,10 @@ class Scheduler {
 
   addEvent = (event: WorkspaceEvent): void => {
     this._events[event.id] = event;
+  };
+
+  removeEvent = (id: string): void => {
+    delete this._events[id];
   };
 
   /**

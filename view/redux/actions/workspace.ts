@@ -1,6 +1,4 @@
 import { WORKSPACE } from "../action-types";
-import workspaceAudio from "../../audio/workspace-audio-interface";
-import { workspace } from "../../build/view/redux/reducers/workspace";
 
 export interface SetPlayingAction {
   type: typeof WORKSPACE.SET_PLAYING;
@@ -22,23 +20,29 @@ export interface SetBeatsPerBarAction {
   payload: number;
 }
 
+/**
+ * Redux action to set the workspace playing state.
+ * @param payload True/false if playing.
+ * @param triggerAudio If true, this action will trigger the WorkspaceAudio to
+ *     start playing on this state change. The only reason this should be false
+ *     is if the action is being dispatched from the WorkspaceAudio (for
+ *     instance, if there's a recording error we would want to notify the view
+ *     components to stop playing but don't want to notify the WorkspaceAudio
+ *     because it already knows).
+ */
 export const setPlaying = (payload: boolean): SetPlayingAction => {
-  workspaceAudio.setPlaying(payload);
   return { type: WORKSPACE.SET_PLAYING, payload };
 };
 
 export const setMetronomeSound = (payload: string): SetMetronomeSoundAction => {
-  workspaceAudio.setMetronomeSound(payload);
   return { type: WORKSPACE.SET_METRONOME_SOUND, payload };
 };
 
 export const setBPM = (payload: number): SetBPMAction => {
-  workspaceAudio.setBPM(payload);
   return { type: WORKSPACE.SET_BPM, payload };
 };
 
 export const setBeatsPerBar = (payload: number): SetBeatsPerBarAction => {
-  workspaceAudio.setBeatsPerBar(payload);
   return { type: WORKSPACE.SET_BEATS_PER_BAR, payload };
 };
 

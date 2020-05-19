@@ -8,7 +8,6 @@ import styles = require("./playhead.less");
 import { StateType } from "../../../redux/reducers/index";
 import { WorkspaceActionTypes } from "../../../redux/actions/workspace";
 import { Dispatch } from "redux";
-import { getWorkspaceAudio } from "../../../audio/vamp-audio";
 
 interface StateProps {
   playing: boolean;
@@ -36,8 +35,6 @@ const handleClick = (
   setPlaying: (payload: boolean) => WorkspaceActionTypes
 ): void => {
   setPlaying(!playing);
-
-  getWorkspaceAudio().beginRecord();
 };
 
 const ConnectedPlayheadNew: React.FunctionComponent<PlayheadNewProps> = ({

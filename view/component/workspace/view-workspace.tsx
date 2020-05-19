@@ -8,7 +8,7 @@ import { VAMP } from "../../queries/vamp-queries";
 import { RouteComponentProps } from "react-router";
 
 import styles = require("./view-workspace.less");
-import { initializeWorkspaceAudio } from "../../audio/vamp-audio";
+import { WorkspaceAudio } from "../../audio/vamp-audio";
 
 interface MatchParams {
   vampid: string;
@@ -17,17 +17,9 @@ interface MatchParams {
 type ViewWorkspaceProps = RouteComponentProps<MatchParams>;
 
 const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
-  useEffect(() => {
-    // Initializes the audio module, which is kinda important. Note this
-    // function only does anything if the workspace hasn't been initialized, so
-    // don't worry about updates.
-    initializeWorkspaceAudio();
-  });
-
   return (
     <Query query={VAMP} variables={{ id: props.match.params.vampid }}>
       {({ loading, error, data }: QueryResult): JSX.Element => {
-        console.log(data);
         if (loading) {
           // TODO Loading screen?
           return <div>Loading...</div>;
@@ -37,6 +29,7 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
           } else {
             return (
               <div className={styles["workspace"]}>
+                <WorkspaceAudio></WorkspaceAudio>
                 <div className={styles["play-and-tracks"]}>
                   <div className={styles["play-panel"]}>
                     <PlayPanel></PlayPanel>
