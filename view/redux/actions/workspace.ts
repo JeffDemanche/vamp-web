@@ -1,8 +1,15 @@
 import { WORKSPACE } from "../action-types";
 
-export interface SetPlayingAction {
-  type: typeof WORKSPACE.SET_PLAYING;
-  payload: boolean;
+export interface PlayAction {
+  type: typeof WORKSPACE.PLAY;
+}
+
+export interface PauseAction {
+  type: typeof WORKSPACE.PAUSE;
+}
+
+export interface StopAction {
+  type: typeof WORKSPACE.STOP;
 }
 
 export interface SetMetronomeSoundAction {
@@ -20,18 +27,21 @@ export interface SetBeatsPerBarAction {
   payload: number;
 }
 
-/**
- * Redux action to set the workspace playing state.
- * @param payload True/false if playing.
- * @param triggerAudio If true, this action will trigger the WorkspaceAudio to
- *     start playing on this state change. The only reason this should be false
- *     is if the action is being dispatched from the WorkspaceAudio (for
- *     instance, if there's a recording error we would want to notify the view
- *     components to stop playing but don't want to notify the WorkspaceAudio
- *     because it already knows).
- */
-export const setPlaying = (payload: boolean): SetPlayingAction => {
-  return { type: WORKSPACE.SET_PLAYING, payload };
+export interface SetPlayPosition {
+  type: typeof WORKSPACE.SET_PLAY_POSITION;
+  payload: number;
+}
+
+export const play = (): PlayAction => {
+  return { type: WORKSPACE.PLAY };
+};
+
+export const pause = (): PlayAction => {
+  return { type: WORKSPACE.PAUSE };
+};
+
+export const stop = (): PlayAction => {
+  return { type: WORKSPACE.STOP };
 };
 
 export const setMetronomeSound = (payload: string): SetMetronomeSoundAction => {
@@ -46,11 +56,18 @@ export const setBeatsPerBar = (payload: number): SetBeatsPerBarAction => {
   return { type: WORKSPACE.SET_BEATS_PER_BAR, payload };
 };
 
+export const setPlayPosition = (payload: number): SetPlayPosition => {
+  return { type: WORKSPACE.SET_PLAY_POSITION, payload };
+};
+
 /**
  * Single exported type for use in other modules.
  */
 export type WorkspaceActionTypes =
+  | PlayAction
+  | PauseAction
+  | StopAction
   | SetBPMAction
   | SetBeatsPerBarAction
-  | SetPlayingAction
-  | SetMetronomeSoundAction;
+  | SetMetronomeSoundAction
+  | SetPlayPosition;

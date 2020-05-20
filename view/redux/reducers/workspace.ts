@@ -39,17 +39,31 @@ export const workspace: Reducer<WorkspaceType> = (
       return { ...state, bpm: action.payload };
     case WORKSPACE.SET_BEATS_PER_BAR:
       return { ...state, beatsPerBar: action.payload };
-    case WORKSPACE.SET_PLAYING:
+    case WORKSPACE.PLAY:
       return {
         ...state,
-        playing: action.payload,
-        playPosition: action.payload
-          ? state.playPosition
-          : state.playPosition + (Date.now() - state.playStartTime) / 1000,
-        playStartTime: action.payload ? Date.now() : -1
+        playing: true,
+        playStartTime: Date.now()
+      };
+    case WORKSPACE.PAUSE:
+      return {
+        ...state,
+        playing: false,
+        playPosition:
+          state.playPosition + (Date.now() - state.playStartTime) / 1000,
+        playStartTime: -1
+      };
+    case WORKSPACE.STOP:
+      return {
+        ...state,
+        playing: false,
+        playPosition: 0,
+        playStartTime: -1
       };
     case WORKSPACE.SET_METRONOME_SOUND:
       return { ...state, metronomeSound: action.payload };
+    case WORKSPACE.SET_PLAY_POSITION:
+      return { ...state, playPosition: action.payload };
     default:
       return state;
   }

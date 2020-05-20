@@ -1,9 +1,15 @@
 import * as React from "react";
 
-import { setPlaying, SetPlayingAction } from "../../../redux/actions/workspace";
+import {
+  play,
+  pause,
+  stop,
+  PlayAction,
+  PauseAction,
+  StopAction
+} from "../../../redux/actions/workspace";
 
 import { StateType } from "../../../redux/reducers/index";
-import { WorkspaceActionTypes } from "../../../redux/actions/workspace";
 
 import { connect } from "react-redux";
 import styles = require("./play-stop-button.less");
@@ -14,7 +20,9 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  setPlaying: (playing: boolean) => SetPlayingAction;
+  play: () => PlayAction;
+  pause: () => PauseAction;
+  stop: () => StopAction;
 }
 
 interface PlayStopButtonProps extends StateProps, DispatchProps {}
@@ -25,21 +33,30 @@ const mapStateToProps = (state: StateType): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
-    setPlaying: (playing: boolean): SetPlayingAction =>
-      dispatch(setPlaying(playing))
+    play: (): PlayAction => dispatch(play()),
+    pause: (): PauseAction => dispatch(pause()),
+    stop: (): StopAction => dispatch(stop())
   };
 };
 
 const handleClick = (
   playing: boolean,
-  setPlaying: (payload: boolean) => WorkspaceActionTypes
+  play: () => PlayAction,
+  pause: () => PauseAction,
+  stop: () => StopAction
 ): void => {
-  setPlaying(!playing);
+  if (playing) {
+    stop();
+  } else {
+    play();
+  }
 };
 
 const ConnectedPlayStopButton: React.FunctionComponent<PlayStopButtonProps> = ({
   playing,
-  setPlaying
+  play,
+  pause,
+  stop
 }: PlayStopButtonProps) => {
   const image = playing
     ? require("../../../img/vector/stop.svg")
@@ -47,7 +64,7 @@ const ConnectedPlayStopButton: React.FunctionComponent<PlayStopButtonProps> = ({
   return (
     <div
       className={styles["play-stop-button"]}
-      onClick={(): void => handleClick(playing, setPlaying)}
+      onClick={(): void => handleClick(playing, play, pause, stop)}
     >
       <img src={image} />
     </div>

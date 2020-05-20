@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { SetPlayingAction } from "../../../redux/actions/workspace";
 import { useState } from "react";
 
 import { PlayheadNew } from "./playhead-new";

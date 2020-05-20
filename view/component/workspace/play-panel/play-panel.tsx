@@ -7,6 +7,7 @@ import { BeatsPerBarSetting } from "./beats-per-bar-setting";
 import { MetronomeSetting } from "./metronome-setting";
 
 import styles = require("./play-panel.less");
+import { Timecode } from "./timecode";
 
 const PlayPanel: React.FunctionComponent = () => {
   const metronomeOptions = [
@@ -23,6 +24,7 @@ const PlayPanel: React.FunctionComponent = () => {
   return (
     <div className={styles["play-panel"]}>
       <PlayStopButton></PlayStopButton>
+      <Timecode></Timecode>
       <div className={styles["play-options"]}>
         <BPMSetting></BPMSetting>
         <BeatsPerBarSetting></BeatsPerBarSetting>

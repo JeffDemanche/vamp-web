@@ -8,7 +8,7 @@ import store from "../redux/store/index";
 import { WorkspaceType } from "../redux/reducers/workspace";
 import Metronome from "./metronome";
 import Recorder from "./recorder";
-import { setPlaying, SetPlayingAction } from "../redux/actions/workspace";
+import { stop, play, StopAction, PlayAction } from "../redux/actions/workspace";
 import * as React from "react";
 import { StateType } from "../redux/reducers";
 import { Dispatch } from "redux";
@@ -24,7 +24,8 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  setPlaying: (playing: boolean) => SetPlayingAction;
+  play: () => PlayAction;
+  stop: () => StopAction;
 }
 
 interface WorkspaceAudioProps extends StateProps, DispatchProps {}
@@ -42,8 +43,8 @@ const mapStateToProps = (state: StateType): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
-    setPlaying: (playing: boolean): SetPlayingAction =>
-      dispatch(setPlaying(playing))
+    play: (): PlayAction => dispatch(play()),
+    stop: (): StopAction => dispatch(stop())
   };
 };
 
@@ -121,7 +122,7 @@ class ConnectedWorkspaceAudio extends React.Component<WorkspaceAudioProps> {
     } else {
       // TODO Give a user-facing warning about microphone access.
       console.error("No microhpone access granted.");
-      this.props.setPlaying(false);
+      this.props.stop();
     }
   }
 
@@ -133,10 +134,7 @@ class ConnectedWorkspaceAudio extends React.Component<WorkspaceAudioProps> {
       this.scheduler.stop();
     } else {
       // TODO User-facing warning.
-      console.error(
-        "Tried to stop stream recording but recorder was undefined."
-      );
-      this.props.setPlaying(false);
+      console.error("Stopped audio because of no microphone access.");
     }
   }
 
