@@ -1,54 +1,30 @@
 import * as React from "react";
 
-import {
-  setBeatsPerBar,
-  SetBeatsPerBarAction
-} from "../../../redux/actions/workspace";
-
-import { StateType } from "../../../redux/reducers/index";
 import { SettingNumeric } from "../../element/setting-numeric";
 
-import { connect } from "react-redux";
-import { Dispatch } from "redux";
+import { gql } from "apollo-boost";
+import { useQuery, useApolloClient } from "react-apollo";
 
-interface StateProps {
-  beatsPerBar: number;
-}
+const BEATS_PER_BAR_QUERY = gql`
+  query BeatsPerBar {
+    beatsPerBar @client
+  }
+`;
 
-interface DispatchProps {
-  setBeatsPerBar: (beatsPerBar: number) => SetBeatsPerBarAction;
-}
+export const BeatsPerBarSetting = (): JSX.Element => {
+  const { data, loading } = useQuery(BEATS_PER_BAR_QUERY);
+  const client = useApolloClient();
 
-interface BeatsPerBarSettingProps extends DispatchProps, StateProps {}
-
-const mapStateToProps = (state: StateType): StateProps => {
-  return { beatsPerBar: state.workspace.beatsPerBar };
-};
-
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
-  return {
-    setBeatsPerBar: (beatsPerBar: number): SetBeatsPerBarAction =>
-      dispatch(setBeatsPerBar(beatsPerBar))
-  };
-};
-
-const ConnectedBeatsPerBarSetting = ({
-  beatsPerBar,
-  setBeatsPerBar
-}: BeatsPerBarSettingProps): JSX.Element => {
   return (
     <SettingNumeric
-      value={beatsPerBar}
+      value={data.beatsPerBar}
       integer={true}
       minValue={1}
       maxValue={499}
       text="/ Bar"
-      reduxDispatch={setBeatsPerBar}
+      onChange={(payload: number): void => {
+        client.writeData({ data: { beatsPerBar: payload } });
+      }}
     ></SettingNumeric>
   );
 };
-
-export const BeatsPerBarSetting = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ConnectedBeatsPerBarSetting);

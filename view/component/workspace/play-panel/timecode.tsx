@@ -1,31 +1,21 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { StateType } from "../../../redux/reducers";
-import { connect } from "react-redux";
+import { graphql, ChildProps } from "react-apollo";
 
 import styles = require("./timecode.less");
+import { gql } from "apollo-boost";
 
-interface TimecodeProps {
+interface TimecodeData {
   playing: boolean;
   playPosition: number;
   playStartTime: number;
 }
 
-const mapStateToProps = (state: StateType): TimecodeProps => {
-  return {
-    playing: state.workspace.playing,
-    playPosition: state.workspace.playPosition,
-    playStartTime: state.workspace.playStartTime
-  };
-};
-
-const ConnectedTimecode: React.FunctionComponent<TimecodeProps> = ({
-  playing,
-  playPosition,
-  playStartTime
-}: TimecodeProps) => {
-  // This "local state" time is initially set to the playPosition from the Redux
-  // store.
+const ConnectedTimecode = ({
+  data: { playing, playPosition, playStartTime }
+}: ChildProps<{}, TimecodeData>): JSX.Element => {
+  // This "local state" time is initially set to the playPosition from the
+  // Apollo Cache.
   const [trueTime, setTrueTime] = useState(playPosition);
 
   // The [playing] arg makes it so this hook is called when the playing prop
@@ -37,7 +27,7 @@ const ConnectedTimecode: React.FunctionComponent<TimecodeProps> = ({
   useEffect(() => {
     let interval: NodeJS.Timeout = null;
     if (playing) {
-      interval = setInterval(() => {
+      interval = global.setInterval(() => {
         setTrueTime(playPosition + (Date.now() - playStartTime) / 1000);
       }, 100);
     } else {
@@ -59,4 +49,14 @@ const ConnectedTimecode: React.FunctionComponent<TimecodeProps> = ({
   );
 };
 
-export const Timecode = connect(mapStateToProps)(ConnectedTimecode);
+const TIMECODE_QUERY = gql`
+  query TimeCodeData {
+    playing @client
+    playPosition @client
+    playStartTime @client
+  }
+`;
+
+const Timecode = graphql<{}, TimecodeData>(TIMECODE_QUERY)(ConnectedTimecode);
+
+export default Timecode;

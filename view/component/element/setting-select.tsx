@@ -29,13 +29,13 @@ interface SettingSelectProps {
     index: number;
     value: string;
   }[];
-  reduxDispatch?: (payload: string) => void;
+  onChange?: (payload: string) => void;
 }
 
 const SettingSelect: React.FunctionComponent<SettingSelectProps> = ({
   value,
   options,
-  reduxDispatch
+  onChange
 }) => {
   const [editing, setEditing] = useState(false);
 
@@ -46,14 +46,14 @@ const SettingSelect: React.FunctionComponent<SettingSelectProps> = ({
   ));
 
   const wrapperRef = useRef(null);
-  useOutsideClick(wrapperRef, setEditing, reduxDispatch);
+  useOutsideClick(wrapperRef, setEditing, onChange);
 
   if (editing)
     return (
       <select
         ref={wrapperRef}
         value={value}
-        onChange={(e): void => reduxDispatch(e.target.value)}
+        onChange={(e): void => onChange(e.target.value)}
       >
         {selectOptions}
       </select>

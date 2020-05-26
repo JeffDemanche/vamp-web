@@ -1,78 +1,55 @@
 import * as React from "react";
 
-import { connect } from "react-redux";
-import {
-  play,
-  pause,
-  stop,
-  PlayAction,
-  PauseAction,
-  StopAction
-} from "../../../redux/actions/workspace";
-
 import styles = require("./playhead.less");
 
-import { StateType } from "../../../redux/reducers/index";
-import { Dispatch } from "redux";
+import { gql } from "apollo-boost";
+import { useQuery, useMutation } from "react-apollo";
 
-interface StateProps {
-  playing: boolean;
-}
-
-interface DispatchProps {
-  play: () => PlayAction;
-  pause: () => PauseAction;
-  stop: () => StopAction;
-}
-
-interface PlayheadNewProps extends StateProps, DispatchProps {}
-
-const mapStateToProps = (state: StateType): StateProps => {
-  return { playing: state.workspace.playing };
-};
-
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
-  return {
-    play: (): PlayAction => dispatch(play()),
-    pause: (): PauseAction => dispatch(pause()),
-    stop: (): StopAction => dispatch(stop())
-  };
-};
-
-const handleClick = (
-  playing: boolean,
-  play: () => PlayAction,
-  pause: () => PauseAction,
-  stop: () => StopAction
-): void => {
-  if (playing) {
-    stop();
-  } else {
-    play();
+const PLAYING = gql`
+  query Playing {
+    playing @client
   }
-};
+`;
 
-const ConnectedPlayheadNew: React.FunctionComponent<PlayheadNewProps> = ({
-  playing,
-  play,
-  pause,
-  stop
-}: PlayheadNewProps) => {
+const PLAY = gql`
+  mutation Play {
+    play @client
+  }
+`;
+
+const PAUSE = gql`
+  mutation Play {
+    pause @client
+  }
+`;
+
+const STOP = gql`
+  mutation Stop {
+    stop @client
+  }
+`;
+
+const PlayheadNew: React.FunctionComponent = () => {
+  const [play] = useMutation(PLAY);
+  const [pause] = useMutation(PAUSE);
+  const [stop] = useMutation(STOP);
+
+  const { data, loading, error } = useQuery(PLAYING);
+
   return (
     <div
       className={styles["playhead-new"]}
       onClick={(): void => {
-        handleClick(playing, play, pause, stop);
+        if (data.playing) {
+          stop();
+        } else {
+          play();
+        }
       }}
     >
       <img src={require("../../../img/vector/record.svg")} />
     </div>
   );
 };
-
-const PlayheadNew = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ConnectedPlayheadNew);
 
 export { PlayheadNew };

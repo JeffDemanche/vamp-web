@@ -1,12 +1,8 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 
-import ApolloClient from "apollo-boost";
 import { ApolloProvider } from "@apollo/react-hooks";
-
-const client = new ApolloClient({
-  uri: "http://localhost:4567/graphql"
-});
+import { client } from "../state/apollo";
 
 import { withRouter } from "react-router";
 import { BrowserRouter, Route } from "react-router-dom";
@@ -61,4 +57,4 @@ const VampApp: React.FunctionComponent = () => {
   );
 };
 
-export { VampApp };
+export { client, VampApp };

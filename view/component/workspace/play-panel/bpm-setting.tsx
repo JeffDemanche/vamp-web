@@ -1,55 +1,36 @@
 import * as React from "react";
 
-import {
-  setBPM,
-  WorkspaceActionTypes,
-  SetBPMAction
-} from "../../../redux/actions/workspace";
-
-import { StateType } from "../../../redux/reducers/index";
 import { SettingNumeric } from "../../element/setting-numeric";
 
-import { connect } from "react-redux";
-import { Dispatch } from "redux";
+import { gql } from "apollo-boost";
+import { useQuery, useApolloClient } from "@apollo/react-hooks";
 
-interface StateProps {
-  bpm: number;
-}
+const BPM_QUERY = gql`
+  query BPM {
+    bpm @client
+  }
+`;
 
-interface DispatchProps {
-  setBPM: (bpm: number) => SetBPMAction;
-}
+const BPM_SUBSCRIPTION = gql`
+  subscription onBPMChanged {
+    bpmChanged
+  }
+`;
 
-const mapStateToProps = (state: StateType): StateProps => {
-  return { bpm: state.workspace.bpm };
-};
+export const BPMSetting = (): JSX.Element => {
+  const { data, loading } = useQuery(BPM_QUERY);
+  const client = useApolloClient();
 
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
-  return {
-    setBPM: (bpm: number): SetBPMAction => dispatch(setBPM(bpm))
-  };
-};
-
-const ConnectedBPMSetting = ({
-  bpm,
-  setBPM
-}: {
-  bpm: number;
-  setBPM: (payload: number) => WorkspaceActionTypes;
-}): JSX.Element => {
   return (
     <SettingNumeric
-      value={bpm}
+      value={data.bpm}
       integer={true}
       minValue={1}
       maxValue={499}
       text="BPM"
-      reduxDispatch={setBPM}
+      onChange={(payload: number): void => {
+        client.writeData({ data: { bpm: payload } });
+      }}
     ></SettingNumeric>
   );
 };
-
-export const BPMSetting = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ConnectedBPMSetting);

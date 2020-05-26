@@ -1,7 +1,7 @@
 interface WorkspaceEvent {
   id: string;
   start: number;
-  dispatch: (context: AudioContext, scheduler: Scheduler) => Promise<void>;
+  dispatch: (context: AudioContext) => Promise<void>;
   repeat?: number;
 }
 
@@ -87,11 +87,11 @@ class Scheduler {
               // Play repeating events if this is negative.
               const timeDiff = (this._seconds % repeat) - (preTime % repeat);
               if (start == preTime || timeDiff < 0) {
-                dispatch(this._context, this);
+                dispatch(this._context);
               }
             } else {
               if (start > preTime && start <= this._seconds) {
-                dispatch(this._context, this);
+                dispatch(this._context);
               }
             }
           }

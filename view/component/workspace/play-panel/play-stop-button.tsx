@@ -1,79 +1,58 @@
 import * as React from "react";
 
-import {
-  play,
-  pause,
-  stop,
-  PlayAction,
-  PauseAction,
-  StopAction
-} from "../../../redux/actions/workspace";
-
-import { StateType } from "../../../redux/reducers/index";
-
-import { connect } from "react-redux";
 import styles = require("./play-stop-button.less");
-import { Dispatch } from "redux";
+import { gql } from "apollo-boost";
+import { useQuery, useMutation } from "react-apollo";
 
-interface StateProps {
-  playing: boolean;
-}
-
-interface DispatchProps {
-  play: () => PlayAction;
-  pause: () => PauseAction;
-  stop: () => StopAction;
-}
-
-interface PlayStopButtonProps extends StateProps, DispatchProps {}
-
-const mapStateToProps = (state: StateType): StateProps => {
-  return { playing: state.workspace.playing };
-};
-
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
-  return {
-    play: (): PlayAction => dispatch(play()),
-    pause: (): PauseAction => dispatch(pause()),
-    stop: (): StopAction => dispatch(stop())
-  };
-};
-
-const handleClick = (
-  playing: boolean,
-  play: () => PlayAction,
-  pause: () => PauseAction,
-  stop: () => StopAction
-): void => {
-  if (playing) {
-    stop();
-  } else {
-    play();
+const PLAYING = gql`
+  query Playing {
+    playing @client
   }
-};
+`;
 
-const ConnectedPlayStopButton: React.FunctionComponent<PlayStopButtonProps> = ({
-  playing,
-  play,
-  pause,
-  stop
-}: PlayStopButtonProps) => {
-  const image = playing
+const PLAY = gql`
+  mutation Play {
+    play @client
+  }
+`;
+
+const PAUSE = gql`
+  mutation Play {
+    pause @client
+  }
+`;
+
+const STOP = gql`
+  mutation Stop {
+    stop @client
+  }
+`;
+
+const PlayStopButton: React.FunctionComponent = () => {
+  const [play] = useMutation(PLAY);
+  const [pause] = useMutation(PAUSE);
+  const [stop] = useMutation(STOP);
+
+  const { data, loading, error } = useQuery(PLAYING);
+
+  const image = data.playing
     ? require("../../../img/vector/stop.svg")
     : require("../../../img/vector/play.svg");
+
   return (
     <div
       className={styles["play-stop-button"]}
-      onClick={(): void => handleClick(playing, play, pause, stop)}
+      onClick={(): void => {
+        if (data.playing) {
+          pause();
+        } else {
+          play();
+        }
+      }}
     >
       <img src={image} />
     </div>
   );
 };
-
-const PlayStopButton = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ConnectedPlayStopButton);
 
 export { PlayStopButton };

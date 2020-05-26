@@ -8,7 +8,7 @@ import styles = require("./setting-numeric.less");
  * calls back accordingly.
  */
 const useOutsideClick = (
-  ref: any,
+  ref: React.MutableRefObject<any>,
   setEditing: (editing: boolean) => void,
   onOutsideClick: (target: HTMLInputElement) => void
 ): void => {
@@ -37,7 +37,7 @@ const validateAndUpdateState = (
   minValue: number,
   maxValue: number,
   fallback: number,
-  reduxDispatch: (payload: number) => void
+  onChange: (payload: number) => void
 ): void => {
   const parsed = parseInt(input);
   const clamped = Math.min(
@@ -47,7 +47,7 @@ const validateAndUpdateState = (
   const newVal = integer ? Math.round(clamped) : clamped;
 
   if (newVal != fallback) {
-    reduxDispatch(newVal);
+    onChange(newVal);
   }
 };
 
@@ -57,7 +57,7 @@ interface SettingNumeric {
   minValue: number;
   maxValue: number;
   text: string;
-  reduxDispatch?: (payload: number) => void;
+  onChange?: (payload: number) => void;
 }
 
 const SettingNumeric: React.FunctionComponent<SettingNumeric> = ({
@@ -66,7 +66,7 @@ const SettingNumeric: React.FunctionComponent<SettingNumeric> = ({
   minValue,
   maxValue,
   text,
-  reduxDispatch
+  onChange
 }) => {
   const [editing, setEditing] = useState(false);
 
@@ -77,7 +77,7 @@ const SettingNumeric: React.FunctionComponent<SettingNumeric> = ({
       minValue,
       maxValue,
       value,
-      reduxDispatch
+      onChange
     );
   };
 
