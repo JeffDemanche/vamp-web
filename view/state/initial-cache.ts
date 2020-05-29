@@ -5,6 +5,8 @@
  */
 
 export interface ApolloWorkspaceType {
+  id: string;
+
   bpm: number;
   beatsPerBar: number;
   playing: boolean;
@@ -24,6 +26,8 @@ export interface ApolloWorkspaceType {
 }
 
 export const initialCache: ApolloWorkspaceType = {
+  id: "",
+
   bpm: 120,
   beatsPerBar: 4,
   playing: false,

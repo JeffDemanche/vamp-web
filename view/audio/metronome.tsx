@@ -1,6 +1,5 @@
 import { Scheduler } from "./scheduler";
 import { useEffect, useRef } from "react";
-import { StateType } from "../redux/reducers";
 import { ChildProps, graphql } from "react-apollo";
 import { gql } from "apollo-boost";
 
@@ -19,17 +18,6 @@ interface OwnProps {
 }
 
 type MetronomeProps = MetronomeData & OwnProps;
-
-const mapStateToProps = (state: StateType): MetronomeData => {
-  return {
-    bpm: state.workspace.bpm,
-    beatsPerBar: state.workspace.beatsPerBar,
-    playing: state.workspace.playing,
-    metronomeSound: state.workspace.metronomeSound,
-    playPosition: state.workspace.playPosition,
-    playStartTime: state.workspace.playStartTime
-  };
-};
 
 const ConnectedMetronome = ({
   audioContext,

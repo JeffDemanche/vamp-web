@@ -1,31 +1,7 @@
 import * as React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import styles = require("./setting-numeric.less");
-
-/**
- * Registers clicks outside the text input element, updates state and
- * calls back accordingly.
- */
-const useOutsideClick = (
-  ref: React.MutableRefObject<any>,
-  setEditing: (editing: boolean) => void,
-  onOutsideClick: (target: HTMLInputElement) => void
-): void => {
-  const handleClickOutside = (e: KeyboardEvent): void => {
-    if (ref.current && !ref.current.contains(e.target)) {
-      onOutsideClick(ref.current);
-      setEditing(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return (): void => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  });
-};
 
 /**
  * Ensures input is a valid integer, then calls back to redux action for
@@ -59,6 +35,30 @@ interface SettingNumeric {
   text: string;
   onChange?: (payload: number) => void;
 }
+
+/**
+ * Registers clicks outside the text input element, updates state and
+ * calls back accordingly.
+ */
+const useOutsideClick = (
+  ref: React.MutableRefObject<any>,
+  setEditing: (editing: boolean) => void,
+  onOutsideClick: (target: HTMLInputElement) => void
+): void => {
+  const handleClickOutside = (e: KeyboardEvent): void => {
+    if (ref.current && !ref.current.contains(e.target)) {
+      onOutsideClick(ref.current);
+      setEditing(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return (): void => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  });
+};
 
 const SettingNumeric: React.FunctionComponent<SettingNumeric> = ({
   value,

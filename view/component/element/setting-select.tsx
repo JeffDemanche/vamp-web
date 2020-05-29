@@ -1,7 +1,16 @@
 import * as React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import styles = require("./setting-select.less");
+
+interface SettingSelectProps {
+  value: string;
+  options: {
+    index: number;
+    value: string;
+  }[];
+  onChange?: (payload: string) => void;
+}
 
 const useOutsideClick = (
   ref: React.MutableRefObject<any>,
@@ -22,15 +31,6 @@ const useOutsideClick = (
     };
   });
 };
-
-interface SettingSelectProps {
-  value: string;
-  options: {
-    index: number;
-    value: string;
-  }[];
-  onChange?: (payload: string) => void;
-}
 
 const SettingSelect: React.FunctionComponent<SettingSelectProps> = ({
   value,
