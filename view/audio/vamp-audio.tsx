@@ -9,19 +9,38 @@ import Recorder from "./recorder";
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import { gql } from "apollo-boost";
-import { graphql, ChildProps, useApolloClient } from "react-apollo";
+import {
+  graphql,
+  ChildProps,
+  useApolloClient,
+  useMutation
+} from "react-apollo";
+import { PLAY, STOP } from "../state/mutations";
+import { useCurrentVampId, useCurrentUserId } from "../react-hooks";
 
 type AudioData = {
   bpm: number;
   beatsPerBar: number;
   playing: boolean;
+  recording: boolean;
   metronomeSound: string;
   playPosition: number;
   playStartTime: number;
 };
 
+const ADD_CLIP_SERVER = gql`
+  mutation AddClip($userId: ID!, $vampId: ID!, $file: Upload!) {
+    addClip(clip: { userId: $userId, vampId: $vampId, file: $file }) {
+      id
+      audio {
+        filename
+      }
+    }
+  }
+`;
+
 const ConnectedWorkspaceAudio = ({
-  data: { playing }
+  data: { playing, recording }
 }: ChildProps<{}, AudioData>): JSX.Element => {
   const startAudioContext = (): AudioContext => {
     try {
@@ -35,24 +54,48 @@ const ConnectedWorkspaceAudio = ({
     }
   };
 
+  const vampId = useCurrentVampId();
+  const userId = useCurrentUserId();
+
+  const [apolloPlay] = useMutation(PLAY);
+  const [apolloStop] = useMutation(STOP);
+
+  const [addClipServer, { data, loading }] = useMutation(ADD_CLIP_SERVER);
+
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
   const [scheduler] = useState(new Scheduler(context));
   const [recorder] = useState(new Recorder(context));
 
   const play = (): void => {
-    if (recorder.startRecording()) {
-      scheduler.play();
+    scheduler.play();
+  };
+
+  const startRecording = (): void => {
+    if (recorder.mediaRecorderInitialized()) {
+      if (!playing) {
+        console.info("Note: Started recording while not playing.");
+      }
+      recorder.startRecording();
     } else {
       // TODO Give a user-facing warning about microphone access.
       console.error("No microhpone access granted.");
-      apolloClient.writeData({ data: { playing: false } });
+      apolloStop();
     }
   };
 
   const stop = (): void => {
-    if (recorder.stopRecording()) {
-      scheduler.stop();
+    scheduler.stop();
+  };
+
+  /**
+   * Gets fired when the state of `recording` goes from true to false.
+   */
+  const endRecordingAndAddClip = async (): Promise<void> => {
+    if (recorder.mediaRecorderInitialized()) {
+      const file = await recorder.stopRecording();
+      addClipServer({ variables: { vampId, userId, file } });
+      // TODO add clip.
     } else {
       // TODO User-facing warning.
       console.error("Stopped audio because of no microphone access.");
@@ -61,6 +104,10 @@ const ConnectedWorkspaceAudio = ({
 
   // TODO If we end up needing to reuse this functionality it should be put in a
   // scripts file somewhere.
+  /**
+   * Basically "what the component state was before the last component state
+   * change."
+   */
   const usePrevious = <T,>(value: T): T => {
     const ref = useRef<T>();
     useEffect(() => {
@@ -69,11 +116,21 @@ const ConnectedWorkspaceAudio = ({
     return ref.current;
   };
 
-  const prevData = usePrevious({ playing });
+  const prevData = usePrevious({ playing, recording });
 
+  // Run on every state update. So whenever the props fed to this component from
+  // Apollo are updated, we handles those changes here.
   useEffect(() => {
-    // Equivalent to componentDidMount().
     if (prevData) {
+      // NOTE record() and endRecordingAndAddClip() don't deal with playback. If
+      // the play control mutations are properly set up in resolvers.ts, play()
+      // and stop() should be appropriately called.
+      if (recording && !prevData.recording) {
+        startRecording();
+      }
+      if (!recording && prevData.recording) {
+        endRecordingAndAddClip();
+      }
       if (playing && !prevData.playing) {
         play();
       }
@@ -95,6 +152,7 @@ const WORKSPACE_AUDIO_QUERY = gql`
     bpm @client
     beatsPerBar @client
     playing @client
+    recording @client
     metronomeSound @client
     playPosition @client
     playStartTime @client

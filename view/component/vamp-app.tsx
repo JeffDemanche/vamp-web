@@ -12,9 +12,22 @@ import VampHeader from "./header/header";
 import { ViewWorkspace } from "./workspace/view-workspace";
 import { ViewLogin } from "./login/view-login";
 
+import { Query, QueryResult } from "react-apollo";
+import { gql } from "apollo-boost";
+
 // Used for workspace (and other pages potentially)
 const gradientVibes = "linear-gradient(-45deg, #56B0F2, #C471ED)";
 const gradientLogin = "linear-gradient(-45deg, #ED71AD, #E1A74F)";
+
+const ME = gql`
+  query Me {
+    me {
+      id
+      username
+      email
+    }
+  }
+`;
 
 const VampAppBackdrop = withRouter(
   ({
@@ -47,6 +60,11 @@ const VampApp: React.FunctionComponent = () => {
   return (
     <BrowserRouter>
       <ApolloProvider client={client}>
+        <Query query={ME} fetchPolicy="cache-and-network">
+          {({ loading, error, data }: QueryResult): JSX.Element => {
+            return null;
+          }}
+        </Query>
         <VampAppBackdrop>
           <VampHeader></VampHeader>
           <Route path="/v/:vampid" component={ViewWorkspace} />

@@ -10,3 +10,9 @@ export const GET_PLAY_POSITION_START_TIME = gql`
     playStartTime @client
   }
 `;
+
+export const GET_CLIPS = gql`
+  query GetClips {
+    clips @client
+  }
+`;

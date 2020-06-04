@@ -44,7 +44,7 @@ const PlayStopButton: React.FunctionComponent = () => {
       className={styles["play-stop-button"]}
       onClick={(): void => {
         if (data.playing) {
-          pause();
+          stop();
         } else {
           play();
         }

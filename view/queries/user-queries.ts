@@ -14,7 +14,7 @@ export interface User {
  * Query the current session user's information.
  */
 export const ME = gql`
-  {
+  query Me {
     me {
       id
       username

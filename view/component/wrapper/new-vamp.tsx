@@ -26,7 +26,6 @@ export const NewVamp = (props: NewVampPropsType): JSX.Element => {
   const history = useHistory();
 
   if (redirect && newVampData) {
-    console.log(newVampData);
     history.push(vampURL(newVampData.addVamp.id));
     setRedirect(false);
   }

@@ -37,7 +37,7 @@ const ConnectedTimecode = ({
     return (): void => clearInterval(interval);
   }, [playing]);
 
-  // In seconds.
+  // True time is in seconds.
   const minutes = Math.floor(trueTime / 60);
   const seconds = Math.floor(trueTime % 60);
   const fracs = Math.floor(10 * ((trueTime % 60) - seconds));

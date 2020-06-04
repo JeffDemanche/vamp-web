@@ -25,6 +25,12 @@ const VAMP_QUERY = gql`
       beatsPerBar
       metronomeSound
       # creator
+      clips {
+        id
+        audio {
+          filename
+        }
+      }
     }
   }
 `;
@@ -37,7 +43,25 @@ const VAMP_SUBSCRIPTION = gql`
       bpm
       beatsPerBar
       metronomeSound
+      clips {
+        id
+        audio {
+          filename
+        }
+      }
     }
+  }
+`;
+
+const EMPTY = gql`
+  query Empty {
+    empty @client
+  }
+`;
+
+const RECORDING = gql`
+  query Recording {
+    recording @client
   }
 `;
 
@@ -46,6 +70,10 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
   const { subscribeToMore, data, error } = useQuery(VAMP_QUERY, {
     variables: { id: vampId }
   });
+  console.log(data);
+
+  // Queries the cache to update state based on whether the client is recording.
+  const { data: recordingData } = useQuery(RECORDING);
   const client = useApolloClient();
 
   useEffect(() => {
@@ -55,6 +83,7 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
         const newVamp = subscriptionData.data.vamp;
+        console.log(newVamp);
         client.writeData({ data: newVamp });
 
         return {
@@ -72,6 +101,9 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
     return <div>Loading...</div>;
   }
 
+  // If empty we render in the "new Vamp" layout.
+  const empty = data.vamp.clips.length == 0;
+
   client.writeData({ data: data.vamp });
 
   if (data.vamp == null) {
@@ -85,7 +117,10 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
             <PlayPanel></PlayPanel>
           </div>
           <div className={styles["clips-panel"]}>
-            <Playhead initialState="new"></Playhead>
+            <Playhead
+              empty={empty}
+              recording={recordingData.recording}
+            ></Playhead>
           </div>
         </div>
       </div>
