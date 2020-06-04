@@ -17,6 +17,16 @@ To get started you should have [NPM](https://www.npmjs.com/) and [Node](https://
 3. In `vamp-server` run `npm run dev`. This will start the server. In `vamp-web` run `npm run webpack`. This will run the Webpack script that automatically builds the web client bundle that the server serves to users.
 4. You should now be able to visit `localhost:4567` and be served the app from the server.
 
+## Testing 
+We use:
+    - Mocha as a test runner
+    - Chai as an assertion library
+    - Enzyme for testing React component testing
+    - Sinon for Spy/Mock testing
+
+To run tests, run `npm test` in terminal.  
+
 ## Contributing
 
 For now don't merge anything into master without having someone look at the pull request. The basic workflow should be that when you start working on a feature run `git checkout -b <branch name>`. Then commit changes to that branch and publish a pull request when you want feedback.
+
