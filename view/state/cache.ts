@@ -8,13 +8,13 @@ export interface Clip {
   __typename: string;
   id: string;
   audio: Audio;
-  localData: Blob;
 }
 
 export interface Audio {
   __typename: string;
   id: string;
   filename: string;
+  storedLocally: boolean;
   // uploader: User;
   duration: number;
 }
@@ -37,6 +37,7 @@ export interface ViewState {
 
 export interface ApolloWorkspaceType {
   me: Me;
+  audios: Audio[];
 
   id: string;
 
@@ -66,6 +67,7 @@ export interface ApolloWorkspaceType {
 
 export const initialCache: ApolloWorkspaceType = {
   me: null,
+  audios: [],
 
   id: "",
 

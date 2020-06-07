@@ -17,6 +17,8 @@ import {
 } from "react-apollo";
 import { PLAY, STOP } from "../state/mutations";
 import { useCurrentVampId, useCurrentUserId } from "../react-hooks";
+import AudioStore from "./audio-store";
+import getBlobDuration from "get-blob-duration";
 
 type AudioData = {
   bpm: number;
@@ -26,21 +28,29 @@ type AudioData = {
   metronomeSound: string;
   playPosition: number;
   playStartTime: number;
+
+  clips: [
+    {
+      id: string;
+      audio: {
+        id: string;
+        storedLocally: boolean;
+        filename: string;
+      };
+    }
+  ];
 };
 
 const ADD_CLIP_SERVER = gql`
   mutation AddClip($userId: ID!, $vampId: ID!, $file: Upload!) {
     addClip(clip: { userId: $userId, vampId: $vampId, file: $file }) {
       id
-      audio {
-        filename
-      }
     }
   }
 `;
 
 const ConnectedWorkspaceAudio = ({
-  data: { playing, recording }
+  data: { playing, recording, clips }
 }: ChildProps<{}, AudioData>): JSX.Element => {
   const startAudioContext = (): AudioContext => {
     try {
@@ -66,6 +76,7 @@ const ConnectedWorkspaceAudio = ({
   const [context] = useState(startAudioContext());
   const [scheduler] = useState(new Scheduler(context));
   const [recorder] = useState(new Recorder(context));
+  const [audioStore] = useState(new AudioStore());
 
   const play = (): void => {
     scheduler.play();
@@ -116,10 +127,10 @@ const ConnectedWorkspaceAudio = ({
     return ref.current;
   };
 
-  const prevData = usePrevious({ playing, recording });
+  const prevData = usePrevious({ playing, recording, clips });
 
   // Run on every state update. So whenever the props fed to this component from
-  // Apollo are updated, we handles those changes here.
+  // Apollo are updated, we handle those changes here.
   useEffect(() => {
     if (prevData) {
       // NOTE record() and endRecordingAndAddClip() don't deal with playback. If
@@ -136,6 +147,11 @@ const ConnectedWorkspaceAudio = ({
       }
       if (!playing && prevData.playing) {
         stop();
+      }
+    }
+    if (clips) {
+      for (const clip of clips) {
+        audioStore.cacheClipAudio(clip, apolloClient);
       }
     }
   });
@@ -156,6 +172,14 @@ const WORKSPACE_AUDIO_QUERY = gql`
     metronomeSound @client
     playPosition @client
     playStartTime @client
+
+    clips @client {
+      id @client
+      audio @client {
+        id @client
+        filename @client
+      }
+    }
   }
 `;
 

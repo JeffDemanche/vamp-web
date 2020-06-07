@@ -8,7 +8,7 @@
 import { gql, Resolvers } from "apollo-boost";
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { GET_PLAY_POSITION_START_TIME, GET_CLIPS } from "./queries";
-import { Clip, Me } from "./cache";
+import { Clip, Me, Audio } from "./cache";
 
 /**
  * Local schema.
@@ -21,7 +21,9 @@ export const typeDefs = gql`
 
   type Audio {
     id: ID!
-    filename: String!
+    filename: String
+    localFilename: String!
+    storedLocally: Boolean!
     duration: Float!
   }
 
@@ -32,6 +34,8 @@ export const typeDefs = gql`
   }
 
   extend type Query {
+    audio(id: ID!): Audio
+    clip(id: ID!): Clip
     empty: Boolean
     me: Me
   }
@@ -55,11 +59,62 @@ interface ResolverMap {
 }
 
 interface AppResolvers extends Resolvers {
+  Clip: ResolverMap;
+  Query: ResolverMap;
   Mutation: ResolverMap;
 }
 
 export const resolvers: AppResolvers = {
+  Clip: {
+    audio: (parent, args, { cache }: { cache: InMemoryCache }): Audio => {
+      const data: {
+        audio: Audio;
+      } = cache.readQuery({
+        query: gql`
+          query GetAudio($audioId: ID!) {
+            audio(id: $audioId) @client
+          }
+        `,
+        variables: { id: parent.audio }
+      });
+      return data.audio;
+    }
+  },
+
   Query: {
+    clip: (parent, args, { cache }: { cache: InMemoryCache }): Clip => {
+      const data: {
+        clips: Clip[];
+      } = cache.readQuery({
+        query: gql`
+          query GetClips {
+            clips @client {
+              id
+              audio
+            }
+          }
+        `
+      });
+      return data.clips.find(clip => clip.id === args.id);
+    },
+    audio: (parent, args, { cache }: { cache: InMemoryCache }): Audio => {
+      const data: {
+        audios: Audio[];
+      } = cache.readQuery({
+        query: gql`
+          query GetAudios {
+            audios @client {
+              id
+              filename
+              storedLocally
+              duration
+            }
+          }
+        `
+      });
+      return data.audios.find(audio => audio.id === args.id);
+    },
+
     empty: (parent, args, { cache }: { cache: InMemoryCache }): boolean => {
       const data: {
         clips: Clip[];
