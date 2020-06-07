@@ -4,6 +4,7 @@ import styles = require("./playhead.less");
 
 import { gql } from "apollo-boost";
 import { useQuery, useMutation } from "react-apollo";
+import { PLAY, PAUSE, STOP, RECORD } from "../../../state/mutations";
 
 const PLAYING = gql`
   query Playing {
@@ -11,28 +12,11 @@ const PLAYING = gql`
   }
 `;
 
-const PLAY = gql`
-  mutation Play {
-    play @client
-  }
-`;
-
-const PAUSE = gql`
-  mutation Play {
-    pause @client
-  }
-`;
-
-const STOP = gql`
-  mutation Stop {
-    stop @client
-  }
-`;
-
 const PlayheadNew: React.FunctionComponent = () => {
   const [play] = useMutation(PLAY);
   const [pause] = useMutation(PAUSE);
   const [stop] = useMutation(STOP);
+  const [record] = useMutation(RECORD);
 
   const { data, loading, error } = useQuery(PLAYING);
 
@@ -43,7 +27,7 @@ const PlayheadNew: React.FunctionComponent = () => {
         if (data.playing) {
           stop();
         } else {
-          play();
+          record();
         }
       }}
     >

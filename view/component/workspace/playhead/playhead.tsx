@@ -1,7 +1,5 @@
 import * as React from "react";
 
-import { useState } from "react";
-
 import { PlayheadNew } from "./playhead-new";
 import { PlayheadRecording } from "./playhead-recording";
 
@@ -9,24 +7,22 @@ import { PlayheadRecording } from "./playhead-recording";
  * This component is the root for all playhead types.
  */
 
-type PlayheadState = "new" | "recording";
-
 interface PlayheadProps {
-  initialState: PlayheadState;
+  empty: boolean;
+  recording: boolean;
 }
 
 const Playhead: React.FunctionComponent<PlayheadProps> = ({
-  initialState
-}: PlayheadProps) => {
-  const [playheadState, setPlayheadState] = useState<PlayheadState>(
-    initialState
-  );
-
-  switch (playheadState) {
-    case "new":
-      return <PlayheadNew></PlayheadNew>;
-    case "recording":
-      return <PlayheadRecording></PlayheadRecording>;
+  empty,
+  recording
+}) => {
+  if (recording) {
+    return <PlayheadRecording></PlayheadRecording>;
+  } else if (empty) {
+    return <PlayheadNew></PlayheadNew>;
+  } else {
+    return null;
+    // TODO other playhead states.
   }
 };
 

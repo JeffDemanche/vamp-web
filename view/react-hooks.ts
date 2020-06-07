@@ -13,3 +13,17 @@ export const useCurrentVampId = (): string => {
   `);
   return data.id;
 };
+
+export const useCurrentUserId = (): string => {
+  const { data } = useQuery(gql`
+    query GetCurrentUserId {
+      me @client {
+        id
+      }
+    }
+  `);
+  if (data.me == null) {
+    return null;
+  }
+  return data.me.id;
+};

@@ -1,15 +1,23 @@
 import { ApolloClient } from "apollo-client";
 import { InMemoryCache } from "apollo-cache-inmemory";
-import { initialCache } from "./initial-cache";
+import { initialCache } from "./cache";
 import { WebSocketLink } from "apollo-link-ws";
 import { split } from "apollo-link";
 import { ApolloLink } from "apollo-link";
 import { HttpLink } from "apollo-link-http";
+import { createUploadLink } from "apollo-upload-client";
 import { getMainDefinition } from "apollo-utilities";
 import { resolvers, typeDefs } from "./resolvers";
 import { onError } from "apollo-link-error";
 
 const httpLink = new HttpLink({
+  uri: "http://localhost:4567/graphql"
+});
+
+/**
+ * This *replaces* the httpLink while adding support for file uploads over GQL.
+ */
+const uploadLink = new createUploadLink({
   uri: "http://localhost:4567/graphql"
 });
 
@@ -29,7 +37,7 @@ const terminatingLink = split(
     );
   },
   wsLink,
-  httpLink
+  uploadLink
 );
 
 const link = ApolloLink.from([
@@ -38,7 +46,7 @@ const link = ApolloLink.from([
       graphQLErrors.forEach(({ message, locations, path }) =>
         console.log(
           `[GraphQL error]: Message: ${message},\
-           Location: ${locations}, Path: ${path}`
+           Location: ${locations.map(loc => ` ${loc}`)}, Path: ${path}`
         )
       );
     if (networkError) console.log(`[Network error]: ${networkError}`);
