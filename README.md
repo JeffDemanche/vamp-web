@@ -23,7 +23,7 @@ We use:
 2. Enzyme for easier testing of react components
 3. Cypress for E2E tests
 
-To test react components (unit/integration) tests, run `npm test` in terminal. To test end2end behaviors, run `npm run e2e` in terminal. 
+To test react components (unit/integration) tests, run `npm test` in terminal. To test end2end behaviors, run `npm run e2e` in terminal. Furthermore, Cypress provides a GUI for CI capabilities.  To use this, run `npm run cypress`.
 
 ## Contributing
 
