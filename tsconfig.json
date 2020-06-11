@@ -10,6 +10,7 @@
     "moduleResolution": "node",
     "rootDirs": ["view/stories"],
     "baseUrl": "src",
+    "strict": true
   },
   "includes": [
     "./externals.d.ts"
