@@ -1,0 +1,9 @@
+{
+    "baseUrl": "http://localhost:4567",
+    "env": {
+        "googleSocialLoginUsername": "VampBotUser@gmail.com",
+        "googleSocialLoginPassword": ">Yj&aN%m7mBzS:]}",
+        "loginUrl": "http://localhost:4567/login",
+        "cookieName": "cypress-session-id"
+    }  
+}
