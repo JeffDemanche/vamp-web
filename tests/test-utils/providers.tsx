@@ -1,6 +1,6 @@
-import createApolloErrorProvider from './createApolloErrorProvider';
-import createApolloLoadingProvider from './createApolloLoadingProvider';
-import createApolloMockedProvider from './createApolloMockedProvider';
+import {createApolloErrorProvider} from './createApolloErrorProvider';
+import {createApolloLoadingProvider} from './createApolloLoadingProvider';
+import {createApolloMockedProvider} from './createApolloMockedProvider';
 import typeDefs from './typedefs';
 
 //by default, we create a new instance of InMemoryCache in each provider

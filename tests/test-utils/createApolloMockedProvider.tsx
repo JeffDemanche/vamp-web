@@ -16,7 +16,7 @@ import { InMemoryCache } from 'apollo-boost';
     In: typeDefs and apollo cache
     Out: a component 
 */
-const createApolloMockedProvider = (
+export const createApolloMockedProvider = (
     typeDefs: ITypeDefinitions,
     apolloCache: ApolloCache<any> = new InMemoryCache,
 ) => ({
@@ -40,5 +40,3 @@ const createApolloMockedProvider = (
 
     return <ApolloProvider client={client}>{children}</ApolloProvider>;
 };
-
-export default createApolloMockedProvider;

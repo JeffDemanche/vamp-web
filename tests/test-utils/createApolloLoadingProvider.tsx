@@ -13,7 +13,7 @@ import { InMemoryCache } from 'apollo-boost';
     Out: a component with children we pass in  
  */
 
-const createApolloLoadingProvider = (apolloCache: ApolloCache<any> = new InMemoryCache) => ({
+export const createApolloLoadingProvider = (apolloCache: ApolloCache<any> = new InMemoryCache) => ({
     children,
 }:{
     children: React.ReactChild | JSX.Element;
@@ -29,4 +29,3 @@ const createApolloLoadingProvider = (apolloCache: ApolloCache<any> = new InMemor
 
     return <ApolloProvider client={client}>{children}</ApolloProvider>;
 };
-export default createApolloLoadingProvider;

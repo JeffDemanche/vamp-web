@@ -23,4 +23,5 @@ const options = {
   webpackOptions
 }
 
+
 module.exports = wp(options)

@@ -34,8 +34,8 @@ describe('Login', ()=> {
     
     Cypress.Cookies.debug(true);                           
     cy.task('GoogleSocialLogin', socialLoginOptions)
-      .then((res)=>{
-        expect(res.status).to.eq(200);
+      .then((resp)=>{
+        expect(resp.status).to.eq(200);
         cy.getCookies()
           .should('have.length', 1)
           .then((cookies)=>{

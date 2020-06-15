@@ -1,0 +1,12 @@
+{
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "babel-jest"
+    },
+    "testRegex": "/tests/.*\\.(test|spec)?\\.(ts|tsx|js|jsx)$"
+  }

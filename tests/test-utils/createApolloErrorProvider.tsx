@@ -12,7 +12,7 @@ import { InMemoryCache } from 'apollo-boost';
   In: an apollo cache
   Out: a component that takes in graphQLErrors and children we pass in
 */
-const createApolloErrorProvider = (apolloCache: ApolloCache<any> = new InMemoryCache) => ({
+export const createApolloErrorProvider = (apolloCache: ApolloCache<any> = new InMemoryCache) => ({
   graphQLErrors,
   children,
 }:{
@@ -37,5 +37,3 @@ const createApolloErrorProvider = (apolloCache: ApolloCache<any> = new InMemoryC
   // wrap children in this custom client
   return <ApolloProvider client={client}>{children}</ApolloProvider>;
 };
-
-export default createApolloErrorProvider;
