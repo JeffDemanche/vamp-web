@@ -18,7 +18,7 @@ interface MatchParams {
 type ViewWorkspaceProps = RouteComponentProps<MatchParams>;
 
 const VAMP_QUERY = gql`
-  query Vamp($id: ID!) {
+  query GetVamp($id: ID!) {
     vamp(id: $id) {
       id
       name
@@ -33,6 +33,12 @@ const CLIPS_QUERY = gql`
   query Clips($vampId: ID!) {
     clips(vampId: $vampId) {
       id
+      user {
+        id
+      }
+      vamp {
+        id
+      }
       audio {
         id
         filename
@@ -43,7 +49,7 @@ const CLIPS_QUERY = gql`
 
 const VAMP_SUBSCRIPTION = gql`
   subscription vamp($vampId: ID!) {
-    vamp(vampId: $vampId) {
+    subVamp(vampId: $vampId) {
       id
       name
       bpm
@@ -55,13 +61,19 @@ const VAMP_SUBSCRIPTION = gql`
 
 const CLIPS_SUBSCRIPTION = gql`
   subscription clips($vampId: ID!) {
-    clips(vampId: $vampId) {
+    subClips(vampId: $vampId) {
       mutation
       updatedClip {
         id
         audio {
           id
           filename
+        }
+        user {
+          id
+        }
+        vamp {
+          id
         }
       }
     }
@@ -94,8 +106,7 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
       variables: { vampId },
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
-        const newVamp = subscriptionData.data.vamp;
-        console.log(newVamp);
+        const newVamp = subscriptionData.data.subVamp;
         client.writeData({ data: newVamp });
 
         return {
@@ -107,12 +118,10 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
       document: CLIPS_SUBSCRIPTION,
       variables: { vampId },
       updateQuery: (prev, { subscriptionData }) => {
-        console.log(subscriptionData);
         if (!subscriptionData.data) return prev;
-        if (subscriptionData.data.clips.mutation === "ADDED") {
-          console.log(prev);
-          const newClips = [...prev.clips];
-          newClips.push(subscriptionData.data.clips.updatedClip);
+        if (subscriptionData.data.subClips.mutation === "ADDED") {
+          const newClips = prev.clips ? [...prev.clips] : [];
+          newClips.push(subscriptionData.data.subClips.updatedClip);
           return { clips: newClips };
         }
       }
@@ -139,7 +148,6 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = props => {
       if (!clip.audio.storedLocally) clip.audio.storedLocally = false;
       if (!clip.audio.duration) clip.audio.duration = -1;
     });
-    console.log(clipsData.clips);
     return clipsData.clips;
   };
 

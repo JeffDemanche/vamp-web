@@ -34,8 +34,8 @@ export const typeDefs = gql`
   }
 
   extend type Query {
-    audio(id: ID!): Audio
-    clip(id: ID!): Clip
+    getAudio(id: ID!): Audio
+    getClip(id: ID!): Clip
     empty: Boolean
     me: Me
   }

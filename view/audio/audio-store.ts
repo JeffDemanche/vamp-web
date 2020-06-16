@@ -28,7 +28,7 @@ class AudioStore {
     apolloClient: ApolloClient<object>
   ): Promise<void> {
     if (!clip.audio.storedLocally) {
-      const res = await fetch(`/audio?filename=${clip.audio.id}.webm`);
+      const res = await fetch(`/audio/${clip.audio.id}.webm`);
       const buffer = await res.arrayBuffer();
       const blob = new Blob([buffer]);
       const audio = document.createElement("audio");
@@ -59,7 +59,7 @@ class AudioStore {
             newClips[index].audio.duration = audio.duration;
           }
         });
-        console.log(newClips);
+
         apolloClient.writeData({
           data: { clips: newClips }
         });
