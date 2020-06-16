@@ -1,4 +1,4 @@
-{
+{  
     "preset": "ts-jest",
     "testEnvironment": "node",
     "moduleFileExtensions": [
@@ -8,7 +8,11 @@
       "jsx"
     ],
     "transform": {
-      "\\.(ts|tsx)$": "babel-jest"
+      "\\.(js|ts|tsx)$": "babel-jest"
     },
-    "testRegex": "/tests/.*\\.(test|spec)?\\.(ts|tsx|js|jsx)$"
+    "testRegex": "/tests/.*\\.(test|spec)?\\.(ts|tsx)$",
+    "transformIgnorePatterns": ["[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs)$"],
+    "setupFilesAfterEnv": ["<rootDir>/setupTests.ts"],
+    "setupFiles": ["<rootDir>/setupTests.ts"],
+    "snapshotSerializers": ["enzyme-to-json"]
   }
