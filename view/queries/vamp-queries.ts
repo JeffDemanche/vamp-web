@@ -15,8 +15,8 @@ export interface Vamp {
 }
 
 export const VAMP = gql`
-  query Vamp($id: ID!) {
-    vamp(id: $id) {
+  query GetVamp($id: ID!) {
+    geVamp(id: $id) {
       id
     }
   }

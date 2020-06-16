@@ -41,8 +41,6 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
 
   const { data, loading, error } = useQuery(TIMELINE_QUERY);
 
-  console.log(data);
-
   if (!data || loading) {
     return <div>Loading</div>;
   }
