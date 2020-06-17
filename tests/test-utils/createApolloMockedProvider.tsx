@@ -24,7 +24,7 @@ export const createApolloMockedProvider = (
 }: {
   customResolvers?: any;
   children: React.ReactChild | JSX.Element;
-}) => {
+}): JSX.Element => {
   const schema = makeExecutableSchema({
     typeDefs,
     resolverValidationOptions: { requireResolversForResolveType: false }

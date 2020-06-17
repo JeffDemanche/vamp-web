@@ -13,9 +13,9 @@ describe("Login", () => {
     cy.contains("Log In").click();
     cy.contains("Sign In with Google");
 
-    cy.logInBySingleSignOn({}).then(resp => {
-      expect(resp.status).to.eq(200);
-    });
+    // cy.logInBySingleSignOn({}).then(resp => {
+    //   expect(resp.status).to.eq(200);
+    // });
 
     cy.visit("http://localhost:4567/v/5eea6891ce9370192da90c13");
 
