@@ -12,7 +12,7 @@
     },
     "testRegex": "/tests/.*\\.(test|spec)?\\.(ts|tsx)$",
     "transformIgnorePatterns": ["[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs)$"],
-    "setupFilesAfterEnv": ["<rootDir>/setupTests.ts"],
-    "setupFiles": ["<rootDir>/setupTests.ts"],
+    "setupFilesAfterEnv": ["<rootDir>/setup-enzyme.ts"],
+    "setupFiles": ["<rootDir>/setup-enzyme.ts"],
     "snapshotSerializers": ["enzyme-to-json"]
   }
