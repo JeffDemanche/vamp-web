@@ -4,6 +4,7 @@
         "googleSocialLoginUsername": "VampBotUser@gmail.com",
         "googleSocialLoginPassword": ">Yj&aN%m7mBzS:]}",
         "loginUrl": "http://localhost:4567/login",
-        "cookieName": "cypress-session-id"
+        "cookieName": "connect.sid",
+        "cookieValue": "s%3A97d70480-2f95-44eb-829a-662dec43c944.mXraxM8F8neOGHorCaT50%2BHPIVI4b8Je6tXvJVYDGek"
     }  
 }

@@ -1,12 +1,13 @@
-const cypressTypeScriptPreprocessor = require('./cy-ts-preprocessor')
-const {GoogleSocialLogin} = require('cypress-social-logins').plugins
+import cypressTypeScriptPreprocessor from "./cy-ts-preprocessor";
+import { plugins } from "cypress-social-logins";
+const { GoogleSocialLogin } = plugins;
 
-module.exports = on => {
-  on('file:preprocessor', cypressTypeScriptPreprocessor)
-}
+export default on => {
+  on("file:preprocessor", cypressTypeScriptPreprocessor);
+};
 
-module.exports = (on, config) => {
-  on('task', {
+export default (on, config) => {
+  on("task", {
     GoogleSocialLogin: GoogleSocialLogin
-  })
-}
+  });
+};

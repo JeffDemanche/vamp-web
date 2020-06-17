@@ -7,7 +7,7 @@ import { client } from "../state/apollo";
 import { withRouter } from "react-router";
 import { BrowserRouter, Route } from "react-router-dom";
 
-const styles = require("./vamp-app.less");
+import styles = require("./vamp-app.less");
 import VampHeader from "./header/header";
 import { ViewWorkspace } from "./workspace/view-workspace";
 import { ViewLogin } from "./login/view-login";

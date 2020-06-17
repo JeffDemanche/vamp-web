@@ -22,6 +22,7 @@
     "@babel/preset-typescript": "^7.9.0",
     "@storybook/addon-info": "^5.3.18",
     "@types/classnames": "^2.2.10",
+    "@types/cypress": "^1.1.3",
     "@types/mongodb": "^3.5.18",
     "@types/mongoose": "^5.7.21",
     "@types/react": "^16.9.35",

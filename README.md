@@ -20,10 +20,10 @@ To get started you should have [NPM](https://www.npmjs.com/) and [Node](https://
 ## Testing 
 We use:
 1. Jest as a test-runner and assertion library
-2. Enzyme for easier testing of react components
+2. Enzyme for easier testing of individual react components
 3. Cypress for E2E tests
 
-To test react components (unit/integration) tests, run `npm test` in terminal. To test end2end behaviors, run `npm run e2e` in terminal. Furthermore, Cypress provides a GUI for CI capabilities.  To use this, run `npm run cypress`.
+To test react components (unit/integration) tests, run `npm test` in terminal. To test end2end behaviors, run `npm run e2e` in terminal. Furthermore, Cypress provides a convient GUI for CI capabilities.  To use this, run `npm run cypress`.
 
 ## Contributing
 
