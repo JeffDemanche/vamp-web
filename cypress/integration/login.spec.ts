@@ -1,3 +1,5 @@
+/// <reference types="cypress" />
+
 describe("Login", () => {
   it("is 403 unauthorized without a session cookie", () => {
     /*

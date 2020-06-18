@@ -15,5 +15,5 @@
   "includes": [
     "./externals.d.ts"
   ],
-  "exclude": ["node_modules", "build", "scripts"]
+  "exclude": ["node_modules", "build", "scripts", "e2e", "cypress"]
 }

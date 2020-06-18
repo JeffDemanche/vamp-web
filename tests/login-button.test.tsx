@@ -13,11 +13,11 @@ const customResolvers = {
   })
 };
 
-describe("Vamp Login Button", () => {
+describe("Vamp Login Button Test", () => {
   it("should work", () => {
     const wrapper = render(
       <ApolloMockedProvider customResolvers={customResolvers}>
-        <h1></h1>
+        <h1>hello world</h1>
       </ApolloMockedProvider>
     );
   });

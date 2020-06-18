@@ -1,3 +1,4 @@
+import "jest";
 import { configure } from "enzyme";
 import * as ReactSixteenAdapter from "enzyme-adapter-react-16";
 
