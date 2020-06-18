@@ -4,11 +4,12 @@ import { initialCache } from "./cache";
 import { WebSocketLink } from "apollo-link-ws";
 import { split } from "apollo-link";
 import { ApolloLink } from "apollo-link";
-import { HttpLink } from "apollo-link-http";
+import { HttpLink, createHttpLink } from "apollo-link-http";
 import { createUploadLink } from "apollo-upload-client";
 import { getMainDefinition } from "apollo-utilities";
 import { resolvers, typeDefs } from "./resolvers";
-import { onError } from "apollo-link-error";
+import fetch from 'node-fetch';
+import { onError} from "apollo-link-error";
 
 const httpLink = new HttpLink({
   uri: "http://localhost:4567/graphql"

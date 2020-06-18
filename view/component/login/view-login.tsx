@@ -10,7 +10,7 @@ const ViewLogin: React.FunctionComponent = () => {
   return (
     <div className={styles["login"]}>
       <h2>Login</h2>
-      <a href="/auth/google">Sing In with Google</a>
+      <a href="/auth/google">Sign In with Google</a>
       {/* <GoogleLogin
         clientId="110184616480-aool6fignv26lonakn0epqkd1l10a4lu.apps.googleusercontent.com"
         onSuccess={onSignIn}

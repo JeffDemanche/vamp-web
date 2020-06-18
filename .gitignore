@@ -1,3 +1,5 @@
 node_modules/
 view/build/
 public/vamp.bundle.js
+cypress/videos/
+cypress/screenshots/

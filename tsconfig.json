@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./view/build/",
+    "skipLibCheck": true,
     "noImplicitAny": true,
     "module": "commonjs",
     "target": "es5",
@@ -14,5 +15,5 @@
   "includes": [
     "./externals.d.ts"
   ],
-  "exclude": ["node_modules", "build", "scripts"]
+  "exclude": ["node_modules", "build", "scripts", "e2e", "cypress"]
 }
