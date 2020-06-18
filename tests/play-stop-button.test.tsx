@@ -3,21 +3,21 @@ import { shallow, mount, render } from "enzyme";
 import { PlayStopButton } from "../view/component/workspace/play-panel/play-stop-button";
 import * as React from "react";
 import { ApolloMockedProvider } from "./test-utils/providers";
+import { PLAY, PAUSE } from "../view/state/mutations";
 
-describe("Play/Stop button functionality", () => {
-  const mockCallBack = jest.fn();
-  const customResolvers = {};
+describe("Play/Stop Button", () => {
   beforeEach(() => {});
   it("pauses when clicked from play", () => {
-    const button = shallow(
+    const customResolvers = { Mutation: () => PLAY };
+    const wrapper = shallow(
       <ApolloMockedProvider customResolvers={customResolvers}>
         <PlayStopButton />
       </ApolloMockedProvider>
     );
-    button.find("play-stop-button").simulate("click");
-    expect(mockCallBack.mock.calls.length).toEqual(1);
+    console.log(wrapper.debug({ verbose: false }));
   });
   it("plays when clicked from pause", () => {
+    const customResolvers = { Mutation: () => PAUSE };
     expect(2).toBe(2);
   });
 });
