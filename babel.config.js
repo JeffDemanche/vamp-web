@@ -7,7 +7,14 @@ module.exports = function(api) {
     "@babel/preset-typescript"
   ];
 
+  const plugins = [];
+
+  if (process.env["ENV"] === "test") {
+    plugins.push("transform-es2015-modules-commonjs");
+  }
+
   return {
-    presets
+    presets,
+    plugins
   };
 };
