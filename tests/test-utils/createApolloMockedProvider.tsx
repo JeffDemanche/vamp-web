@@ -9,6 +9,7 @@ import {
 import { SchemaLink } from "apollo-link-schema";
 import { ApolloCache } from "apollo-cache";
 import { InMemoryCache } from "apollo-boost";
+import { initialCache } from "../../view/state/cache";
 
 /* 
     Purpose: get a component for custom data provider
@@ -37,5 +38,7 @@ export const createApolloMockedProvider = (
     cache: apolloCache
   });
 
+  client.writeData({ data: initialCache });
+  // client.onResetStore(async () => client.writeData({ data: initialCache }));
   return <ApolloProvider client={client}>{children}</ApolloProvider>;
 };

@@ -1,23 +1,68 @@
-import { shallow, mount, render } from "enzyme";
+import "jsdom-global/register";
+import { mount } from "enzyme";
 // eslint-disable-next-line max-len
 import { PlayStopButton } from "../view/component/workspace/play-panel/play-stop-button";
 import * as React from "react";
 import { ApolloMockedProvider } from "./test-utils/providers";
 import { resolvers } from "../view/state/resolvers";
+import { InMemoryCache } from "apollo-boost";
 
-describe("Play/Stop Button", () => {
+describe("Play/Stop Button functionality", () => {
   beforeEach(() => {});
-  it("plays when clicked from paused", () => {
-    const customResolvers = resolvers.Mutation;
-    const wrapper = shallow(
+  it("handles clicking", () => {
+    const customResolvers = {};
+    const wrapper = mount(
       <ApolloMockedProvider customResolvers={customResolvers}>
         <PlayStopButton />
       </ApolloMockedProvider>
     );
-    expect(wrapper.find(PlayStopButton).simulate("click"));
-    console.log(wrapper.debug({ verbose: false }));
+    //TODO: currently the only way to test the button click is by logging something
+    const spy = jest.spyOn(console, "log");
+    expect(spy).not.toHaveBeenCalled();
+    const button = wrapper.find(PlayStopButton);
+    button.simulate("click");
+    expect(spy).toHaveBeenCalled();
+  });
+  it("plays when clicked from pause", () => {
+    const customResolvers = resolvers.Mutation;
+    const wrapper = mount(
+      <ApolloMockedProvider customResolvers={customResolvers}>
+        <PlayStopButton />
+      </ApolloMockedProvider>
+    );
+    expect(true).toBe(true);
   });
   it("pauses when clicked from play", () => {
-    expect(2).toBe(2);
+    const customResolvers = () => ({
+      play: (
+        parent: any,
+        args: any,
+        { cache }: { cache: InMemoryCache }
+      ): number => {
+        cache.writeData({ data: { playing: true, playStartTime: Date.now() } });
+        return 0;
+      },
+      stop: (
+        parent: any,
+        args: any,
+        { cache }: { cache: InMemoryCache }
+      ): number => {
+        cache.writeData({
+          data: {
+            playing: false,
+            recording: false,
+            playPosition: 0,
+            playStartTime: -1
+          }
+        });
+        return 1;
+      }
+    });
+    const wrapper = mount(
+      <ApolloMockedProvider customResolvers={customResolvers}>
+        <PlayStopButton />
+      </ApolloMockedProvider>
+    );
+    expect(true).toBe(true);
   });
 });

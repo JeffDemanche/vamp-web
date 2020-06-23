@@ -81,6 +81,19 @@ const typeDefs = gql`
     vamp(vampId: ID!): Vamp!
     clips(vampId: ID!): ClipSubscriptionOutput!
   }
+
+  extend type Query {
+    getAudio(id: ID!): Audio
+    getClip(id: ID!): Clip
+    empty: Boolean
+  }
+
+  extend type Mutation {
+    play: Boolean
+    pause: Boolean
+    stop: Boolean
+    record: Boolean
+  }
 `;
 
 export default typeDefs;

@@ -13,7 +13,8 @@
     "baseUrl": "src",
   },
   "includes": [
-    "./externals.d.ts"
+    "./externals.d.ts",
+    "tests"
   ],
   "exclude": ["node_modules", "build", "scripts", "e2e", "cypress"]
 }

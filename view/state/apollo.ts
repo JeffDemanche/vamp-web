@@ -8,8 +8,8 @@ import { HttpLink, createHttpLink } from "apollo-link-http";
 import { createUploadLink } from "apollo-upload-client";
 import { getMainDefinition } from "apollo-utilities";
 import { resolvers, typeDefs } from "./resolvers";
-import fetch from 'node-fetch';
-import { onError} from "apollo-link-error";
+import fetch from "node-fetch";
+import { onError } from "apollo-link-error";
 
 const httpLink = new HttpLink({
   uri: "http://localhost:4567/graphql"
