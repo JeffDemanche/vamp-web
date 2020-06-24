@@ -2,7 +2,7 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { graphql, ChildProps } from "react-apollo";
 
-import styles = require("./timecode.less");
+import * as styles from "./timecode.less";
 import { gql } from "apollo-boost";
 
 interface TimecodeData {

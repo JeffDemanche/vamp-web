@@ -3,7 +3,7 @@ import { Popover } from "react-bootstrap";
 import { OverlayTrigger } from "react-bootstrap";
 import { Placement } from "react-bootstrap/Overlay";
 
-import styles = require("./popover.less");
+import * as styles from "./popover.less";
 
 interface VampPopoverProps {
   id: string;

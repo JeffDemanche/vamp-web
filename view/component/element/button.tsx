@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 import classnames from "classnames";
 
-import styles = require("./button.less");
+import * as styles from "./button.less";
 
 type ButtonVariant =
   | "primary"

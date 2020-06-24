@@ -39,17 +39,18 @@ const PlayStopButton: React.FunctionComponent = () => {
     ? require("../../../img/vector/stop.svg")
     : require("../../../img/vector/play.svg");
 
+  const handleClick = (): boolean => {
+    console.log("play!");
+    if (data.playing) {
+      stop();
+    } else {
+      play();
+    }
+    return true;
+  };
+
   return (
-    <div
-      className={styles["play-stop-button"]}
-      onClick={(): void => {
-        if (data.playing) {
-          stop();
-        } else {
-          play();
-        }
-      }}
-    >
+    <div className={styles["play-stop-button"]} onClick={handleClick}>
       <img src={image} />
     </div>
   );

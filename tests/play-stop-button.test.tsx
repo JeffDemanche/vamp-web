@@ -1,23 +1,28 @@
-import { shallow, mount, render } from "enzyme";
+import { mount } from "enzyme";
 // eslint-disable-next-line max-len
 import { PlayStopButton } from "../view/component/workspace/play-panel/play-stop-button";
 import * as React from "react";
 import { ApolloMockedProvider } from "./test-utils/providers";
-import { PLAY, PAUSE } from "../view/state/mutations";
+import { resolvers } from "../view/state/resolvers";
+import { act } from "react-dom/test-utils";
 
-describe("Play/Stop Button", () => {
-  beforeEach(() => {});
-  it("pauses when clicked from play", () => {
-    const customResolvers = { Mutation: () => PLAY };
-    const wrapper = shallow(
-      <ApolloMockedProvider customResolvers={customResolvers}>
-        <PlayStopButton />
-      </ApolloMockedProvider>
-    );
-    console.log(wrapper.debug({ verbose: false }));
-  });
-  it("plays when clicked from pause", () => {
-    const customResolvers = { Mutation: () => PAUSE };
-    expect(2).toBe(2);
+describe("Play/Stop Button functionality", () => {
+  // beforeEach(() => {});
+  it("handles clicking", async () => {
+    const customResolvers = {};
+
+    await act(async () => {
+      const spy = jest.spyOn(console, "log");
+      expect(spy).not.toHaveBeenCalled();
+      const wrapper = mount(
+        <ApolloMockedProvider customResolvers={customResolvers}>
+          <PlayStopButton />
+        </ApolloMockedProvider>
+      );
+      //TODO: currently the only way to test the button click is by logging something
+      const button = await wrapper.find(PlayStopButton);
+      button.simulate("click");
+      expect(spy).toHaveBeenCalled();
+    });
   });
 });
