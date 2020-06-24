@@ -1,4 +1,3 @@
-import "jsdom-global/register";
 import * as React from "react";
 import { ApolloMockedProvider } from "./test-utils/providers";
 import { shallow, mount, render } from "enzyme";

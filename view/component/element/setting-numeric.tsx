@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 
-import styles = require("./setting-numeric.less");
+import * as styles from "./setting-numeric.less";
 
 /**
  * Ensures input is a valid integer, then calls back to redux action for

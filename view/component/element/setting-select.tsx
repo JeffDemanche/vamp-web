@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 
-import styles = require("./setting-select.less");
+import * as styles from "./setting-select.less";
 
 interface SettingSelectProps {
   value: string;

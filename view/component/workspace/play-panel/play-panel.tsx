@@ -6,7 +6,7 @@ import { BPMSetting } from "./bpm-setting";
 import { BeatsPerBarSetting } from "./beats-per-bar-setting";
 import { MetronomeSetting } from "./metronome-setting";
 
-import styles = require("./play-panel.less");
+import * as styles from "./play-panel.less";
 import Timecode from "./timecode";
 
 const PlayPanel: React.FunctionComponent = () => {

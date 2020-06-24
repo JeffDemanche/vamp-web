@@ -115,6 +115,7 @@
     "apollo-server": "^2.14.4",
     "babel-jest": "^26.0.1",
     "babel-loader": "^8.1.0",
+    "babel-polyfill": "^6.26.0",
     "chai": "^4.2.0",
     "css": "^2.2.4",
     "css-loader": "^3.5.3",
