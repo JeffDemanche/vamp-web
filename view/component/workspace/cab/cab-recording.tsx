@@ -1,12 +1,12 @@
 import * as React from "react";
 
-import styles = require("./playhead.less");
+import * as styles from "./cab.less";
 import { useState, useEffect } from "react";
 import { graphql, ChildProps } from "react-apollo";
 import { gql } from "apollo-boost";
 import { ViewState } from "../../../state/cache";
 
-interface PlayheadRecordingData {
+interface CabRecordingData {
   playing: boolean;
   playPosition: number;
   playStartTime: number;
@@ -14,9 +14,9 @@ interface PlayheadRecordingData {
   viewState: ViewState;
 }
 
-const ConnectedPlayheadRecording = ({
+const ConnectedCabRecording = ({
   data: { playing, playPosition, playStartTime, recording, viewState }
-}: ChildProps<{}, PlayheadRecordingData>): JSX.Element => {
+}: ChildProps<{}, CabRecordingData>): JSX.Element => {
   // This is the same method used in timecode.tsx, see there for info. Basically
   // updates the true time and redraws the component every so often.
   const [trueTime, setTrueTime] = useState(playPosition);
@@ -36,11 +36,11 @@ const ConnectedPlayheadRecording = ({
 
   const width = `${100 * trueTime * viewState.temporalZoom}px`;
 
-  return <div style={{ width }} className={styles["playhead-recording"]}></div>;
+  return <div style={{ width }} className={styles["cab-recording"]}></div>;
 };
 
-const PLAYHEAD_RECORDING_QUERY = gql`
-  query PlayheadRecording {
+const CAB_RECORDING_QUERY = gql`
+  query CabRecording {
     playing @client
     playPosition @client
     playStartTime @client
@@ -51,8 +51,8 @@ const PLAYHEAD_RECORDING_QUERY = gql`
   }
 `;
 
-const PlayheadRecording = graphql<{}, PlayheadRecordingData>(
-  PLAYHEAD_RECORDING_QUERY
-)(ConnectedPlayheadRecording);
+const CabRecording = graphql<{}, CabRecordingData>(CAB_RECORDING_QUERY)(
+  ConnectedCabRecording
+);
 
-export { PlayheadRecording };
+export { CabRecording };
