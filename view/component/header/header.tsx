@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { Query, QueryResult } from "react-apollo";
 
-import styles = require("./header.less");
+import * as styles from "./header.less";
 import { VampLogo } from "./logo";
 
 import { ButtonLinkDefault } from "../element/button";

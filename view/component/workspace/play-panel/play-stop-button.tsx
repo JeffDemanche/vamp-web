@@ -40,7 +40,7 @@ const PlayStopButton: React.FunctionComponent = () => {
     : require("../../../img/vector/play.svg");
 
   const handleClick = (): boolean => {
-    console.log("hit");
+    console.log("play!");
     if (data.playing) {
       stop();
     } else {

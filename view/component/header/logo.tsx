@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import styles = require("./logo.less");
+import * as styles from "./logo.less";
 
 const VampLogo: React.FunctionComponent = () => {
   return (
