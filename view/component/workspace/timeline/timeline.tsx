@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import styles = require("./timeline.less");
+import * as styles from "./timeline.less";
 import { gql } from "apollo-boost";
 import { useQuery } from "react-apollo";
 import { Cab } from "../cab/cab";
