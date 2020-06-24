@@ -1,9 +1,9 @@
 import * as React from "react";
 
-import styles = require("./timeline.less");
+import * as styles from "./timeline.less";
 import { gql } from "apollo-boost";
 import { useQuery } from "react-apollo";
-import { Playhead } from "../playhead/playhead";
+import { Cab } from "../cab/cab";
 import TimelineClips from "./timeline-clips";
 
 interface TimelineProps {
@@ -48,14 +48,14 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
   if (empty) {
     return (
       <div className={styles["timeline"]}>
-        <Playhead empty={empty} recording={recordingData.recording}></Playhead>
+        <Cab empty={empty} recording={recordingData.recording}></Cab>
       </div>
     );
   } else {
     return (
       <div className={styles["timeline"]}>
         <TimelineClips clips={data.clips}></TimelineClips>
-        <Playhead empty={empty} recording={recordingData.recording}></Playhead>
+        <Cab empty={empty} recording={recordingData.recording}></Cab>
       </div>
     );
   }
