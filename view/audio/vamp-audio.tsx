@@ -1,6 +1,10 @@
 /**
- * Root of all audio-interface-related code. I'm thinking taking a stab at
- * making this object-oriented might be a good first-attempt.
+ * This file is sort of the root of all actual audio playback capabilities.
+ * WorkspaceAudio is a component, meaning it can recieve state updates straight
+ * from Apollo and reflect those updates in the audio playback (much like how a
+ * visual component reflects updates in how it renders). For instance, if the
+ * state of "playing" changes, WorkspaceAudio can listen for that and play or
+ * pause the audio accordingly.
  */
 
 import { Scheduler } from "./scheduler";
@@ -18,7 +22,46 @@ import {
 import { PLAY, STOP } from "../state/mutations";
 import { useCurrentVampId, useCurrentUserId } from "../react-hooks";
 import AudioStore from "./audio-store";
-import getBlobDuration from "get-blob-duration";
+import ObjectID from "bson-objectid";
+import { User } from "../state/cache";
+import ClipPlayer from "./clip-player";
+import Looper from "./looper";
+
+const WORKSPACE_AUDIO_QUERY = gql`
+  query WorkspaceAudioData {
+    bpm @client
+    beatsPerBar @client
+    playing @client
+    recording @client
+    metronomeSound @client
+    playPosition @client
+    playStartTime @client
+
+    start @client
+    end @client
+    loop @client
+
+    clips @client {
+      id @client
+      start @client
+      audio @client {
+        id @client
+        filename @client
+        tempFilename @client
+        storedLocally @client
+        duration @client
+      }
+    }
+
+    clientClips @client {
+      id @client
+      start @client
+      tempFilename @client
+      duration @client
+      storedLocally @client
+    }
+  }
+`;
 
 type AudioData = {
   bpm: number;
@@ -29,28 +72,78 @@ type AudioData = {
   playPosition: number;
   playStartTime: number;
 
+  start: number;
+  end: number;
+  loop: boolean;
+
   clips: [
     {
       id: string;
+      start: number;
       audio: {
         id: string;
         storedLocally: boolean;
         filename: string;
+        uploader: User;
+        tempFilename: string;
+        duration: number;
       };
+    }
+  ];
+
+  clientClips: [
+    {
+      id: string;
+      start: number;
+      tempFilename: string;
+      duration: number;
+      storedLocally: boolean;
     }
   ];
 };
 
 const ADD_CLIP_SERVER = gql`
-  mutation AddClip($userId: ID!, $vampId: ID!, $file: Upload!) {
-    addClip(clip: { userId: $userId, vampId: $vampId, file: $file }) {
+  mutation AddClip(
+    $userId: ID!
+    $vampId: ID!
+    $file: Upload!
+    $referenceId: ID
+  ) {
+    addClip(
+      clip: {
+        userId: $userId
+        vampId: $vampId
+        file: $file
+        referenceId: $referenceId
+      }
+    ) {
       id
     }
   }
 `;
 
+const ADD_CLIENT_CLIP = gql`
+  mutation AddClientClip($localFilename: String, $start: Float) {
+    addClientClip(localFilename: $localFilename, start: $start) @client {
+      id @client
+      tempFilename @client
+      start @client
+    }
+  }
+`;
+
 const ConnectedWorkspaceAudio = ({
-  data: { playing, recording, clips }
+  data: {
+    playing,
+    recording,
+    clips,
+    clientClips,
+    playPosition,
+    playStartTime,
+    start,
+    end,
+    loop
+  }
 }: ChildProps<{}, AudioData>): JSX.Element => {
   const startAudioContext = (): AudioContext => {
     try {
@@ -70,7 +163,8 @@ const ConnectedWorkspaceAudio = ({
   const [apolloPlay] = useMutation(PLAY);
   const [apolloStop] = useMutation(STOP);
 
-  const [addClipServer, { data, loading }] = useMutation(ADD_CLIP_SERVER);
+  const [addClientClip] = useMutation(ADD_CLIENT_CLIP);
+  const [addClipServer] = useMutation(ADD_CLIP_SERVER);
 
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
@@ -99,18 +193,8 @@ const ConnectedWorkspaceAudio = ({
     scheduler.stop();
   };
 
-  /**
-   * Gets fired when the state of `recording` goes from true to false.
-   */
-  const endRecordingAndAddClip = async (): Promise<void> => {
-    if (recorder.mediaRecorderInitialized()) {
-      const file = await recorder.stopRecording();
-      addClipServer({ variables: { vampId, userId, file } });
-      // TODO add clip.
-    } else {
-      // TODO User-facing warning.
-      console.error("Stopped audio because of no microphone access.");
-    }
+  const seek = (time: number): void => {
+    scheduler.seek(time);
   };
 
   // TODO If we end up needing to reuse this functionality it should be put in a
@@ -127,10 +211,83 @@ const ConnectedWorkspaceAudio = ({
     return ref.current;
   };
 
-  const prevData = usePrevious({ playing, recording, clips });
+  /**
+   * The values passed here will be tracked between state changes.
+   */
+  const prevData = usePrevious({
+    playing,
+    recording,
+    clips,
+    clientClips,
+    playPosition,
+    playStartTime
+  });
+
+  /**
+   * Gets fired when the state of `recording` goes from true to false.
+   */
+  const endRecordingAndAddClip = async (): Promise<void> => {
+    if (recorder.mediaRecorderInitialized()) {
+      // We send a "reference ID" to the server so that we can immediately add
+      // this clip client-side and then updated it later when we get the
+      // subscription back from the server.
+      const referenceId = ObjectID.generate();
+      const file = await recorder.stopRecording();
+      addClipServer({
+        variables: {
+          start: prevData.playPosition,
+          vampId,
+          userId,
+          file,
+          referenceId
+        }
+      });
+      console.time("local clip cached in");
+      const localClip = await addClientClip({
+        variables: { localFilename: referenceId, start: prevData.playPosition }
+      });
+      audioStore.cacheClientClipAudio(
+        localClip.data.addClientClip,
+        file,
+        apolloClient,
+        context
+      );
+      console.timeEnd("local clip cached in");
+    } else {
+      // TODO User-facing warning.
+      console.error("Stopped audio because of no microphone access.");
+    }
+  };
+
+  /**
+   * Called on every clips update (see the useEffect hook). After the audio for
+   * all clips is downloaded, its duration is set in the local cache, so we wait
+   * until then to set the start and end times for the Vamp timeline.
+   */
+  const updateStartEnd = (
+    clips: {
+      start: number;
+      audio: { duration: number };
+    }[]
+  ): void => {
+    let start = 0;
+    clips.forEach(clip => {
+      if (clip.start < start) {
+        start = clip.start;
+      }
+    });
+    let end = start;
+    clips.forEach(clip => {
+      if (clip.start + clip.audio.duration > end) {
+        end = clip.start + clip.audio.duration;
+      }
+    });
+    apolloClient.writeData({ data: { start, end } });
+  };
 
   // Run on every state update. So whenever the props fed to this component from
-  // Apollo are updated, we handle those changes here.
+  // Apollo are updated, we handle those changes here. Think of this as the
+  // interface between the Apollo state and the behavior of the audio module.
   useEffect(() => {
     if (prevData) {
       // NOTE record() and endRecordingAndAddClip() don't deal with playback. If
@@ -148,40 +305,66 @@ const ConnectedWorkspaceAudio = ({
       if (!playing && prevData.playing) {
         stop();
       }
+
+      // Signals that some seek has occured while playing, such as restarting at
+      // the beginning during a loop.
+      if (
+        prevData &&
+        playing &&
+        prevData.playing &&
+        playStartTime != prevData.playStartTime
+      ) {
+        seek(start);
+      }
+
+      // Check for removed Clips and ClientClips and stop their playback.
+      const removeEventForClips = (
+        clips: { id: string }[],
+        prevClips: { id: string }[]
+      ): void => {
+        const removedIds: string[] = [];
+        const prevIds = prevClips.map(clip => clip.id);
+        const currIds = clips.map(clip => clip.id);
+        prevIds.forEach(id => {
+          if (!currIds.includes(id)) removedIds.push(id);
+        });
+        removedIds.forEach(id => scheduler.removeEvent(id));
+      };
+      removeEventForClips(clips, prevData.clips);
+      removeEventForClips(clientClips, prevData.clientClips);
     }
+
+    // Process clips' audio and do stuff that requires access to the metadata
+    // from the audio.
     if (clips) {
       for (const clip of clips) {
-        audioStore.cacheClipAudio(clip, apolloClient);
+        // This function checks if the clip has already been cached.
+        audioStore.cacheClipAudio(clip, apolloClient, context);
       }
+      updateStartEnd(clips);
     }
   });
 
   return (
     <>
       <Metronome audioContext={context} scheduler={scheduler}></Metronome>
+      <ClipPlayer
+        clips={clips}
+        clientClips={clientClips}
+        audioStore={audioStore}
+        scheduler={scheduler}
+      ></ClipPlayer>
+      <Looper
+        start={start}
+        end={end}
+        loop={loop}
+        playing={playing}
+        playPosition={playPosition}
+        playStartTime={playStartTime}
+      ></Looper>
     </>
   );
 };
-
-const WORKSPACE_AUDIO_QUERY = gql`
-  query WorkspaceAudioData {
-    bpm @client
-    beatsPerBar @client
-    playing @client
-    recording @client
-    metronomeSound @client
-    playPosition @client
-    playStartTime @client
-
-    clips @client {
-      id @client
-      audio @client {
-        id @client
-        filename @client
-      }
-    }
-  }
-`;
 
 const WorkspaceAudio = graphql<{}, AudioData>(WORKSPACE_AUDIO_QUERY)(
   ConnectedWorkspaceAudio

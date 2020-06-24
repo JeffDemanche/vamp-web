@@ -33,22 +33,25 @@ const ConnectedMetronome = ({
 }: ChildProps<OwnProps, MetronomeData>): JSX.Element => {
   const timeBetweenTicks = (): number => 1.0 / (bpm / 60);
 
-  const tick = (context: AudioContext): void => {
+  const tick = (context: AudioContext): AudioScheduledSourceNode => {
     const osc = context.createOscillator();
     osc.type = "sine";
     osc.frequency.setValueAtTime(880, context.currentTime);
     osc.connect(context.destination);
     osc.start(0);
     osc.stop(context.currentTime + 0.05);
+    return osc;
   };
 
   const setEvent = (): void => {
     scheduler.addEvent({
       id: "METRONOME",
       start: 0,
-      dispatch: async (context: AudioContext): Promise<void> => {
+      dispatch: async (
+        context: AudioContext
+      ): Promise<AudioScheduledSourceNode | void> => {
         if (playing) {
-          tick(context);
+          return tick(context);
         }
       },
       repeat: timeBetweenTicks()

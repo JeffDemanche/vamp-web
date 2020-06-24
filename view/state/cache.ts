@@ -4,27 +4,59 @@
  * integrated for updating from the server.
  */
 
-export interface Clip {
+export interface User {
   __typename: string;
-  id: string;
-  audio: Audio;
-}
 
-export interface Audio {
-  __typename: string;
-  id: string;
-  filename: string;
-  storedLocally: boolean;
-  // uploader: User;
-  duration: number;
-}
-
-export interface Me {
-  __typename: string;
+  // Synced with server.
   id: string;
   username: string;
   email: string;
 }
+
+export interface Clip {
+  __typename?: string;
+
+  // Synced with server.
+  id: string;
+  start: number;
+  audio: Audio;
+}
+
+/**
+ * A ClientClip should only exist while we're waiting for a clip that we the
+ * client recorded to be returned to us via subscription from the server. While
+ * that might only take a second, waiting would prevent us from smoothly
+ * looping.
+ */
+export interface ClientClip {
+  __typename?: string;
+  id: string;
+  start: number;
+  tempFilename: string;
+  duration: number;
+  storedLocally: boolean;
+}
+
+export interface Audio {
+  __typename?: string;
+
+  // Synced with server.
+  id: string;
+  filename: string;
+  uploader: User;
+
+  // Local only.
+  tempFilename: string;
+
+  /**
+   * Designed to be true iff the clip has audio stored, be it synced with the
+   * server or straight from record.
+   */
+  storedLocally: boolean;
+  duration: number;
+}
+
+export type Me = User;
 
 export interface ViewState {
   __typename: string;
@@ -58,9 +90,14 @@ export interface ApolloWorkspaceType {
    */
   playStartTime: number;
 
+  start: number;
+  end: number;
+  loop: boolean;
+
   recording: boolean;
 
   clips: Clip[];
+  clientClips: ClientClip[];
 
   viewState: ViewState;
 }
@@ -79,9 +116,14 @@ export const initialCache: ApolloWorkspaceType = {
   playPosition: 0,
   playStartTime: -1,
 
+  start: 0,
+  end: 0,
+  loop: true,
+
   recording: false,
 
   clips: [],
+  clientClips: [],
 
   viewState: {
     __typename: "ViewState",

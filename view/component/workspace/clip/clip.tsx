@@ -11,6 +11,7 @@ interface ClipProps {
       id: string;
       filename: string;
       storedLocally: boolean;
+      tempFilename: string;
       duration: number;
     };
   };
@@ -30,11 +31,12 @@ const Clip: React.FunctionComponent<ClipProps> = ({ clip }: ClipProps) => {
   const width = `${100 * clip.audio.duration * data.viewState.temporalZoom}px`;
   const opacity = clip.audio.storedLocally ? 1.0 : 0.7;
 
+  const synced = clip.audio.filename !== "" ? "" : "not synced";
+
   return (
-    <div
-      className={styles["clip"]}
-      style={{ width: width, opacity: opacity }}
-    ></div>
+    <div className={styles["clip"]} style={{ width: width, opacity: opacity }}>
+      {synced}
+    </div>
   );
 };
 

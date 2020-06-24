@@ -16,6 +16,12 @@ export const PAUSE = gql`
   }
 `;
 
+export const SEEK = gql`
+  mutation Seek($time: Float) {
+    seek(time: $time) @client
+  }
+`;
+
 export const STOP = gql`
   mutation Stop {
     stop @client

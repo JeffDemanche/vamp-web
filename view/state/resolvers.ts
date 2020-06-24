@@ -7,8 +7,16 @@
 
 import { gql, Resolvers } from "apollo-boost";
 import { InMemoryCache } from "apollo-cache-inmemory";
-import { GET_PLAY_POSITION_START_TIME, GET_CLIPS } from "./queries";
-import { Clip, Me, Audio } from "./cache";
+import {
+  GET_PLAY_POSITION_START_TIME,
+  GET_CLIPS,
+  PLAYING,
+  GET_CLIENT_CLIPS
+} from "./queries";
+import { Clip, Me, Audio, ClientClip } from "./cache";
+import { v4 as uuidv4 } from "uuid";
+import ObjectID from "bson-objectid";
+import { ME } from "../build/view/queries/user-queries";
 
 /**
  * Local schema.
@@ -43,8 +51,12 @@ export const typeDefs = gql`
   extend type Mutation {
     play: Boolean
     pause: Boolean
+    seek(time: Float!): Boolean
     stop: Boolean
     record: Boolean
+    repeat: Boolean
+    addClientClip(localFilename: String!, start: Float!): Clip
+    removeClientClip(tempFilename: String!): Boolean
   }
 `;
 
@@ -145,6 +157,20 @@ export const resolvers: AppResolvers = {
       });
       return true;
     },
+    seek: (parent, args, { cache }: { cache: InMemoryCache }): boolean => {
+      const data: {
+        playing: boolean;
+      } = cache.readQuery({ query: PLAYING });
+      cache.writeData({
+        data: {
+          // TODO
+          recording: false,
+          playPosition: args.time,
+          playStartTime: data.playing ? Date.now() : -1
+        }
+      });
+      return true;
+    },
     stop: (parent, args, { cache }: { cache: InMemoryCache }): boolean => {
       cache.writeData({
         data: {
@@ -161,6 +187,52 @@ export const resolvers: AppResolvers = {
         data: { playing: true, recording: true, playStartTime: Date.now() }
       });
       return true;
+    },
+
+    addClientClip: (
+      parent,
+      args,
+      { cache }: { cache: InMemoryCache }
+    ): ClientClip => {
+      const clipsData: {
+        clientClips: ClientClip[];
+      } = cache.readQuery({ query: GET_CLIENT_CLIPS });
+      const clientClipsCopy = [...clipsData.clientClips];
+      const newClientClip = {
+        __typename: "ClientClip",
+        id: ObjectID.generate(),
+        start: args.start,
+        tempFilename: args.localFilename,
+        duration: -1,
+        storedLocally: false
+      };
+      clientClipsCopy.push(newClientClip);
+      cache.writeData({
+        data: { clientClips: clientClipsCopy }
+      });
+      return newClientClip;
+    },
+    removeClientClip: (
+      parent,
+      args,
+      { cache }: { cache: InMemoryCache }
+    ): boolean => {
+      let removed = false;
+      const clipsData: {
+        clientClips: ClientClip[];
+      } = cache.readQuery({ query: GET_CLIENT_CLIPS });
+      const clientClipsCopy: ClientClip[] = [];
+      clipsData.clientClips.forEach(clientClip => {
+        if (clientClip.tempFilename == args.tempFilename) {
+          removed = true;
+        } else {
+          clientClipsCopy.push(clientClip);
+        }
+      });
+      cache.writeData({
+        data: { clientClips: clientClipsCopy }
+      });
+      return removed;
     }
   }
 };

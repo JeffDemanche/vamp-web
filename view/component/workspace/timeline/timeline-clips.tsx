@@ -11,6 +11,7 @@ interface TimelineClipsProps {
         id: string;
         filename: string;
         storedLocally: boolean;
+        tempFilename: string;
         duration: number;
       };
     }

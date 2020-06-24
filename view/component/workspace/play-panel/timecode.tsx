@@ -1,41 +1,31 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
 import { graphql, ChildProps } from "react-apollo";
 
 import * as styles from "./timecode.less";
 import { gql } from "apollo-boost";
+import { useTrueTime } from "../../../react-hooks";
 
 interface TimecodeData {
+  start: number;
+  end: number;
   playing: boolean;
   playPosition: number;
   playStartTime: number;
 }
 
 const ConnectedTimecode = ({
-  data: { playing, playPosition, playStartTime }
+  data: { start, end, playing, playPosition, playStartTime }
 }: ChildProps<{}, TimecodeData>): JSX.Element => {
-  // This "local state" time is initially set to the playPosition from the
-  // Apollo Cache.
-  const [trueTime, setTrueTime] = useState(playPosition);
-
-  // The [playing] arg makes it so this hook is called when the playing prop
-  // changes. If it is, we begin a timeout interval chain which calculates the
-  // correct time every 100ms and sets the trueTime state, which is defined
-  // above. If it's not playing, we clear the interval so it stops updating and
-  // set the true time to the accurate paused value, given by playPosition from
-  // the Redux store.
-  useEffect(() => {
-    let interval: NodeJS.Timeout = null;
-    if (playing) {
-      interval = global.setInterval(() => {
-        setTrueTime(playPosition + (Date.now() - playStartTime) / 1000);
-      }, 100);
-    } else {
-      clearInterval(interval);
-      setTrueTime(playPosition);
-    }
-    return (): void => clearInterval(interval);
-  }, [playing]);
+  // Gets the current time and updates every 1/100 second. This should be
+  // adequate for a 1/100 second precision timer.
+  const trueTime = useTrueTime(
+    playing,
+    playPosition,
+    playStartTime,
+    start,
+    end,
+    100
+  );
 
   // True time is in seconds.
   const minutes = Math.floor(trueTime / 60);
@@ -54,6 +44,8 @@ const TIMECODE_QUERY = gql`
     playing @client
     playPosition @client
     playStartTime @client
+    start @client
+    end @client
   }
 `;
 
