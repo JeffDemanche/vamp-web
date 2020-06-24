@@ -6,31 +6,36 @@ import * as React from "react";
 import { ApolloMockedProvider } from "./test-utils/providers";
 import { resolvers } from "../view/state/resolvers";
 import { InMemoryCache } from "apollo-boost";
+import { act } from "react-dom/test-utils";
 
 describe("Play/Stop Button functionality", () => {
-  beforeEach(() => {});
+  // beforeEach(() => {});
   it("handles clicking", () => {
     const customResolvers = {};
-    const wrapper = mount(
-      <ApolloMockedProvider customResolvers={customResolvers}>
-        <PlayStopButton />
-      </ApolloMockedProvider>
-    );
-    //TODO: currently the only way to test the button click is by logging something
-    const spy = jest.spyOn(console, "log");
-    expect(spy).not.toHaveBeenCalled();
-    const button = wrapper.find(PlayStopButton);
-    button.simulate("click");
-    expect(spy).toHaveBeenCalled();
+    act(() => {
+      const wrapper = mount(
+        <ApolloMockedProvider customResolvers={customResolvers}>
+          <PlayStopButton />
+        </ApolloMockedProvider>
+      );
+      //TODO: currently the only way to test the button click is by logging something
+      const spy = jest.spyOn(console, "log");
+      expect(spy).not.toHaveBeenCalled();
+      const button = wrapper.find(PlayStopButton);
+      button.simulate("click");
+      expect(spy).toHaveBeenCalled();
+    });
   });
   it("plays when clicked from pause", () => {
     const customResolvers = resolvers.Mutation;
-    const wrapper = mount(
-      <ApolloMockedProvider customResolvers={customResolvers}>
-        <PlayStopButton />
-      </ApolloMockedProvider>
-    );
-    expect(true).toBe(true);
+    act(() => {
+      const wrapper = mount(
+        <ApolloMockedProvider customResolvers={customResolvers}>
+          <PlayStopButton />
+        </ApolloMockedProvider>
+      );
+      expect(true).toBe(true);
+    });
   });
   it("pauses when clicked from play", () => {
     const customResolvers = () => ({
@@ -58,11 +63,13 @@ describe("Play/Stop Button functionality", () => {
         return 1;
       }
     });
-    const wrapper = mount(
-      <ApolloMockedProvider customResolvers={customResolvers}>
-        <PlayStopButton />
-      </ApolloMockedProvider>
-    );
-    expect(true).toBe(true);
+    act(() => {
+      const wrapper = mount(
+        <ApolloMockedProvider customResolvers={customResolvers}>
+          <PlayStopButton />
+        </ApolloMockedProvider>
+      );
+      expect(true).toBe(true);
+    });
   });
 });
