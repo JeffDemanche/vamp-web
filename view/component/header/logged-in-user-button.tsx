@@ -5,6 +5,8 @@ import { useMutation } from "react-apollo";
 import { NewVamp } from "../wrapper/new-vamp";
 import { LOGOUT, User } from "../../queries/user-queries";
 
+import * as styles from "./logged-in-user-button.less";
+
 interface LoggedInUserButtonProps {
   style?: React.CSSProperties;
   me: User;
@@ -21,7 +23,7 @@ const LoggedInUserButton = (props: LoggedInUserButtonProps): JSX.Element => {
       content={
         <>
           <NewVamp creatorId={props.me.id}>
-            <a href="#" style={{ color: "rgba(102, 19, 109, 0.81)" }}>
+            <a href="#" style={styles["a"]}>
               New Vamp
             </a>
           </NewVamp>
@@ -30,7 +32,7 @@ const LoggedInUserButton = (props: LoggedInUserButtonProps): JSX.Element => {
             onClick={(): void => {
               logout({ variables: {} });
             }}
-            style={{ color: "rgba(102, 19, 109, 0.81)" }}
+            style={styles["a"]}
           >
             Logout
           </a>
