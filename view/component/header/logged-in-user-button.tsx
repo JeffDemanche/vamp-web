@@ -21,13 +21,16 @@ const LoggedInUserButton = (props: LoggedInUserButtonProps): JSX.Element => {
       content={
         <>
           <NewVamp creatorId={props.me.id}>
-            <a href="#">New Vamp</a>
+            <a href="#" style={{ color: "rgba(102, 19, 109, 0.81)" }}>
+              New Vamp
+            </a>
           </NewVamp>
           <a
             href="/"
             onClick={(): void => {
               logout({ variables: {} });
             }}
+            style={{ color: "rgba(102, 19, 109, 0.81)" }}
           >
             Logout
           </a>

@@ -1,0 +1,10 @@
+$body-bg: #000;
+$body-color: #111;
+$popover-body-color: rgb(165, 151, 163);
+
+$theme-colors: (
+    "primary": rgb(165, 151, 163),
+    "danger": rgba(102, 19, 109, 0.81));
+// TODO: only import what you need
+@import "../node_modules/bootstrap/scss/bootstrap";
+
