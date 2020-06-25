@@ -4,7 +4,7 @@ import { PlayPanel } from "./play-panel/play-panel";
 import { useApolloClient, useQuery } from "react-apollo";
 import { RouteComponentProps } from "react-router";
 
-import styles = require("./view-workspace.less");
+import * as styles from "./view-workspace.less";
 import { WorkspaceAudio } from "../../audio/vamp-audio";
 import { gql } from "apollo-boost";
 import { useEffect } from "react";

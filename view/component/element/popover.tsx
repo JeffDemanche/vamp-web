@@ -15,7 +15,10 @@ interface VampPopoverProps {
 
 const VampPopover = (props: VampPopoverProps): JSX.Element => {
   const title = props.title && (
-    <Popover.Title as="h3">{`User Settings`}</Popover.Title>
+    <Popover.Title
+      as="h3"
+      className={styles["popover-title"]}
+    >{`User Settings`}</Popover.Title>
   );
 
   return (
@@ -26,7 +29,9 @@ const VampPopover = (props: VampPopoverProps): JSX.Element => {
       overlay={
         <Popover id={props.id} className={styles["popover"]}>
           {title}
-          <Popover.Content>{props.content}</Popover.Content>
+          <Popover.Content className={styles["popover-content"]}>
+            {props.content}
+          </Popover.Content>
         </Popover>
       }
     >
