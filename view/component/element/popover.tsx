@@ -28,6 +28,7 @@ const VampPopover = (props: VampPopoverProps): JSX.Element => {
       rootClose
       overlay={
         <Popover id={props.id} className={styles["popover"]}>
+          <div className={styles["arrow"]}></div>
           {title}
           <Popover.Content className={styles["popover-content"]}>
             {props.content}
