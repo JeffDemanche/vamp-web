@@ -16,7 +16,7 @@ import {
 import { Clip, Me, Audio, ClientClip } from "./cache";
 import { v4 as uuidv4 } from "uuid";
 import ObjectID from "bson-objectid";
-import { ME } from "../build/view/queries/user-queries";
+import { ME } from "../queries/user-queries";
 
 /**
  * Local schema.
