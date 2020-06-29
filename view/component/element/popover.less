@@ -2,16 +2,13 @@
 @import "../../constants/fonts.less";
 
 .popover {
+    color: @popover-background;
     background-color: @popover-background;
     font-family: @font-default;
     font-size: 12pt;
     font-weight: normal;
-    text-decoration: none;
     border-radius: 4px;
-    .arrow {
-      color: red;
-      border-color:green;
-    }
+    border: 0px;
 }
 
 .popover-title {
@@ -21,6 +18,17 @@
     background-color: @popover-background;
     color: @popover-text;
     text-align:center;
+
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-left-radius: 1px;
+    border-top-right-radius: 1px;
+
+    border-left-style: solid;
+    border-left-width: thin;
+    
+    border-right-style: solid;
+    border-right-width: thin;
   }
   
 .popover-content {
@@ -31,15 +39,8 @@
     background-color: @popover-background;
     color: @popover-text;
     text-align: left;
+    border-color: white;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
   }
 
-.popover .arrow ,
-.popover .arrow::after{
-  color: red !important;
-  border-color: red !important;
-}
-
-.bs-popover-bottom .arrow::after,
-.bs-popover-auto[x-placement^="bottom"] .arrow::after {
-border-bottom-color: yellow; // Any color here
-}
