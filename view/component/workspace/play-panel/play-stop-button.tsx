@@ -4,6 +4,8 @@ import * as styles from "./play-stop-button.less";
 import { gql } from "apollo-boost";
 import { useQuery, useMutation } from "react-apollo";
 import { SEEK } from "../../../state/mutations";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useState, useEffect } from "react";
 
 const PLAYING = gql`
   query Playing {
@@ -49,7 +51,8 @@ const PlayStopButton: React.FunctionComponent = () => {
     : require("../../../img/vector/play.svg");
 
   const handleClick = (): void => {
-    if (data.playing) {
+    const isPlaying = data.playing;
+    if (isPlaying) {
       if (recordingData.recording) {
         seek({ variables: { time: 0 } });
       } else {
