@@ -10,8 +10,8 @@
 
 import { useEffect } from "react";
 import { useMutation } from "react-apollo";
-import { SEEK } from "../state/mutations";
 import { useTrueTime } from "../react-hooks";
+import { SEEK_CLIENT } from "../queries/vamp-mutations";
 
 interface LooperProps {
   start: number;
@@ -40,7 +40,7 @@ const Looper = ({
     end,
     TIME_UPDATE_FREQ_MS
   );
-  const [apolloSeek] = useMutation(SEEK);
+  const [apolloSeek] = useMutation(SEEK_CLIENT);
 
   useEffect(() => {
     // Triggers the Apollo mutation that seeks to the beginning of the Vamp when

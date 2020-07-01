@@ -1,19 +1,16 @@
 import { ApolloClient } from "apollo-client";
 import { InMemoryCache } from "apollo-cache-inmemory";
-import { initialCache } from "./cache";
 import { WebSocketLink } from "apollo-link-ws";
 import { split } from "apollo-link";
 import { ApolloLink } from "apollo-link";
-import { HttpLink, createHttpLink } from "apollo-link-http";
+import { HttpLink } from "apollo-link-http";
 import { createUploadLink } from "apollo-upload-client";
 import { getMainDefinition } from "apollo-utilities";
-import { resolvers, typeDefs } from "./resolvers";
-import fetch from "node-fetch";
+import { typeDefs } from "./schema";
 import { onError } from "apollo-link-error";
-
-const httpLink = new HttpLink({
-  uri: "http://localhost:4567/graphql"
-});
+import defaults from "./defaults";
+import vampResolvers from "./resolvers/vamp";
+import audioResolvers from "./resolvers/audio";
 
 /**
  * This *replaces* the httpLink while adding support for file uploads over GQL.
@@ -41,13 +38,15 @@ const terminatingLink = split(
   uploadLink
 );
 
+const cache = new InMemoryCache();
+
 const link = ApolloLink.from([
   onError(({ graphQLErrors, networkError }) => {
     if (graphQLErrors)
       graphQLErrors.forEach(({ message, locations, path }) =>
         console.log(
           `[GraphQL error]: Message: ${message},\
-           Location: ${locations.map(loc => ` ${loc}`)}, Path: ${path}`
+           Location: ${locations}, Path: ${path}`
         )
       );
     if (networkError) console.log(`[Network error]: ${networkError}`);
@@ -56,14 +55,13 @@ const link = ApolloLink.from([
 ]);
 
 const client = new ApolloClient({
+  cache,
   link,
-  cache: new InMemoryCache(),
   typeDefs,
-  resolvers
+  resolvers: { ...vampResolvers, ...audioResolvers }
 });
 
 // Initialize cache to default values.
-client.writeData({ data: initialCache });
-client.onResetStore(async () => client.writeData({ data: initialCache }));
+client.writeData({ data: defaults });
 
 export { client };

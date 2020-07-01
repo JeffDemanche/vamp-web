@@ -1,24 +1,23 @@
-import { User, ClientClip } from "../state/cache";
+import { ClientClip } from "../state/cache";
 import { useEffect } from "react";
 import AudioStore from "./audio-store";
 import { Scheduler } from "./scheduler";
 
 interface ClipPlayerProps {
-  clips: [
-    {
+  clips: {
+    id: string;
+    start: number;
+    audio: {
       id: string;
-      start: number;
-      audio: {
-        id: string;
-        storedLocally: boolean;
-        filename: string;
-        uploader: User;
-        tempFilename: string;
-        duration: number;
-      };
-    }
-  ];
-  clientClips: ClientClip[];
+      storedLocally: boolean;
+    };
+  }[];
+  clientClips: {
+    id: string;
+    storedLocally: boolean;
+    start: number;
+    tempFilename: string;
+  }[];
   audioStore: AudioStore;
   scheduler: Scheduler;
 }
@@ -58,6 +57,7 @@ const ClipPlayer = ({
 
             source.buffer = decodedData;
             source.connect(context.destination);
+            console.timeEnd("removed clip");
             source.start(0, offset);
 
             return source;

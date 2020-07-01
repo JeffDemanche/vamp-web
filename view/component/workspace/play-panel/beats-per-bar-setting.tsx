@@ -5,14 +5,21 @@ import { SettingNumeric } from "../../element/setting-numeric";
 import { gql } from "apollo-boost";
 import { useQuery, useMutation } from "react-apollo";
 import { useCurrentVampId } from "../../../react-hooks";
+import {
+  BeatsPerBarClient,
+  UpdateBeatsPerBar
+} from "../../../state/apollotypes";
 
-const BEATS_PER_BAR_QUERY = gql`
-  query BeatsPerBar {
-    beatsPerBar @client
+const BEATS_PER_BAR_CLIENT = gql`
+  query BeatsPerBarClient($vampId: ID!) {
+    # loadedVampId @client @export(as: "vampId")
+    vamp(id: $vampId) @client {
+      beatsPerBar @client
+    }
   }
 `;
 
-const UPDATE_BEATS_PER_BAR_MUTATION = gql`
+const UPDATE_BEATS_PER_BAR = gql`
   mutation UpdateBeatsPerBar($update: VampUpdateInput!) {
     updateVamp(update: $update) {
       # We don't need to do anything with this.
@@ -23,11 +30,14 @@ const UPDATE_BEATS_PER_BAR_MUTATION = gql`
 
 export const BeatsPerBarSetting = (): JSX.Element => {
   const vampId = useCurrentVampId();
-  const { data, loading, error } = useQuery(BEATS_PER_BAR_QUERY);
+  const { data, loading, error } = useQuery<BeatsPerBarClient>(
+    BEATS_PER_BAR_CLIENT,
+    { variables: { vampId } }
+  );
   const [
     updateBeatsPerBar,
     { loading: updateLoading, error: updateError }
-  ] = useMutation(UPDATE_BEATS_PER_BAR_MUTATION);
+  ] = useMutation<UpdateBeatsPerBar>(UPDATE_BEATS_PER_BAR);
 
   if (error) console.log(error);
   if (updateError) console.log(updateError);
@@ -38,7 +48,7 @@ export const BeatsPerBarSetting = (): JSX.Element => {
 
   return (
     <SettingNumeric
-      value={data.beatsPerBar}
+      value={data.vamp.beatsPerBar}
       integer={true}
       minValue={1}
       maxValue={499}

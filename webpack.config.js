@@ -7,6 +7,11 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.(graphql|gql)$/,
+        exclude: /node_modules/,
+        loader: "graphql-tag/loader"
+      },
+      {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: {
@@ -47,7 +52,7 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ["*", ".js", ".jsx", ".ts", ".tsx"]
+    extensions: ["*", ".mjs", ".js", ".jsx", ".ts", ".tsx"]
   },
   output: {
     path: path.join(__dirname, "public"),

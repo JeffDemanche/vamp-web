@@ -14,93 +14,64 @@ import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import { gql } from "apollo-boost";
 import {
-  graphql,
   ChildProps,
   useApolloClient,
-  useMutation
+  useMutation,
+  useQuery
 } from "react-apollo";
-import { PLAY, STOP } from "../state/mutations";
-import { useCurrentVampId, useCurrentUserId } from "../react-hooks";
+import { useCurrentUserId } from "../react-hooks";
 import AudioStore from "./audio-store";
 import ObjectID from "bson-objectid";
-import { User } from "../state/cache";
 import ClipPlayer from "./clip-player";
 import Looper from "./looper";
+import { PLAY_CLIENT, STOP_CLIENT } from "../queries/vamp-mutations";
+import {
+  WorkspaceAudioClient,
+  AddClientClip,
+  AddClip,
+  StopClient,
+  PlayClient
+} from "../state/apollotypes";
 
-const WORKSPACE_AUDIO_QUERY = gql`
-  query WorkspaceAudioData {
-    bpm @client
-    beatsPerBar @client
-    playing @client
-    recording @client
-    metronomeSound @client
-    playPosition @client
-    playStartTime @client
-
-    start @client
-    end @client
-    loop @client
-
-    clips @client {
+const WORKSPACE_AUDIO_CLIENT = gql`
+  query WorkspaceAudioClient($vampId: ID!) {
+    vamp(id: $vampId) @client {
       id @client
+
+      bpm @client
+      beatsPerBar @client
+      playing @client
+      recording @client
+      metronomeSound @client
+      playPosition @client
+      playStartTime @client
+
       start @client
-      audio @client {
+      end @client
+      loop @client
+
+      clips @client {
         id @client
-        filename @client
-        tempFilename @client
-        storedLocally @client
-        duration @client
+        start @client
+        audio @client {
+          id @client
+          filename @client
+          localFilename @client
+          storedLocally @client
+          duration @client
+        }
       }
-    }
 
-    clientClips @client {
-      id @client
-      start @client
-      tempFilename @client
-      duration @client
-      storedLocally @client
+      clientClips @client {
+        id @client
+        start @client
+        tempFilename @client
+        duration @client
+        storedLocally @client
+      }
     }
   }
 `;
-
-type AudioData = {
-  bpm: number;
-  beatsPerBar: number;
-  playing: boolean;
-  recording: boolean;
-  metronomeSound: string;
-  playPosition: number;
-  playStartTime: number;
-
-  start: number;
-  end: number;
-  loop: boolean;
-
-  clips: [
-    {
-      id: string;
-      start: number;
-      audio: {
-        id: string;
-        storedLocally: boolean;
-        filename: string;
-        uploader: User;
-        tempFilename: string;
-        duration: number;
-      };
-    }
-  ];
-
-  clientClips: [
-    {
-      id: string;
-      start: number;
-      tempFilename: string;
-      duration: number;
-      storedLocally: boolean;
-    }
-  ];
-};
 
 const ADD_CLIP_SERVER = gql`
   mutation AddClip(
@@ -122,49 +93,60 @@ const ADD_CLIP_SERVER = gql`
   }
 `;
 
+interface WorkspaceAudioProps {
+  vampId: string;
+}
+
 const ADD_CLIENT_CLIP = gql`
-  mutation AddClientClip($localFilename: String, $start: Float) {
+  mutation AddClientClip($localFilename: String!, $start: Float!) {
     addClientClip(localFilename: $localFilename, start: $start) @client {
       id @client
       tempFilename @client
+      storedLocally @client
       start @client
     }
   }
 `;
 
-const ConnectedWorkspaceAudio = ({
-  data: {
-    playing,
-    recording,
-    clips,
-    clientClips,
-    playPosition,
-    playStartTime,
-    start,
-    end,
-    loop
-  }
-}: ChildProps<{}, AudioData>): JSX.Element => {
+const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const startAudioContext = (): AudioContext => {
     try {
       // Typing for window augmented in externals.d.ts.
       // The webkit thing is Safari bullshit.
       window.AudioContext = window.AudioContext || window.webkitAudioContext;
-      return new AudioContext();
+      const context = new AudioContext();
+      return context;
     } catch (e) {
       // TODO error handling.
       alert("Web audio not supported in this browser (TODO)");
     }
   };
 
-  const vampId = useCurrentVampId();
+  const {
+    data: {
+      vamp: {
+        playing,
+        recording,
+        clips,
+        clientClips,
+        playPosition,
+        playStartTime,
+        start,
+        end,
+        loop
+      }
+    }
+  } = useQuery<WorkspaceAudioClient>(WORKSPACE_AUDIO_CLIENT, {
+    variables: { vampId }
+  });
+
   const userId = useCurrentUserId();
 
-  const [apolloPlay] = useMutation(PLAY);
-  const [apolloStop] = useMutation(STOP);
+  const [apolloPlay] = useMutation<PlayClient>(PLAY_CLIENT);
+  const [apolloStop] = useMutation<StopClient>(STOP_CLIENT);
 
-  const [addClientClip] = useMutation(ADD_CLIENT_CLIP);
-  const [addClipServer] = useMutation(ADD_CLIP_SERVER);
+  const [addClientClip] = useMutation<AddClientClip>(ADD_CLIENT_CLIP);
+  const [addClipServer] = useMutation<AddClip>(ADD_CLIP_SERVER);
 
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
@@ -248,6 +230,7 @@ const ConnectedWorkspaceAudio = ({
       });
       audioStore.cacheClientClipAudio(
         localClip.data.addClientClip,
+        vampId,
         file,
         apolloClient,
         context
@@ -282,7 +265,9 @@ const ConnectedWorkspaceAudio = ({
         end = clip.start + clip.audio.duration;
       }
     });
-    apolloClient.writeData({ data: { start, end } });
+    apolloClient.writeData({
+      data: { vamp: { __typename: "Vamp", id: vampId, start, end } }
+    });
   };
 
   // Run on every state update. So whenever the props fed to this component from
@@ -339,7 +324,7 @@ const ConnectedWorkspaceAudio = ({
     if (clips) {
       for (const clip of clips) {
         // This function checks if the clip has already been cached.
-        audioStore.cacheClipAudio(clip, apolloClient, context);
+        audioStore.cacheClipAudio(clip, vampId, apolloClient, context);
       }
       updateStartEnd(clips);
     }
@@ -365,9 +350,5 @@ const ConnectedWorkspaceAudio = ({
     </>
   );
 };
-
-const WorkspaceAudio = graphql<{}, AudioData>(WORKSPACE_AUDIO_QUERY)(
-  ConnectedWorkspaceAudio
-);
 
 export { WorkspaceAudio };

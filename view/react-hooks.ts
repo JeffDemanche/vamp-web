@@ -5,14 +5,11 @@
 import { useQuery } from "react-apollo";
 import { gql } from "apollo-boost";
 import { useState, useEffect, useRef } from "react";
+import { LOCAL_VAMP_ID_CLIENT } from "./queries/vamp-queries";
 
 export const useCurrentVampId = (): string => {
-  const { data } = useQuery(gql`
-    query GetCurrentVampId {
-      id @client
-    }
-  `);
-  return data.id;
+  const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
+  return data.loadedVampId;
 };
 
 export const useCurrentUserId = (): string => {

@@ -3,7 +3,7 @@ import { mount } from "enzyme";
 import { PlayStopButton } from "../view/component/workspace/play-panel/play-stop-button";
 import * as React from "react";
 import { ApolloMockedProvider } from "./test-utils/providers";
-import { resolvers } from "../view/state/resolvers";
+import { resolvers } from "../view/state/schema";
 import { act } from "react-dom/test-utils";
 
 describe("Play/Stop Button functionality", () => {

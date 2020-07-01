@@ -1,21 +1,32 @@
 import * as React from "react";
-import { graphql, ChildProps } from "react-apollo";
+import { graphql, ChildProps, useQuery } from "react-apollo";
 
 import * as styles from "./timecode.less";
 import { gql } from "apollo-boost";
-import { useTrueTime } from "../../../react-hooks";
+import { useTrueTime, useCurrentVampId } from "../../../react-hooks";
+import { TimecodeClient } from "../../../state/apollotypes";
 
-interface TimecodeData {
-  start: number;
-  end: number;
-  playing: boolean;
-  playPosition: number;
-  playStartTime: number;
-}
+const TIMECODE_CLIENT = gql`
+  query TimecodeClient($vampId: ID!) {
+    # loadedVampId @client @export(as: "vampId")
+    vamp(id: $vampId) @client {
+      playing @client
+      playPosition @client
+      playStartTime @client
+      start @client
+      end @client
+    }
+  }
+`;
 
-const ConnectedTimecode = ({
-  data: { start, end, playing, playPosition, playStartTime }
-}: ChildProps<{}, TimecodeData>): JSX.Element => {
+const Timecode = (): JSX.Element => {
+  const vampId = useCurrentVampId();
+  const {
+    data: {
+      vamp: { start, end, playing, playPosition, playStartTime }
+    }
+  } = useQuery<TimecodeClient>(TIMECODE_CLIENT, { variables: { vampId } });
+
   // Gets the current time and updates every 1/100 second. This should be
   // adequate for a 1/100 second precision timer.
   const trueTime = useTrueTime(
@@ -38,17 +49,5 @@ const ConnectedTimecode = ({
     </div>
   );
 };
-
-const TIMECODE_QUERY = gql`
-  query TimeCodeData {
-    playing @client
-    playPosition @client
-    playStartTime @client
-    start @client
-    end @client
-  }
-`;
-
-const Timecode = graphql<{}, TimecodeData>(TIMECODE_QUERY)(ConnectedTimecode);
 
 export default Timecode;

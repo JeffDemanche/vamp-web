@@ -3,33 +3,3 @@
  */
 
 import { gql } from "apollo-boost";
-
-export const PLAY = gql`
-  mutation Play {
-    play @client
-  }
-`;
-
-export const PAUSE = gql`
-  mutation Play {
-    pause @client
-  }
-`;
-
-export const SEEK = gql`
-  mutation Seek($time: Float) {
-    seek(time: $time) @client
-  }
-`;
-
-export const STOP = gql`
-  mutation Stop {
-    stop @client
-  }
-`;
-
-export const RECORD = gql`
-  mutation Record {
-    record @client
-  }
-`;

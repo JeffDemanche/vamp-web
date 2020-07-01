@@ -3,7 +3,9 @@ import { VampButton } from "../element/button";
 import { VampPopover } from "../element/popover";
 import { useMutation } from "react-apollo";
 import { NewVamp } from "../wrapper/new-vamp";
-import { LOGOUT, User } from "../../queries/user-queries";
+import { User } from "../../queries/user-queries";
+import { LOGOUT_SERVER } from "../../queries/user-mutations";
+import { LogoutServer } from "../../state/apollotypes";
 
 import * as styles from "./logged-in-user-button.less";
 
@@ -14,7 +16,7 @@ interface LoggedInUserButtonProps {
 
 const LoggedInUserButton = (props: LoggedInUserButtonProps): JSX.Element => {
   // Data contains the user data resulting from the logout mutation.
-  const [logout, logoutResponse] = useMutation(LOGOUT);
+  const [logout, logoutResponse] = useMutation<LogoutServer>(LOGOUT_SERVER);
 
   return (
     <VampPopover

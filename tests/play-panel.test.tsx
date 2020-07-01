@@ -2,7 +2,7 @@ import { mount, render } from "enzyme";
 // eslint-disable-next-line max-len
 import * as React from "react";
 import { ApolloMockedProvider } from "./test-utils/providers";
-import { resolvers } from "../view/state/resolvers";
+import { resolvers } from "../view/state/schema";
 import { act } from "react-dom/test-utils";
 import { PlayPanel } from "../view/component/workspace/play-panel/play-panel";
 

@@ -1,36 +1,46 @@
 import { Scheduler } from "./scheduler";
 import { useEffect, useRef } from "react";
-import { ChildProps, graphql } from "react-apollo";
+import { ChildProps, graphql, useQuery } from "react-apollo";
 import { gql } from "apollo-boost";
+import { MetronomeClient } from "../state/apollotypes";
+import { useCurrentVampId } from "../react-hooks";
 
-interface MetronomeData {
-  bpm: number;
-  beatsPerBar: number;
-  playing: boolean;
-  metronomeSound: string;
-  playPosition: number;
-  playStartTime: number;
-}
-
-interface OwnProps {
+interface MetronomeProps {
   audioContext: AudioContext;
   scheduler: Scheduler;
 }
 
-type MetronomeProps = MetronomeData & OwnProps;
-
-const ConnectedMetronome = ({
-  audioContext,
-  scheduler,
-  data: {
-    bpm,
-    beatsPerBar,
-    playing,
-    metronomeSound,
-    playPosition,
-    playStartTime
+const METRONOME_CLIENT = gql`
+  query MetronomeClient($vampId: ID!) {
+    vamp(id: $vampId) @client {
+      bpm @client
+      beatsPerBar @client
+      playing @client
+      metronomeSound @client
+      playPosition @client
+      playStartTime @client
+    }
   }
-}: ChildProps<OwnProps, MetronomeData>): JSX.Element => {
+`;
+
+const Metronome = ({
+  audioContext,
+  scheduler
+}: MetronomeProps): JSX.Element => {
+  const vampId = useCurrentVampId();
+  const {
+    data: {
+      vamp: {
+        bpm,
+        beatsPerBar,
+        playing,
+        metronomeSound,
+        playPosition,
+        playStartTime
+      }
+    }
+  } = useQuery<MetronomeClient>(METRONOME_CLIENT, { variables: { vampId } });
+
   const timeBetweenTicks = (): number => 1.0 / (bpm / 60);
 
   const tick = (context: AudioContext): AudioScheduledSourceNode => {
@@ -85,20 +95,5 @@ const ConnectedMetronome = ({
 
   return null;
 };
-
-const METRONOME_QUERY = gql`
-  query MetronomeData {
-    bpm @client
-    beatsPerBar @client
-    playing @client
-    metronomeSound @client
-    playPosition @client
-    playStartTime @client
-  }
-`;
-
-const Metronome = graphql<OwnProps, MetronomeData>(METRONOME_QUERY)(
-  ConnectedMetronome
-);
 
 export default Metronome;

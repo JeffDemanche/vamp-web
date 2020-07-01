@@ -1,5 +1,10 @@
-import { ApolloClient, gql } from "apollo-boost";
-import { ClientClip } from "../state/cache";
+import { ApolloClient } from "apollo-boost";
+
+import {
+  GET_CLIPS_CLIENT,
+  GET_CLIENT_CLIPS_CLIENT
+} from "../queries/clips-queries";
+import { GetClipsClient, GetClientClipsClient } from "../state/apollotypes";
 
 interface StoredAudio {
   data: Blob;
@@ -25,7 +30,8 @@ class AudioStore {
    * than cacheClipAudio. But it does essentially the same thing.
    */
   async cacheClientClipAudio(
-    clip: ClientClip,
+    clip: { id: string; storedLocally: boolean; tempFilename: string },
+    vampId: string,
     blob: Blob,
     apolloClient: ApolloClient<object>,
     audioContext: AudioContext
@@ -35,19 +41,11 @@ class AudioStore {
       const audioBuffer = await audioContext.decodeAudioData(arrBuf);
       const duration = audioBuffer.duration;
 
-      const currentClientClips = apolloClient.readQuery({
-        query: gql`
-          query GetClientClips {
-            clientClips @client {
-              id @client
-              start @client
-              tempFilename @client
-              duration @client
-            }
-          }
-        `
+      const currentClientClips: GetClientClipsClient = apolloClient.readQuery({
+        query: GET_CLIENT_CLIPS_CLIENT,
+        variables: { vampId }
       });
-      const newClips = [...currentClientClips.clientClips];
+      const newClips = [...currentClientClips.vamp.clientClips];
       newClips.forEach((c, index) => {
         if (c.id === clip.id) {
           newClips[index].duration = duration;
@@ -56,7 +54,9 @@ class AudioStore {
       });
 
       apolloClient.writeData({
-        data: { clientClips: newClips }
+        data: {
+          vamp: { __typename: "Vamp", id: vampId, clientClips: newClips }
+        }
       });
 
       this._store[clip.tempFilename] = { data: blob };
@@ -78,6 +78,7 @@ class AudioStore {
         storedLocally: boolean;
       };
     },
+    vampId: string,
     apolloClient: ApolloClient<object>,
     audioContext: AudioContext
   ): Promise<void> {
@@ -88,23 +89,12 @@ class AudioStore {
 
       const audioBuffer = await audioContext.decodeAudioData(arrBuf);
 
-      const currentClips = apolloClient.readQuery({
-        query: gql`
-          query GetClips {
-            clips @client {
-              id @client
-              audio @client {
-                id @client
-                filename @client
-                storedLocally @client
-                duration @client
-              }
-            }
-          }
-        `
+      const currentClips: GetClipsClient = apolloClient.readQuery({
+        query: GET_CLIPS_CLIENT,
+        variables: { vampId }
       });
 
-      const newClips = [...currentClips.clips];
+      const newClips = [...currentClips.vamp.clips];
       newClips.forEach((c, index) => {
         if (c.id === clip.id) {
           newClips[index].audio.storedLocally = true;
@@ -113,7 +103,7 @@ class AudioStore {
       });
 
       apolloClient.writeData({
-        data: { clips: newClips }
+        data: { vamp: { __typename: "Vamp", id: vampId, clips: newClips } }
       });
       this._store[clip.audio.id] = { data: blob };
     }
