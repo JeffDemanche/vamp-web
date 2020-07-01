@@ -19,6 +19,7 @@ import {
   PlayingClient,
   RecordingClient
 } from "../../state/apollotypes";
+import { useCurrentVampId } from "../../react-hooks";
 
 export interface ToWrapTypes {
   children: React.ReactNode;
@@ -27,11 +28,8 @@ export interface ToWrapTypes {
 export const HotKeysWrapper: React.FC<ToWrapTypes> = (
   props: ToWrapTypes
 ): JSX.Element => {
-  const RECORDING = gql`
-    query Recording {
-      recording @client
-    }
-  `;
+  const vampId = useCurrentVampId();
+
   const keyMap = {
     PLAY_STOP: "space",
     PAUSE: "shift+space",
@@ -45,8 +43,12 @@ export const HotKeysWrapper: React.FC<ToWrapTypes> = (
   const [record] = useMutation<RecordClient>(RECORD_CLIENT);
   const [seek] = useMutation<Seek>(SEEK_CLIENT);
 
-  const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT);
-  const { data: recordingData } = useQuery<RecordingClient>(RECORDING_CLIENT);
+  const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
+    variables: { vampId }
+  });
+  const { data: recordingData } = useQuery<RecordingClient>(RECORDING_CLIENT, {
+    variables: { vampId }
+  });
 
   const handlers = {
     PLAY_STOP: (): void => {

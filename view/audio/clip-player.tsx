@@ -57,7 +57,6 @@ const ClipPlayer = ({
 
             source.buffer = decodedData;
             source.connect(context.destination);
-            console.timeEnd("removed clip");
             source.start(0, offset);
 
             return source;
