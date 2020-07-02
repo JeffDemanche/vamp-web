@@ -2,29 +2,40 @@ import * as React from "react";
 
 import * as styles from "./cab.less";
 
-import { gql } from "apollo-boost";
 import { useQuery, useMutation } from "react-apollo";
-import { PLAY, PAUSE, STOP, RECORD } from "../../../state/mutations";
-
-const PLAYING = gql`
-  query Playing {
-    playing @client
-  }
-`;
+import { PLAYING_CLIENT } from "../../../queries/vamp-queries";
+import {
+  PLAY_CLIENT,
+  PAUSE_CLIENT,
+  STOP_CLIENT,
+  RECORD_CLIENT
+} from "../../../queries/vamp-mutations";
+import {
+  PauseClient,
+  StopClient,
+  RecordClient,
+  PlayClient,
+  PlayingClient
+} from "../../../state/apollotypes";
+import { useCurrentVampId } from "../../../react-hooks";
 
 const CabNew: React.FunctionComponent = () => {
-  const [play] = useMutation(PLAY);
-  const [pause] = useMutation(PAUSE);
-  const [stop] = useMutation(STOP);
-  const [record] = useMutation(RECORD);
+  const vampId = useCurrentVampId();
 
-  const { data, loading, error } = useQuery(PLAYING);
+  const [play] = useMutation<PlayClient>(PLAY_CLIENT);
+  const [pause] = useMutation<PauseClient>(PAUSE_CLIENT);
+  const [stop] = useMutation<StopClient>(STOP_CLIENT);
+  const [record] = useMutation<RecordClient>(RECORD_CLIENT);
+
+  const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
+    variables: { vampId }
+  });
 
   return (
     <div
       className={styles["cab-new"]}
       onClick={(): void => {
-        if (data.playing) {
+        if (data.vamp.playing) {
           stop();
         } else {
           record();

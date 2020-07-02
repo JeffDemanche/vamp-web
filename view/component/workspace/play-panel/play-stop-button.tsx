@@ -1,56 +1,42 @@
 import * as React from "react";
 
 import * as styles from "./play-stop-button.less";
-import { gql } from "apollo-boost";
 import { useQuery, useMutation } from "react-apollo";
-import { SEEK } from "../../../state/mutations";
-
-const PLAYING = gql`
-  query Playing {
-    playing @client
-  }
-`;
-
-const RECORDING = gql`
-  query Recording {
-    recording @client
-  }
-`;
-
-const PLAY = gql`
-  mutation Play {
-    play @client
-  }
-`;
-
-const PAUSE = gql`
-  mutation Play {
-    pause @client
-  }
-`;
-
-const STOP = gql`
-  mutation Stop {
-    stop @client
-  }
-`;
+import {
+  PLAYING_CLIENT,
+  RECORDING_CLIENT
+} from "../../../queries/vamp-queries";
+import {
+  PLAY_CLIENT,
+  PAUSE_CLIENT,
+  STOP_CLIENT,
+  SEEK_CLIENT
+} from "../../../queries/vamp-mutations";
+import { RecordingClient, PlayingClient } from "../../../state/apollotypes";
+import { useCurrentVampId } from "../../../react-hooks";
 
 const PlayStopButton: React.FunctionComponent = () => {
-  const [play] = useMutation(PLAY);
-  const [pause] = useMutation(PAUSE);
-  const [stop] = useMutation(STOP);
-  const [seek] = useMutation(SEEK);
+  const vampId = useCurrentVampId();
 
-  const { data, loading, error } = useQuery(PLAYING);
-  const { data: recordingData } = useQuery(RECORDING);
+  const [play] = useMutation(PLAY_CLIENT);
+  const [pause] = useMutation(PAUSE_CLIENT);
+  const [stop] = useMutation(STOP_CLIENT);
+  const [seek] = useMutation(SEEK_CLIENT);
 
-  const image = data.playing
+  const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
+    variables: { vampId }
+  });
+  const { data: recordingData } = useQuery<RecordingClient>(RECORDING_CLIENT, {
+    variables: { vampId }
+  });
+
+  const image = data.vamp.playing
     ? require("../../../img/vector/stop.svg")
     : require("../../../img/vector/play.svg");
 
   const handleClick = (): void => {
-    if (data.playing) {
-      if (recordingData.recording) {
+    if (data.vamp.playing) {
+      if (recordingData.vamp.recording) {
         seek({ variables: { time: 0 } });
       } else {
         stop();

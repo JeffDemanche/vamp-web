@@ -36,6 +36,7 @@ module.exports = {
     "prettier/prettier": ["error"],
     "react/jsx-uses-react": 1,
     "max-len": [2, { code: 80, comments: 120, tabWidth: 2 }],
-    "@typescript-eslint/no-empty-function": 0
+    "@typescript-eslint/no-empty-function": 0,
+    "@typescript-eslint/camelcase": 0
   }
 };

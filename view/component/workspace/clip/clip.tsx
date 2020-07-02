@@ -1,8 +1,10 @@
 import * as React from "react";
 import { useQuery } from "react-apollo";
-import { gql } from "apollo-boost";
 
 import styles = require("./clip.less");
+import { VIEW_STATE_CLIENT } from "../../../queries/vamp-queries";
+import { ViewStateClient } from "../../../state/apollotypes";
+import { useCurrentVampId } from "../../../react-hooks";
 
 interface ClipProps {
   clip: {
@@ -11,24 +13,19 @@ interface ClipProps {
       id: string;
       filename: string;
       storedLocally: boolean;
-      tempFilename: string;
+      localFilename: string;
       duration: number;
     };
   };
 }
 
-const VIEWSTATE_QUERY = gql`
-  query ViewState {
-    viewState @client {
-      temporalZoom
-    }
-  }
-`;
-
 const Clip: React.FunctionComponent<ClipProps> = ({ clip }: ClipProps) => {
-  const { data } = useQuery(VIEWSTATE_QUERY);
+  const vampId = useCurrentVampId();
+  const {
+    data: { vamp }
+  } = useQuery<ViewStateClient>(VIEW_STATE_CLIENT, { variables: { vampId } });
 
-  const width = `${100 * clip.audio.duration * data.viewState.temporalZoom}px`;
+  const width = `${100 * clip.audio.duration * vamp.viewState.temporalZoom}px`;
   const opacity = clip.audio.storedLocally ? 1.0 : 0.7;
 
   const synced = clip.audio.filename !== "" ? "" : "not synced";

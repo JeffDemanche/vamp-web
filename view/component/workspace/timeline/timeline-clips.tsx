@@ -4,18 +4,16 @@ import styles = require("./timeline.less");
 import Clip from "../clip/clip";
 
 interface TimelineClipsProps {
-  clips: [
-    {
+  clips: {
+    id: string;
+    audio: {
       id: string;
-      audio: {
-        id: string;
-        filename: string;
-        storedLocally: boolean;
-        tempFilename: string;
-        duration: number;
-      };
-    }
-  ];
+      filename: string;
+      storedLocally: boolean;
+      localFilename: string;
+      duration: number;
+    };
+  }[];
 }
 
 const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({

@@ -3,12 +3,16 @@ import * as React from "react";
 import { SettingNumeric } from "../../element/setting-numeric";
 
 import { gql } from "apollo-boost";
-import { useQuery, useApolloClient, useMutation } from "@apollo/react-hooks";
+import { useQuery, useMutation } from "@apollo/react-hooks";
 import { useCurrentVampId } from "../../../react-hooks";
+import { BPMClient, UpdateBPM } from "../../../state/apollotypes";
 
-const BPM_QUERY = gql`
-  query BPM {
-    bpm @client
+const BPM_CLIENT = gql`
+  query BPMClient($vampId: ID!) {
+    # loadedVampId @client @export(as: "vampId")
+    vamp(id: $vampId) @client {
+      bpm @client
+    }
   }
 `;
 
@@ -25,11 +29,13 @@ const UPDATE_BPM_MUTATION = gql`
 
 export const BPMSetting = (): JSX.Element => {
   const vampId = useCurrentVampId();
-  const { data, loading, error } = useQuery(BPM_QUERY);
+  const { data, loading, error } = useQuery<BPMClient>(BPM_CLIENT, {
+    variables: { vampId }
+  });
   const [
     updateBPM,
     { loading: updateLoading, error: updateError }
-  ] = useMutation(UPDATE_BPM_MUTATION);
+  ] = useMutation<UpdateBPM>(UPDATE_BPM_MUTATION);
 
   if (error) console.log(error);
   if (updateError) console.log(updateError);
@@ -40,7 +46,7 @@ export const BPMSetting = (): JSX.Element => {
 
   return (
     <SettingNumeric
-      value={data.bpm}
+      value={data.vamp.bpm}
       integer={true}
       minValue={1}
       maxValue={499}

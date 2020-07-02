@@ -2,7 +2,13 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useQuery, useApolloClient } from "react-apollo";
 import { gql } from "apollo-boost";
+import { GetVamp, VampSubscription } from "../../state/apollotypes";
+import { ViewNotFound } from "../not-found/view-not-found";
+import { ViewLoading } from "../loading/view-loading";
 
+/**
+ * Gets pretty much all Vamp information for the loaded vamp, except clips.
+ */
 const VAMP_QUERY = gql`
   query GetVamp($id: ID!) {
     vamp(id: $id) {
@@ -11,18 +17,44 @@ const VAMP_QUERY = gql`
       bpm
       beatsPerBar
       metronomeSound
+      clientClips @client {
+        id @client
+      }
+      playing @client
+      playPosition @client
+      playStartTime @client
+      start @client
+      end @client
+      loop @client
+      recording @client
+      viewState @client {
+        temporalZoom @client
+      }
     }
   }
 `;
 
 const VAMP_SUBSCRIPTION = gql`
-  subscription vamp($vampId: ID!) {
+  subscription VampSubscription($vampId: ID!) {
     subVamp(vampId: $vampId) {
       id
       name
       bpm
       beatsPerBar
       metronomeSound
+      clientClips @client {
+        id @client
+      }
+      playing @client
+      playPosition @client
+      playStartTime @client
+      start @client
+      end @client
+      loop @client
+      recording @client
+      viewState @client {
+        temporalZoom @client
+      }
     }
   }
 `;
@@ -42,22 +74,25 @@ const VampSubscriptionProvider: React.FunctionComponent<VampSubscriptionProvider
   children
 }: VampSubscriptionProviderProps) => {
   const client = useApolloClient();
+
+  client.writeData({ data: { loadedVampId: vampId } });
+
   const {
     subscribeToMore: vampSubscribeToMore,
     data: vampData,
-    error: vampError
-  } = useQuery(VAMP_QUERY, {
+    error: vampError,
+    loading: vampLoading
+  } = useQuery<GetVamp>(VAMP_QUERY, {
     variables: { id: vampId }
   });
 
   useEffect(() => {
-    vampSubscribeToMore({
+    vampSubscribeToMore<VampSubscription>({
       document: VAMP_SUBSCRIPTION,
       variables: { vampId },
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
         const newVamp = subscriptionData.data.subVamp;
-        client.writeData({ data: newVamp });
 
         return {
           vamp: newVamp
@@ -69,14 +104,14 @@ const VampSubscriptionProvider: React.FunctionComponent<VampSubscriptionProvider
   if (vampError) {
     console.error(vampError);
   }
-  if (!vampData) {
-    return <div>Loading...</div>;
+  if (vampLoading) {
+    return <ViewLoading />;
   }
-
-  client.writeData({ data: vampData.vamp });
-
+  if (!vampData) {
+    return <ViewNotFound />;
+  }
   if (vampData.vamp == null) {
-    return <div>Vamp not found :(</div>;
+    return <ViewNotFound />;
   } else {
     return <>{children}</>;
   }

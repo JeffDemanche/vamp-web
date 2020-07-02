@@ -1,25 +1,18 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery, useApolloClient, useMutation } from "react-apollo";
 import { gql } from "apollo-boost";
-import { Clip } from "../../state/cache";
-import { GET_CLIPS } from "../../state/queries";
-
-const CLIPS_QUERY = gql`
-  query Clips($vampId: ID!) {
-    clips(vampId: $vampId) {
-      id
-      start
-      audio {
-        id
-        filename
-      }
-    }
-  }
-`;
+import { GET_CLIPS_SERVER } from "../../queries/clips-queries";
+import {
+  RemoveClientClip,
+  GetClipsServer,
+  ClipsSubscription
+} from "../../state/apollotypes";
+import { ViewLoading } from "../loading/view-loading";
+import { ViewNotFound } from "../not-found/view-not-found";
 
 const CLIPS_SUBSCRIPTION = gql`
-  subscription clips($vampId: ID!) {
+  subscription ClipsSubscription($vampId: ID!) {
     subClips(vampId: $vampId) {
       mutation
       updatedClip {
@@ -28,6 +21,9 @@ const CLIPS_SUBSCRIPTION = gql`
         audio {
           id
           filename
+          localFilename @client
+          storedLocally @client
+          duration @client
         }
         user {
           id
@@ -42,7 +38,7 @@ const CLIPS_SUBSCRIPTION = gql`
 `;
 
 const REMOVE_CLIENT_CLIP = gql`
-  mutation RemoveClientClip($tempFilename: string) {
+  mutation RemoveClientClip($tempFilename: String!) {
     removeClientClip(tempFilename: $tempFilename) @client
   }
 `;
@@ -64,17 +60,18 @@ const ClipsSubscriptionProvider: React.FunctionComponent<ClipsSubscriptionProvid
   const {
     subscribeToMore: clipsSubscribeToMore,
     data: clipsData,
-    error: clipsError
-  } = useQuery(CLIPS_QUERY, {
+    error: clipsError,
+    loading: clipsLoading
+  } = useQuery<GetClipsServer>(GET_CLIPS_SERVER, {
     variables: { vampId }
   });
 
-  const [removeClientClip] = useMutation(REMOVE_CLIENT_CLIP);
+  const [removeClientClip] = useMutation<RemoveClientClip>(REMOVE_CLIENT_CLIP);
 
   const client = useApolloClient();
 
   useEffect(() => {
-    clipsSubscribeToMore({
+    clipsSubscribeToMore<ClipsSubscription>({
       document: CLIPS_SUBSCRIPTION,
       variables: { vampId },
       updateQuery: (prev, { subscriptionData }) => {
@@ -99,27 +96,46 @@ const ClipsSubscriptionProvider: React.FunctionComponent<ClipsSubscriptionProvid
   if (clipsError) {
     console.error(clipsError);
   }
-
+  if (clipsLoading) {
+    return <ViewLoading />;
+  }
   if (!clipsData) {
-    return <div>Loading...</div>;
+    return <ViewNotFound />;
   }
 
   // TODO should definitely be rethought/put in a different file. Fills in clip
   // fields that we don't get from the clips query but need client-side.
-  const localizeClips = (): Clip[] => {
-    clipsData.clips.forEach((clip: Clip) => {
-      clip.__typename == "Clip";
-      clip.audio.__typename = "Audio";
-      if (!clip.audio.storedLocally) clip.audio.storedLocally = false;
-      if (!clip.audio.duration) clip.audio.duration = -1;
-      if (!clip.audio.tempFilename) clip.audio.tempFilename = "";
-    });
-    return clipsData.clips;
-  };
+  // const localizeClips = (): Clip[] => {
+  //   clipsData.clips.forEach(clip => {
+  //     if (!clip.audio.storedLocally) clip.audio.storedLocally = false;
+  //     if (!clip.audio.duration) clip.audio.duration = -1;
+  //     if (!clip.audio.tempFilename) clip.audio.tempFilename = "";
+  //   });
+  //   return clipsData.clips;
+  // };
 
+  // console.log(clipsData.clips);
   client.writeData({
-    data: { clips: localizeClips() }
+    data: { vamp: { __typename: "Vamp", id: vampId, clips: clipsData.clips } }
   });
+  // const data = client.readQuery({
+  //   query: gql`
+  //     query Test($vampId: ID!) {
+  //       vamp(id: $vampId) @client {
+  //         id @client
+  //         clips @client {
+  //           id @client
+  //           start @client
+  //           audio @client {
+  //             id @client
+  //           }
+  //         }
+  //       }
+  //     }
+  //   `,
+  //   variables: { vampId }
+  // });
+  // console.log(data);
 
   return <>{children}</>;
 };

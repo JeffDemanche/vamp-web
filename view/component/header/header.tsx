@@ -7,18 +7,8 @@ import { VampLogo } from "./logo";
 
 import { ButtonLinkDefault } from "../element/button";
 import LoggedInUserButton from "./logged-in-user-button";
-import { User } from "../../queries/user-queries";
-import { gql } from "apollo-boost";
-
-const CLIENT_ME = gql`
-  query Me {
-    me @client {
-      id
-      username
-      email
-    }
-  }
-`;
+import { User, ME_CLIENT } from "../../queries/user-queries";
+import { MeClient } from "../../state/apollotypes";
 
 const VampHeader: React.FunctionComponent = () => {
   const buttonLoggedOut = (): JSX.Element => (
@@ -41,8 +31,8 @@ const VampHeader: React.FunctionComponent = () => {
         <VampLogo></VampLogo>
       </div>
       <div className={styles["header-right-panel"]}>
-        <Query query={CLIENT_ME}>
-          {({ loading, error, data }: QueryResult): JSX.Element => {
+        <Query query={ME_CLIENT}>
+          {({ loading, error, data }: QueryResult<MeClient>): JSX.Element => {
             if (loading) {
               return <div>Loading...</div>;
             } else {

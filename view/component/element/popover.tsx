@@ -5,6 +5,7 @@ import { Placement } from "react-bootstrap/Overlay";
 import styled from "styled-components";
 
 import * as styles from "./popover.less";
+import { useEffect } from "react";
 
 const StyledPopover = styled(Popover)`
   & > .arrow {
@@ -35,19 +36,29 @@ const VampPopover = (props: VampPopoverProps): JSX.Element => {
     >{`User Settings`}</Popover.Title>
   );
 
+  const popover = (
+    <StyledPopover id={props.id} className={styles["popover"]}>
+      {title}
+      <Popover.Content className={styles["popover-content"]}>
+        {props.content}
+      </Popover.Content>
+    </StyledPopover>
+  );
+
+  // useEffect(() => {
+  //   document.addEventListener("click", () => {
+  //     console.log("fizz!");
+  //   });
+  //   document.removeEventListener("click", () => {
+  //     console.log("buzz!");
+  //   });
+  // });
   return (
     <OverlayTrigger
       trigger="click"
       placement={props.placement}
       rootClose
-      overlay={
-        <StyledPopover id={props.id} className={styles["popover"]}>
-          {title}
-          <Popover.Content className={styles["popover-content"]}>
-            {props.content}
-          </Popover.Content>
-        </StyledPopover>
-      }
+      overlay={popover}
     >
       {props.children}
     </OverlayTrigger>

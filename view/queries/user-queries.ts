@@ -1,9 +1,5 @@
 import { gql } from "apollo-boost";
 
-/**
- *
- */
-
 export interface User {
   id: string;
   username?: string;
@@ -13,8 +9,8 @@ export interface User {
 /**
  * Query the current session user's information.
  */
-export const ME = gql`
-  query Me {
+export const ME_SERVER = gql`
+  query MeServer {
     me {
       id
       username
@@ -23,14 +19,12 @@ export const ME = gql`
   }
 `;
 
-/**
- * Ends the user session on the server and returns the ID of the user that did
- * so.
- */
-export const LOGOUT = gql`
-  mutation {
-    logout {
+export const ME_CLIENT = gql`
+  query MeClient {
+    me @client {
       id
+      username
+      email
     }
   }
 `;

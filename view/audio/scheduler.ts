@@ -102,6 +102,7 @@ class Scheduler {
   };
 
   removeEvent = (id: string, stopNode = true): void => {
+    console.time("removed clip");
     if (stopNode) {
       this._dispatchedAudioNodes[id].disconnect();
       this._dispatchedAudioNodes[id].stop(0);
@@ -173,7 +174,6 @@ class Scheduler {
 
               if (preStart && start < this._seconds) {
                 const sourceNode = await dispatch(this._context, beforeStart);
-                console.log("dispatched");
                 if (sourceNode)
                   this._dispatchedAudioNodes[eventId] = sourceNode;
                 this._events[eventId].hasStarted = true;
