@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { useQuery, useApolloClient } from "react-apollo";
 import { gql } from "apollo-boost";
 import { GetVamp, VampSubscription } from "../../state/apollotypes";
+import { ViewNotFound } from "../not-found/view-not-found";
+import { ViewLoading } from "../loading/view-loading";
 
 /**
  * Gets pretty much all Vamp information for the loaded vamp, except clips.
@@ -78,7 +80,8 @@ const VampSubscriptionProvider: React.FunctionComponent<VampSubscriptionProvider
   const {
     subscribeToMore: vampSubscribeToMore,
     data: vampData,
-    error: vampError
+    error: vampError,
+    loading: vampLoading
   } = useQuery<GetVamp>(VAMP_QUERY, {
     variables: { id: vampId }
   });
@@ -101,12 +104,14 @@ const VampSubscriptionProvider: React.FunctionComponent<VampSubscriptionProvider
   if (vampError) {
     console.error(vampError);
   }
-  if (!vampData) {
-    return <div>Loading...</div>;
+  if (vampLoading) {
+    return <ViewLoading />;
   }
-
+  if (!vampData) {
+    return <ViewNotFound />;
+  }
   if (vampData.vamp == null) {
-    return <div>Vamp not found :(</div>;
+    return <ViewNotFound />;
   } else {
     return <>{children}</>;
   }

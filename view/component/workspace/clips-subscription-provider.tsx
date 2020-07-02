@@ -8,6 +8,9 @@ import {
   GetClipsServer,
   ClipsSubscription
 } from "../../state/apollotypes";
+import { ViewLoading } from "../loading/view-loading";
+import { ViewNotFound } from "../not-found/view-not-found";
+
 
 const CLIPS_SUBSCRIPTION = gql`
   subscription ClipsSubscription($vampId: ID!) {
@@ -58,7 +61,8 @@ const ClipsSubscriptionProvider: React.FunctionComponent<ClipsSubscriptionProvid
   const {
     subscribeToMore: clipsSubscribeToMore,
     data: clipsData,
-    error: clipsError
+    error: clipsError,
+    loading: clipsLoading
   } = useQuery<GetClipsServer>(GET_CLIPS_SERVER, {
     variables: { vampId }
   });
@@ -93,9 +97,11 @@ const ClipsSubscriptionProvider: React.FunctionComponent<ClipsSubscriptionProvid
   if (clipsError) {
     console.error(clipsError);
   }
-
+  if (clipsLoading) {
+    return <ViewLoading />;
+  }
   if (!clipsData) {
-    return <div>Loading...</div>;
+    return <ViewNotFound />;
   }
 
   // TODO should definitely be rethought/put in a different file. Fills in clip

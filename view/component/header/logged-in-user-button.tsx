@@ -8,6 +8,7 @@ import { LOGOUT_SERVER } from "../../queries/user-mutations";
 import { LogoutServer } from "../../state/apollotypes";
 
 import * as styles from "./logged-in-user-button.less";
+import { useEffect } from "react";
 
 interface LoggedInUserButtonProps {
   style?: React.CSSProperties;
@@ -18,6 +19,11 @@ const LoggedInUserButton = (props: LoggedInUserButtonProps): JSX.Element => {
   // Data contains the user data resulting from the logout mutation.
   const [logout, logoutResponse] = useMutation<LogoutServer>(LOGOUT_SERVER);
 
+  // useEffect(() => {
+  //   document.removeEventListener("click", () => {
+  //     console.log("buzz!");
+  //   });
+  // });
   return (
     <VampPopover
       id="popover-logged-in-user-button"

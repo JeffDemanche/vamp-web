@@ -5,12 +5,13 @@ import { ApolloProvider } from "@apollo/react-hooks";
 import { client } from "../state/apollo";
 
 import { withRouter } from "react-router";
-import { BrowserRouter, Route } from "react-router-dom";
+import { BrowserRouter, Route, Switch } from "react-router-dom";
 
-import styles = require("./vamp-app.less");
+import * as styles from "./vamp-app.less";
 import VampHeader from "./header/header";
 import { ViewWorkspace } from "./workspace/view-workspace";
 import { ViewLogin } from "./login/view-login";
+import { ViewNotFound } from "./not-found/view-not-found";
 
 import { Query, QueryResult } from "react-apollo";
 import { gql } from "apollo-boost";
@@ -58,8 +59,12 @@ const VampApp: React.FunctionComponent = () => {
         </Query>
         <VampAppBackdrop>
           <VampHeader></VampHeader>
-          <Route path="/v/:vampid" component={ViewWorkspace} />
-          <Route path="/login" component={ViewLogin} />
+          <Switch>
+            <Route path="/" exact />
+            <Route path="/v/:vampid" component={ViewWorkspace} />
+            <Route path="/login" component={ViewLogin} />
+            <Route component={ViewNotFound} />
+          </Switch>
         </VampAppBackdrop>
       </ApolloProvider>
     </BrowserRouter>
