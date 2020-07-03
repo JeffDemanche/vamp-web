@@ -4,7 +4,7 @@
 import * as React from "react";
 import { useQuery } from "react-apollo";
 import { gql } from "apollo-boost";
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LOCAL_VAMP_ID_CLIENT } from "./queries/vamp-queries";
 
 export const useCurrentVampId = (): string => {
