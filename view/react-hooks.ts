@@ -1,10 +1,10 @@
 /*
  * A place for custom React hooks.
  */
-
+import * as React from "react";
 import { useQuery } from "react-apollo";
 import { gql } from "apollo-boost";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { LOCAL_VAMP_ID_CLIENT } from "./queries/vamp-queries";
 
 export const useCurrentVampId = (): string => {
@@ -87,4 +87,28 @@ export const useTrueTime = (
   }, [playing, playPosition, playStartTime]);
 
   return trueTime;
+};
+
+export const useHover = (): [React.RefObject<HTMLDivElement>, boolean] => {
+  const [value, setValue] = useState(false);
+
+  const ref = React.createRef<HTMLDivElement>();
+
+  const handleMouseOver = (): void => setValue(true);
+  const handleMouseOut = (): void => setValue(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (node) {
+      node.addEventListener("mouseover", handleMouseOver);
+      node.addEventListener("mouseout", handleMouseOut);
+
+      return (): void => {
+        node.removeEventListener("mouseover", handleMouseOver);
+        node.removeEventListener("mouseout", handleMouseOut);
+      };
+    }
+  }, [ref.current]);
+
+  return [ref, value];
 };

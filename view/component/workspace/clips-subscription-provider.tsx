@@ -11,7 +11,6 @@ import {
 import { ViewLoading } from "../loading/view-loading";
 import { ViewNotFound } from "../not-found/view-not-found";
 
-
 const CLIPS_SUBSCRIPTION = gql`
   subscription ClipsSubscription($vampId: ID!) {
     subClips(vampId: $vampId) {
