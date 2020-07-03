@@ -2,8 +2,8 @@ import * as React from "react";
 
 import "bootstrap/dist/css/bootstrap.css";
 
-import { VampButton } from "../component/element/button";
-import { VampPopover } from "../component/element/popover";
+import { VampButton } from "./button";
+import { VampPopover } from "./popover";
 
 export default { title: "Vamp Popover" };
 

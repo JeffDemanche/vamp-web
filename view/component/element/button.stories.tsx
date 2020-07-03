@@ -2,7 +2,7 @@ import * as React from "react";
 
 import "bootstrap/dist/css/bootstrap.css";
 
-import { VampButton } from "../component/element/button";
+import { VampButton } from "./button";
 
 export default { title: "Vamp Button" };
 

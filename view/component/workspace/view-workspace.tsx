@@ -10,7 +10,6 @@ import VampSubscriptionProvider from "./vamp-subscription-provider";
 import ClipsSubscriptionProvider from "./clips-subscription-provider";
 
 import { HotKeysWrapper } from "../wrapper/hotkeys-wrapper";
-// import { MouseMoveWrapper } from "../wrapper/mouse-move-wrapper";
 
 interface MatchParams {
   vampid: string;
