@@ -2,12 +2,11 @@ import * as React from "react";
 import { Popover } from "react-bootstrap";
 import { OverlayTrigger } from "react-bootstrap";
 import { Placement } from "react-bootstrap/Overlay";
-import styled from "styled-components";
+import styled, { StyledComponent } from "styled-components";
 
 import * as styles from "./popover.less";
-import { useEffect } from "react";
 
-const StyledPopover = styled(Popover)`
+const StyledPopover: StyledComponent<Popover, any, {}, never> = styled(Popover)`
   & > .arrow {
     border-color: black;
   }
@@ -37,22 +36,15 @@ const VampPopover = (props: VampPopoverProps): JSX.Element => {
   );
 
   const popover = (
-    <StyledPopover id={props.id} className={styles["popover"]}>
+    // TODO: fix this typescript error with styled popover, still renders ok
+    <Popover id={props.id} className={styles["popover"]}>
       {title}
       <Popover.Content className={styles["popover-content"]}>
         {props.content}
       </Popover.Content>
-    </StyledPopover>
+    </Popover>
   );
 
-  // useEffect(() => {
-  //   document.addEventListener("click", () => {
-  //     console.log("fizz!");
-  //   });
-  //   document.removeEventListener("click", () => {
-  //     console.log("buzz!");
-  //   });
-  // });
   return (
     <OverlayTrigger
       trigger="click"
