@@ -21,7 +21,7 @@ import {
 } from "../../state/apollotypes";
 import { useCurrentVampId } from "../../react-hooks";
 
-export interface ToWrapTypes {
+interface ToWrapTypes {
   children: React.ReactNode;
 }
 
@@ -63,18 +63,19 @@ export const HotKeysWrapper: React.FC<ToWrapTypes> = (
         play();
       }
     },
-    STOP: (): void => {
-      stop();
-    },
+
     PAUSE: (): void => {
       // TODO: I don't know how pause should work
-      pause();
+      // pause();
+      console.log("pause!");
     },
     RECORD: (): void => {
       // TODO: I don't know how record should work
-      record();
+      // record();
+      console.log("record!");
     },
     MUSICAL_TYPING: (): void => {
+      // TODO: we haven't implemented this yet, but I use it a lot in logic
       console.log("musical typing!");
     }
   };
