@@ -14,12 +14,13 @@ import { ViewLogin } from "./login/view-login";
 import { ViewNotFound } from "./not-found/view-not-found";
 
 import { Query, QueryResult } from "react-apollo";
-import { gql } from "apollo-boost";
 import { ME_SERVER } from "../queries/user-queries";
+import { ViewHome } from "./home/view-home";
 
 // Used for workspace (and other pages potentially)
 const gradientVibes = "linear-gradient(-45deg, #56B0F2, #C471ED)";
 const gradientLogin = "linear-gradient(-45deg, #ED71AD, #E1A74F)";
+const gradientHome = "linear-gradient(-45deg, #EB5757, #C4C4C4)";
 
 const VampAppBackdrop = withRouter(
   ({
@@ -37,6 +38,8 @@ const VampAppBackdrop = withRouter(
 
     useEffect(() => {
       if (location.pathname === "/login") setBackground(gradientLogin);
+      else if (location.pathname === "/") setBackground(gradientHome);
+      else setBackground(gradientVibes);
     }, [location.pathname]);
 
     return (
@@ -60,7 +63,7 @@ const VampApp: React.FunctionComponent = () => {
         <VampAppBackdrop>
           <VampHeader></VampHeader>
           <Switch>
-            <Route path="/" exact />
+            <Route path="/" exact component={ViewHome} />
             <Route path="/v/:vampid" component={ViewWorkspace} />
             <Route path="/login" component={ViewLogin} />
             <Route component={ViewNotFound} />
