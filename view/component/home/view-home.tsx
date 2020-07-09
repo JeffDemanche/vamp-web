@@ -1,13 +1,13 @@
 import * as React from "react";
 import { Query, QueryResult } from "react-apollo";
-import { User, ME_CLIENT } from "../../queries/user-queries";
+import { User, ME_CLIENT } from "../../state/queries/user-queries";
 import { MeClient } from "../../state/apollotypes";
 
 import * as styles from "./view-home.less";
 import { ViewLoading } from "../loading/view-loading";
 
 import { NewVamp } from "../wrapper/new-vamp";
-import { VampButton, ButtonLinkDefault } from "../element/button";
+import { ButtonLinkDefault } from "../element/button";
 import { ViewNotFound } from "../not-found/view-not-found";
 
 export const ViewHome: React.FunctionComponent = () => {

@@ -1,16 +1,15 @@
 import * as React from "react";
 
-import { PlayPanel } from "./play-panel/play-panel";
 import { RouteComponentProps } from "react-router";
-
-import * as styles from "./view-workspace.less";
-import { WorkspaceAudio } from "../../audio/vamp-audio";
-import Timeline from "./timeline/timeline";
-import VampSubscriptionProvider from "./vamp-subscription-provider";
-import ClipsSubscriptionProvider from "./clips-subscription-provider";
 
 import { HotKeysWrapper } from "../wrapper/hotkeys-wrapper";
 import { SpeechControl } from "../wrapper/speech-control-wrapper";
+import { SpeechRecognizer } from "../wrapper/speech-recognition-wrapper";
+import UserInVampProvider from "./user-in-vamp-provider";
+import { useCurrentUserId } from "../../react-hooks";
+import VampProvider from "./vamp-provider";
+import ClipsProvider from "./clips-provider";
+import WorkspaceContent from "./workspace-content";
 
 interface MatchParams {
   vampid: string;
@@ -18,29 +17,31 @@ interface MatchParams {
 
 type ViewWorkspaceProps = RouteComponentProps<MatchParams>;
 
+/**
+ * The "workspace page." Everything below the header on the page for a Vamp,
+ * essentially. In practice, this is where we're putting a lot of wrapper
+ * components, and the layout should be done in the WorkspaceContent component.
+ */
 const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = (
   props: ViewWorkspaceProps
 ) => {
   const vampId = props.match.params.vampid;
+  const userId = useCurrentUserId();
 
   return (
-    <VampSubscriptionProvider vampId={vampId}>
-      <ClipsSubscriptionProvider vampId={vampId}>
-        <HotKeysWrapper>
-          <SpeechControl>
-            <div className={styles["workspace"]}>
-              <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
-              <div className={styles["play-and-tracks"]}>
-                <div className={styles["play-panel"]}>
-                  <PlayPanel></PlayPanel>
-                </div>
-                <Timeline></Timeline>
-              </div>
-            </div>
-          </SpeechControl>
-        </HotKeysWrapper>
-      </ClipsSubscriptionProvider>
-    </VampSubscriptionProvider>
+    <VampProvider vampId={vampId}>
+      <ClipsProvider vampId={vampId}>
+        <UserInVampProvider vampId={vampId} userId={userId}>
+          <HotKeysWrapper>
+            <SpeechControl>
+              <SpeechRecognizer>
+                <WorkspaceContent />
+              </SpeechRecognizer>
+            </SpeechControl>
+          </HotKeysWrapper>
+        </UserInVampProvider>
+      </ClipsProvider>
+    </VampProvider>
   );
 };
 

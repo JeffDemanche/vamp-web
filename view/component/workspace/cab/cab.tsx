@@ -1,7 +1,9 @@
 import * as React from "react";
 
 import { CabNew } from "./cab-new";
-import { CabRecording } from "./cab-recording";
+import { CabNewRecording } from "./cab-new-recording";
+import CabMain from "./cab-main";
+import VerticalSpacer from "../../element/vertical-spacer";
 
 /**
  * This component is the root for all Cab types.
@@ -14,12 +16,16 @@ interface CabProps {
 
 const Cab: React.FunctionComponent<CabProps> = ({ empty, recording }) => {
   if (recording) {
-    return <CabRecording></CabRecording>;
+    return <CabNewRecording></CabNewRecording>;
   } else if (empty) {
     return <CabNew></CabNew>;
   } else {
-    return null;
-    // TODO other Cab states.
+    return (
+      <>
+        <VerticalSpacer height={50}></VerticalSpacer>
+        <CabMain></CabMain>
+      </>
+    );
   }
 };
 

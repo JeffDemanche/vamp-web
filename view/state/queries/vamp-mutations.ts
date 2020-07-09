@@ -29,3 +29,16 @@ export const SEEK_CLIENT = gql`
     seek(time: $time) @client
   }
 `;
+
+export const SET_VIEW_LEFT_CLIENT = gql`
+  mutation SetViewLeftClient($viewLeft: Float!, $cumulative: Boolean) {
+    setViewLeft(viewLeft: $viewLeft, cumulative: $cumulative) @client
+  }
+`;
+
+export const SET_TEMPORAL_ZOOM_CLIENT = gql`
+  mutation SetTemporalZoomClient($temporalZoom: Float!, $cumulative: Boolean) {
+    setTemporalZoom(temporalZoom: $temporalZoom, cumulative: $cumulative)
+      @client
+  }
+`;

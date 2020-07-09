@@ -5,13 +5,13 @@ import { useQuery, useMutation } from "react-apollo";
 import {
   PLAYING_CLIENT,
   RECORDING_CLIENT
-} from "../../../queries/vamp-queries";
+} from "../../../state/queries/vamp-queries";
 import {
   PLAY_CLIENT,
   PAUSE_CLIENT,
   STOP_CLIENT,
   SEEK_CLIENT
-} from "../../../queries/vamp-mutations";
+} from "../../../state/queries/vamp-mutations";
 import { RecordingClient, PlayingClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
 

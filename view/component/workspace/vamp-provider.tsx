@@ -29,6 +29,7 @@ const VAMP_QUERY = gql`
       recording @client
       viewState @client {
         temporalZoom @client
+        viewLeft @client
       }
     }
   }
@@ -54,12 +55,13 @@ const VAMP_SUBSCRIPTION = gql`
       recording @client
       viewState @client {
         temporalZoom @client
+        viewLeft @client
       }
     }
   }
 `;
 
-interface VampSubscriptionProviderProps {
+interface VampProviderProps {
   vampId: string;
   children: React.ReactChild;
 }
@@ -69,10 +71,10 @@ interface VampSubscriptionProviderProps {
  * for general Vamp states. I.e. if the BPM get's changed it'll be handled here.
  */
 // eslint-disable-next-line max-len
-const VampSubscriptionProvider: React.FunctionComponent<VampSubscriptionProviderProps> = ({
+const VampProvider: React.FunctionComponent<VampProviderProps> = ({
   vampId,
   children
-}: VampSubscriptionProviderProps) => {
+}: VampProviderProps) => {
   const client = useApolloClient();
 
   client.writeData({ data: { loadedVampId: vampId } });
@@ -117,4 +119,4 @@ const VampSubscriptionProvider: React.FunctionComponent<VampSubscriptionProvider
   }
 };
 
-export default VampSubscriptionProvider;
+export default VampProvider;

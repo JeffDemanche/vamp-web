@@ -11,7 +11,7 @@
 import { useEffect } from "react";
 import { useMutation } from "react-apollo";
 import { useTrueTime } from "../react-hooks";
-import { SEEK_CLIENT } from "../queries/vamp-mutations";
+import { SEEK_CLIENT } from "../state/queries/vamp-mutations";
 
 interface LooperProps {
   start: number;

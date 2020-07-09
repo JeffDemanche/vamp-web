@@ -13,19 +13,14 @@ import Recorder from "./recorder";
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import { gql } from "apollo-boost";
-import {
-  ChildProps,
-  useApolloClient,
-  useMutation,
-  useQuery
-} from "react-apollo";
+import { useApolloClient, useMutation, useQuery } from "react-apollo";
 import { useCurrentUserId } from "../react-hooks";
 import { audioStore } from "./audio-store";
 import { vampAudioContext } from "./vamp-audio-context";
 import ObjectID from "bson-objectid";
 import ClipPlayer from "./clip-player";
 import Looper from "./looper";
-import { PLAY_CLIENT, STOP_CLIENT } from "../queries/vamp-mutations";
+import { PLAY_CLIENT, STOP_CLIENT } from "../state/queries/vamp-mutations";
 import {
   WorkspaceAudioClient,
   AddClientClip,
@@ -112,7 +107,10 @@ const ADD_CLIENT_CLIP = gql`
 const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const startAudioContext = (): AudioContext => {
     try {
-      return vampAudioContext.getAudioContext();
+      // Typing for window augmented in externals.d.ts.
+      // The webkit thing is Safari bullshit.
+      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+      return new AudioContext();
     } catch (e) {
       // TODO error handling.
       alert("Web audio not supported in this browser (TODO)");

@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import * as styles from "./cab.less";
-import { graphql, ChildProps, useQuery } from "react-apollo";
+import { useQuery } from "react-apollo";
 import { gql } from "apollo-boost";
 import { useTrueTime, useCurrentVampId } from "../../../react-hooks";
 import { CabRecording } from "../../../state/apollotypes";
@@ -22,7 +22,10 @@ const CAB_RECORDING_QUERY = gql`
   }
 `;
 
-const CabRecording = (): JSX.Element => {
+/**
+ * CabNew becomes CabNewRecording when it starts recording.
+ */
+const CabNewRecording = (): JSX.Element => {
   const vampId = useCurrentVampId();
   const {
     data: {
@@ -54,4 +57,4 @@ const CabRecording = (): JSX.Element => {
   return <div style={{ width }} className={styles["cab-recording"]}></div>;
 };
 
-export { CabRecording };
+export { CabNewRecording };

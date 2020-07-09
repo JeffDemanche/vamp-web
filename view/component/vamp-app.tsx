@@ -14,7 +14,7 @@ import { ViewLogin } from "./login/view-login";
 import { ViewNotFound } from "./not-found/view-not-found";
 
 import { Query, QueryResult } from "react-apollo";
-import { ME_SERVER } from "../queries/user-queries";
+import { ME_SERVER } from "../state/queries/user-queries";
 import { ViewHome } from "./home/view-home";
 
 // Used for workspace (and other pages potentially)

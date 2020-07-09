@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ApolloMockedProvider } from "./test-utils/providers";
-import { shallow, mount, render } from "enzyme";
+import { render } from "enzyme";
 import LoggedInUserButton from "../view/component/header/logged-in-user-button";
 import { act } from "react-dom/test-utils";
 

@@ -3,8 +3,11 @@ import { InMemoryCache } from "apollo-boost";
 import {
   LOCAL_VAMP_ID_CLIENT,
   PLAY_POSITION_START_TIME_CLIENT,
-  PLAYING_CLIENT
-} from "../../queries/vamp-queries";
+  PLAYING_CLIENT,
+  TEMPORAL_ZOOM_CLIENT,
+  VIEW_STATE_CLIENT,
+  VIEW_LEFT_CLIENT
+} from "../queries/vamp-queries";
 import {
   LocalVampIdClient,
   PlayingClient,
@@ -12,12 +15,17 @@ import {
   AddClientClip_addClientClip,
   GetClientClipsClient_vamp_clientClips,
   GetClipsServer,
-  GetClipsServer_clips
+  GetClipsServer_clips,
+  ViewStateClient,
+  GetClipsClient,
+  GetClipsClient_vamp,
+  ViewLeftClient
 } from "../apollotypes";
 import {
   GET_CLIENT_CLIPS_CLIENT,
-  GET_CLIPS_SERVER
-} from "../../queries/clips-queries";
+  GET_CLIPS_SERVER,
+  GET_CLIPS_CLIENT
+} from "../queries/clips-queries";
 import ObjectID from "bson-objectid";
 
 const defaults = {
@@ -35,7 +43,8 @@ const defaults = {
       /**
        * Hundred pixels per second.
        */
-      temporalZoom: 1
+      temporalZoom: 1,
+      viewLeft: 0
     }
   }
 };
@@ -161,6 +170,74 @@ const resolvers: Partial<AppResolvers> = {
             playing: true,
             recording: true,
             playStartTime: Date.now()
+          }
+        }
+      });
+      return true;
+    },
+    setTemporalZoom: (
+      parent,
+      args,
+      { cache }: { cache: InMemoryCache }
+    ): boolean => {
+      const { loadedVampId: vampId } = cache.readQuery<LocalVampIdClient>({
+        query: LOCAL_VAMP_ID_CLIENT
+      });
+      const {
+        vamp: {
+          viewState: { temporalZoom }
+        }
+      } = cache.readQuery<ViewStateClient>({
+        query: TEMPORAL_ZOOM_CLIENT,
+        variables: { vampId }
+      });
+
+      const newTemporalZoom = args.cumulative
+        ? temporalZoom * args.temporalZoom
+        : args.temporalZoom;
+      const clampedZoom = newTemporalZoom > 0.05 ? newTemporalZoom : 0.05;
+
+      cache.writeData({
+        data: {
+          vamp: {
+            __typename: "Vamp",
+            id: vampId,
+            viewState: {
+              __typename: "ViewState",
+              temporalZoom: clampedZoom
+            }
+          }
+        }
+      });
+      return true;
+    },
+    setViewLeft: (
+      parent,
+      args,
+      { cache }: { cache: InMemoryCache }
+    ): boolean => {
+      const { loadedVampId: vampId } = cache.readQuery<LocalVampIdClient>({
+        query: LOCAL_VAMP_ID_CLIENT
+      });
+      const {
+        vamp: {
+          viewState: { viewLeft }
+        }
+      } = cache.readQuery<ViewLeftClient>({
+        query: VIEW_LEFT_CLIENT,
+        variables: { vampId }
+      });
+
+      const newViewLeft = args.cumulative
+        ? viewLeft + args.viewLeft
+        : args.viewLeft;
+
+      cache.writeData({
+        data: {
+          vamp: {
+            __typename: "Vamp",
+            id: vampId,
+            viewState: { __typename: "ViewState", viewLeft: newViewLeft }
           }
         }
       });

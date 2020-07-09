@@ -3,13 +3,13 @@ import * as React from "react";
 import * as styles from "./cab.less";
 
 import { useQuery, useMutation } from "react-apollo";
-import { PLAYING_CLIENT } from "../../../queries/vamp-queries";
+import { PLAYING_CLIENT } from "../../../state/queries/vamp-queries";
 import {
   PLAY_CLIENT,
   PAUSE_CLIENT,
   STOP_CLIENT,
   RECORD_CLIENT
-} from "../../../queries/vamp-mutations";
+} from "../../../state/queries/vamp-mutations";
 import {
   PauseClient,
   StopClient,
@@ -19,6 +19,9 @@ import {
 } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
 
+/**
+ * This is the basic record button that shows up when the Vamp is empty.
+ */
 const CabNew: React.FunctionComponent = () => {
   const vampId = useCurrentVampId();
 

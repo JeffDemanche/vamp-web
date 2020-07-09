@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useQuery, useApolloClient, useMutation } from "react-apollo";
 import { gql } from "apollo-boost";
-import { GET_CLIPS_SERVER } from "../../queries/clips-queries";
+import { GET_CLIPS_SERVER } from "../../state/queries/clips-queries";
 import {
   RemoveClientClip,
   GetClipsServer,
@@ -43,7 +43,7 @@ const REMOVE_CLIENT_CLIP = gql`
   }
 `;
 
-interface ClipsSubscriptionProviderProps {
+interface ClipsProviderProps {
   vampId: string;
   children: React.ReactChild;
 }
@@ -53,10 +53,10 @@ interface ClipsSubscriptionProviderProps {
  * Also plays a role in juggling ClientClips handing off to proper Clips.
  */
 // eslint-disable-next-line max-len
-const ClipsSubscriptionProvider: React.FunctionComponent<ClipsSubscriptionProviderProps> = ({
+const ClipsProvider: React.FunctionComponent<ClipsProviderProps> = ({
   vampId,
   children
-}: ClipsSubscriptionProviderProps) => {
+}: ClipsProviderProps) => {
   const {
     subscribeToMore: clipsSubscribeToMore,
     data: clipsData,
@@ -140,4 +140,4 @@ const ClipsSubscriptionProvider: React.FunctionComponent<ClipsSubscriptionProvid
   return <>{children}</>;
 };
 
-export default ClipsSubscriptionProvider;
+export default ClipsProvider;

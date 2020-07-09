@@ -3,8 +3,8 @@ import { VampButton } from "../element/button";
 import { VampPopover } from "../element/popover";
 import { useMutation } from "react-apollo";
 import { NewVamp } from "../wrapper/new-vamp";
-import { User } from "../../queries/user-queries";
-import { LOGOUT_SERVER } from "../../queries/user-mutations";
+import { User } from "../../state/queries/user-queries";
+import { LOGOUT_SERVER } from "../../state/queries/user-mutations";
 import { LogoutServer } from "../../state/apollotypes";
 
 import * as styles from "./logged-in-user-button.less";

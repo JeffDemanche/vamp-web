@@ -3,7 +3,7 @@ import { ApolloClient } from "apollo-boost";
 import {
   GET_CLIPS_CLIENT,
   GET_CLIENT_CLIPS_CLIENT
-} from "../queries/clips-queries";
+} from "../state/queries/clips-queries";
 import { GetClipsClient, GetClientClipsClient } from "../state/apollotypes";
 
 interface StoredAudio {

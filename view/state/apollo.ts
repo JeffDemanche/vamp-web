@@ -3,7 +3,6 @@ import { InMemoryCache } from "apollo-cache-inmemory";
 import { WebSocketLink } from "apollo-link-ws";
 import { split } from "apollo-link";
 import { ApolloLink } from "apollo-link";
-import { HttpLink } from "apollo-link-http";
 import { createUploadLink } from "apollo-upload-client";
 import { getMainDefinition } from "apollo-utilities";
 import { typeDefs } from "./schema";

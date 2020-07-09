@@ -1,0 +1,55 @@
+@import "../../../../constants/gradients.less";
+
+.metronome-bar {
+  position: relative;
+  height: 30px;
+  width: 100%;
+}
+
+.measure-container {
+  position: absolute;
+  padding-left: 3px;
+  padding-right: 3px;
+  height: 100%;
+}
+
+.measure {
+  color: white;
+  font-family: "Lato";
+  font-size: 16pt;
+  text-align: left;
+
+  position: relative;
+  background: @gradient-timepiece;
+  border-radius: 16px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.measure-compact {
+  color: white;
+  font-family: "Lato";
+  font-size: 16pt;
+  text-align: left;
+  background: @gradient-timepiece;
+
+  position: absolute;
+  height: 100%;
+}
+
+.measure-no {
+  position: absolute;
+  margin-left: 6px;
+  margin-top: -1px;
+  opacity: 0.8;
+}
+
+.beat-marker {
+  position: absolute;
+  height: 100%;
+  width: 2px;
+  opacity: 0.8;
+  background-color: white;
+  filter: blur(1px);
+  -webkit-filter: blur(1px);
+}

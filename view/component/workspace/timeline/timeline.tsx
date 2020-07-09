@@ -5,14 +5,17 @@ import { gql } from "apollo-boost";
 import { useQuery } from "react-apollo";
 import { Cab } from "../cab/cab";
 import TimelineClips from "./timeline-clips";
-import { GET_CLIPS_CLIENT } from "../../../queries/clips-queries";
-import { RECORDING_CLIENT } from "../../../queries/vamp-queries";
+import { GET_CLIPS_CLIENT } from "../../../state/queries/clips-queries";
+import { RECORDING_CLIENT } from "../../../state/queries/vamp-queries";
 import {
   RecordingClient,
   GetClipsClient,
   TimelineClient
 } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
+import MetronomeBar from "./metronome/metronome-bar";
+import VerticalSpacer from "../../element/vertical-spacer";
+import { MutableRefObject } from "react";
 
 const TIMELINE_CLIENT = gql`
   query TimelineClient($vampId: ID!) {
@@ -36,7 +39,9 @@ const TIMELINE_CLIENT = gql`
 /**
  * Timeline is everything below the play panel.
  */
-const Timeline: React.FunctionComponent<{}> = () => {
+const Timeline: React.FunctionComponent<{
+  offsetRef: MutableRefObject<HTMLDivElement>;
+}> = ({ offsetRef }: { offsetRef: MutableRefObject<HTMLDivElement> }) => {
   const vampId = useCurrentVampId();
 
   // Queries the cache to update state based on whether the client is recording.
@@ -44,7 +49,7 @@ const Timeline: React.FunctionComponent<{}> = () => {
     variables: { vampId }
   });
 
-  const { data, loading, error } = useQuery<TimelineClient>(TIMELINE_CLIENT, {
+  const { data, loading } = useQuery<TimelineClient>(TIMELINE_CLIENT, {
     variables: { vampId }
   });
 
@@ -55,24 +60,32 @@ const Timeline: React.FunctionComponent<{}> = () => {
   // If empty we render in the "new Vamp" layout.
   const empty = clipsData ? clipsData.vamp.clips.length == 0 : true;
 
+  // const { data: viewStateData, loading: viewStateLoading } = useQuery<
+  //   ViewStateClient
+  // >(VIEW_STATE_CLIENT, { variables: { vampId } });
+
   if (!data || loading) {
     return <div>Loading</div>;
   }
 
-  if (empty) {
-    return (
-      <div className={styles["timeline"]}>
-        <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
+  const timelineContent = empty ? (
+    <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
+  ) : (
+    <>
+      <MetronomeBar></MetronomeBar>
+      <VerticalSpacer height={20}></VerticalSpacer>
+      <TimelineClips clips={data.vamp.clips}></TimelineClips>
+      <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
+    </>
+  );
+
+  return (
+    <div className={styles["timeline"]}>
+      <div className={styles["position-offset"]} ref={offsetRef}>
+        {timelineContent}
       </div>
-    );
-  } else {
-    return (
-      <div className={styles["timeline"]}>
-        <TimelineClips clips={data.vamp.clips}></TimelineClips>
-        <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
-      </div>
-    );
-  }
+    </div>
+  );
 };
 
 export default Timeline;

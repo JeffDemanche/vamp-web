@@ -141,6 +141,67 @@ export interface AddClientClipVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: CabMainQuery
+// ====================================================
+
+export interface CabMainQuery_userInVamp_cab_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface CabMainQuery_userInVamp_cab {
+  __typename: "Cab";
+  user: CabMainQuery_userInVamp_cab_user;
+  start: number;
+  duration: number;
+}
+
+export interface CabMainQuery_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  cab: CabMainQuery_userInVamp_cab;
+}
+
+export interface CabMainQuery {
+  userInVamp: CabMainQuery_userInVamp | null;
+}
+
+export interface CabMainQueryVariables {
+  vampId: string;
+  userId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: UpdateCab
+// ====================================================
+
+export interface UpdateCab_updateUserInVamp {
+  __typename: "UserInVamp";
+  id: string;
+}
+
+export interface UpdateCab {
+  updateUserInVamp: UpdateCab_updateUserInVamp;
+}
+
+export interface UpdateCabVariables {
+  userId: string;
+  vampId: string;
+  start?: number | null;
+  duration?: number | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: CabRecording
 // ====================================================
 
@@ -439,6 +500,57 @@ export interface TimelineClientVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL mutation operation: GetOrAddUserInVamp
+// ====================================================
+
+export interface GetOrAddUserInVamp_getOrAddUserInVamp_vamp {
+  __typename: "Vamp";
+  id: string;
+}
+
+export interface GetOrAddUserInVamp_getOrAddUserInVamp_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface GetOrAddUserInVamp_getOrAddUserInVamp_cab_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface GetOrAddUserInVamp_getOrAddUserInVamp_cab {
+  __typename: "Cab";
+  user: GetOrAddUserInVamp_getOrAddUserInVamp_cab_user;
+  start: number;
+  duration: number;
+}
+
+export interface GetOrAddUserInVamp_getOrAddUserInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  vamp: GetOrAddUserInVamp_getOrAddUserInVamp_vamp;
+  user: GetOrAddUserInVamp_getOrAddUserInVamp_user;
+  cab: GetOrAddUserInVamp_getOrAddUserInVamp_cab;
+}
+
+export interface GetOrAddUserInVamp {
+  /**
+   * Tries to find a UserInVamp, or adds one if not found.
+   */
+  getOrAddUserInVamp: GetOrAddUserInVamp_getOrAddUserInVamp;
+}
+
+export interface GetOrAddUserInVampVariables {
+  vampId: string;
+  userId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: GetVamp
 // ====================================================
 
@@ -450,6 +562,7 @@ export interface GetVamp_vamp_clientClips {
 export interface GetVamp_vamp_viewState {
   __typename: "ViewState";
   temporalZoom: number | null;
+  viewLeft: number | null;
 }
 
 export interface GetVamp_vamp {
@@ -495,6 +608,7 @@ export interface VampSubscription_subVamp_clientClips {
 export interface VampSubscription_subVamp_viewState {
   __typename: "ViewState";
   temporalZoom: number | null;
+  viewLeft: number | null;
 }
 
 export interface VampSubscription_subVamp {
@@ -543,6 +657,24 @@ export interface AddVamp {
 
 export interface AddVampVariables {
   creatorId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: GetCurrentUserId
+// ====================================================
+
+export interface GetCurrentUserId_me {
+  __typename: "User";
+  id: string;
+}
+
+export interface GetCurrentUserId {
+  me: GetCurrentUserId_me | null;
 }
 
 /* tslint:disable */
@@ -657,6 +789,54 @@ export interface GetClientClipsClient {
 
 export interface GetClientClipsClientVariables {
   vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: UserInVampClient
+// ====================================================
+
+export interface UserInVampClient_userInVamp_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface UserInVampClient_userInVamp_vamp {
+  __typename: "Vamp";
+  id: string;
+}
+
+export interface UserInVampClient_userInVamp_cab_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface UserInVampClient_userInVamp_cab {
+  __typename: "Cab";
+  user: UserInVampClient_userInVamp_cab_user;
+  start: number;
+  duration: number;
+}
+
+export interface UserInVampClient_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  user: UserInVampClient_userInVamp_user;
+  vamp: UserInVampClient_userInVamp_vamp;
+  cab: UserInVampClient_userInVamp_cab;
+}
+
+export interface UserInVampClient {
+  userInVamp: UserInVampClient_userInVamp | null;
+}
+
+export interface UserInVampClientVariables {
+  vampId: string;
+  userId: string;
 }
 
 /* tslint:disable */
@@ -792,6 +972,42 @@ export interface SeekVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL mutation operation: SetViewLeftClient
+// ====================================================
+
+export interface SetViewLeftClient {
+  setViewLeft: boolean | null;
+}
+
+export interface SetViewLeftClientVariables {
+  viewLeft: number;
+  cumulative?: boolean | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: SetTemporalZoomClient
+// ====================================================
+
+export interface SetTemporalZoomClient {
+  setTemporalZoom: boolean | null;
+}
+
+export interface SetTemporalZoomClientVariables {
+  temporalZoom: number;
+  cumulative?: boolean | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: LocalVampIdClient
 // ====================================================
 
@@ -854,6 +1070,7 @@ export interface RecordingClientVariables {
 
 export interface ViewStateClient_vamp_viewState {
   __typename: "ViewState";
+  viewLeft: number | null;
   temporalZoom: number | null;
 }
 
@@ -867,6 +1084,60 @@ export interface ViewStateClient {
 }
 
 export interface ViewStateClientVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: ViewLeftClient
+// ====================================================
+
+export interface ViewLeftClient_vamp_viewState {
+  __typename: "ViewState";
+  viewLeft: number | null;
+}
+
+export interface ViewLeftClient_vamp {
+  __typename: "Vamp";
+  viewState: ViewLeftClient_vamp_viewState | null;
+}
+
+export interface ViewLeftClient {
+  vamp: ViewLeftClient_vamp | null;
+}
+
+export interface ViewLeftClientVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: TemporalZoomClient
+// ====================================================
+
+export interface TemporalZoomClient_vamp_viewState {
+  __typename: "ViewState";
+  temporalZoom: number | null;
+}
+
+export interface TemporalZoomClient_vamp {
+  __typename: "Vamp";
+  viewState: TemporalZoomClient_vamp_viewState | null;
+}
+
+export interface TemporalZoomClient {
+  vamp: TemporalZoomClient_vamp | null;
+}
+
+export interface TemporalZoomClientVariables {
   vampId: string;
 }
 
@@ -899,16 +1170,80 @@ export interface PlayPositionStartTimeClientVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: GetCurrentUserId
+// GraphQL query operation: MetronomeInfoClient
 // ====================================================
 
-export interface GetCurrentUserId_me {
-  __typename: "User";
-  id: string;
+export interface MetronomeInfoClient_vamp {
+  __typename: "Vamp";
+  bpm: number;
+  beatsPerBar: number;
+  metronomeSound: string;
 }
 
-export interface GetCurrentUserId {
-  me: GetCurrentUserId_me | null;
+export interface MetronomeInfoClient {
+  vamp: MetronomeInfoClient_vamp | null;
+}
+
+export interface MetronomeInfoClientVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: ViewBoundsDataClient
+// ====================================================
+
+export interface ViewBoundsDataClient_vamp_clips_audio {
+  __typename: "Audio";
+  id: string;
+  duration: number;
+}
+
+export interface ViewBoundsDataClient_vamp_clips {
+  __typename: "Clip";
+  id: string;
+  start: number;
+  audio: ViewBoundsDataClient_vamp_clips_audio;
+}
+
+export interface ViewBoundsDataClient_vamp_clientClips {
+  __typename: "ClientClip";
+  id: string;
+  start: number;
+  duration: number;
+}
+
+export interface ViewBoundsDataClient_vamp {
+  __typename: "Vamp";
+  id: string;
+  clips: ViewBoundsDataClient_vamp_clips[];
+  clientClips: (ViewBoundsDataClient_vamp_clientClips | null)[] | null;
+}
+
+export interface ViewBoundsDataClient_userInVamp_cab {
+  __typename: "Cab";
+  start: number;
+  duration: number;
+}
+
+export interface ViewBoundsDataClient_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  cab: ViewBoundsDataClient_userInVamp_cab;
+}
+
+export interface ViewBoundsDataClient {
+  vamp: ViewBoundsDataClient_vamp | null;
+  userInVamp: ViewBoundsDataClient_userInVamp | null;
+}
+
+export interface ViewBoundsDataClientVariables {
+  vampId: string;
+  userId: string;
 }
 
 /* tslint:disable */

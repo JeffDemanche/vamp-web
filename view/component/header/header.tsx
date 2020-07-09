@@ -7,7 +7,7 @@ import { VampLogo } from "./logo";
 
 import { ButtonLinkDefault } from "../element/button";
 import LoggedInUserButton from "./logged-in-user-button";
-import { User, ME_CLIENT } from "../../queries/user-queries";
+import { User, ME_CLIENT } from "../../state/queries/user-queries";
 import { MeClient } from "../../state/apollotypes";
 
 const VampHeader: React.FunctionComponent = () => {

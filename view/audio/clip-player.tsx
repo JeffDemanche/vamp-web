@@ -1,4 +1,3 @@
-import { ClientClip } from "../state/cache";
 import { useEffect } from "react";
 import { audioStore } from "./audio-store";
 import { Scheduler } from "./scheduler";
