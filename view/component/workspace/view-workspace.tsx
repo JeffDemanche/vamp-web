@@ -4,7 +4,6 @@ import { RouteComponentProps } from "react-router";
 
 import { HotKeysWrapper } from "../wrapper/hotkeys-wrapper";
 import { SpeechControl } from "../wrapper/speech-control-wrapper";
-import { SpeechRecognizer } from "../wrapper/speech-recognition-wrapper";
 import UserInVampProvider from "./user-in-vamp-provider";
 import { useCurrentUserId } from "../../react-hooks";
 import VampProvider from "./vamp-provider";
@@ -34,9 +33,7 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = (
         <UserInVampProvider vampId={vampId} userId={userId}>
           <HotKeysWrapper>
             <SpeechControl>
-              <SpeechRecognizer>
-                <WorkspaceContent />
-              </SpeechRecognizer>
+              <WorkspaceContent />
             </SpeechControl>
           </HotKeysWrapper>
         </UserInVampProvider>

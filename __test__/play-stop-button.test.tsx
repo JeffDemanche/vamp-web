@@ -8,7 +8,7 @@ import {
   PAUSE_CLIENT,
   STOP_CLIENT,
   SEEK_CLIENT
-} from "../view/queries/vamp-mutations";
+} from "../view/state/queries/vamp-mutations";
 import { RecordingClient, PlayingClient } from "../view/state/apollotypes";
 
 describe("Play/Stop Button functionality", () => {

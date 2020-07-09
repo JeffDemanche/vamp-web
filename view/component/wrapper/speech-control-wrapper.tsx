@@ -6,8 +6,11 @@ import {
   STOP_CLIENT,
   RECORD_CLIENT,
   SEEK_CLIENT
-} from "../../queries/vamp-mutations";
-import { PLAYING_CLIENT, RECORDING_CLIENT } from "../../queries/vamp-queries";
+} from "../../state/queries/vamp-mutations";
+import {
+  PLAYING_CLIENT,
+  RECORDING_CLIENT
+} from "../../state/queries/vamp-queries";
 import {
   PlayClient,
   StopClient,
