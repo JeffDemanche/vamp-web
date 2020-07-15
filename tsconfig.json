@@ -1,4 +1,5 @@
 {
+  "skipLibCheck": true,
   "compilerOptions": {
     "outDir": "./view/build/",
     "skipLibCheck": true,

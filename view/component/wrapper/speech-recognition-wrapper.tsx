@@ -137,7 +137,7 @@ export const SpeechRecognizer: React.FC<ToWrapTypes> = (
       };
       recognition.onresult = (e: SpeechRecognitionEvent): boolean => {
         let transcript = e.results[e.results.length - 1][0].transcript;
-        console.log(transcript);
+        // console.log(transcript);
 
         transcript = transcriptHelper(transcript);
 

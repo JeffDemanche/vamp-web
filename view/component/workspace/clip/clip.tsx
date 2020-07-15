@@ -5,6 +5,7 @@ import styles = require("./clip.less");
 import { VIEW_STATE_CLIENT } from "../../../queries/vamp-queries";
 import { ViewStateClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
+import { Oscilloscope } from "../oscilloscope/oscilloscope";
 
 interface ClipProps {
   clip: {
@@ -25,13 +26,20 @@ const Clip: React.FunctionComponent<ClipProps> = ({ clip }: ClipProps) => {
     data: { vamp }
   } = useQuery<ViewStateClient>(VIEW_STATE_CLIENT, { variables: { vampId } });
 
-  const width = `${100 * clip.audio.duration * vamp.viewState.temporalZoom}px`;
+  const width = 100 * clip.audio.duration * vamp.viewState.temporalZoom;
   const opacity = clip.audio.storedLocally ? 1.0 : 0.7;
 
   const synced = clip.audio.filename !== "" ? "" : "not synced";
 
   return (
     <div className={styles["clip"]} style={{ width: width, opacity: opacity }}>
+      <Oscilloscope
+        audio={clip.audio}
+        dimensions={{
+          height: 150,
+          width: width
+        }}
+      ></Oscilloscope>
       {synced}
     </div>
   );

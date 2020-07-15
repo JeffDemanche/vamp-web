@@ -110,4 +110,6 @@ class AudioStore {
   }
 }
 
-export default AudioStore;
+// this is throwing a default export error, but this how we make audio store resuseable
+// eslint-disable-next-line prefer-const
+export let audioStore = new AudioStore();
