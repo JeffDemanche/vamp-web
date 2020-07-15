@@ -20,7 +20,8 @@ import {
   useQuery
 } from "react-apollo";
 import { useCurrentUserId } from "../react-hooks";
-import AudioStore from "./audio-store";
+import { audioStore } from "./audio-store";
+import { vampAudioContext } from "./vamp-audio-context";
 import ObjectID from "bson-objectid";
 import ClipPlayer from "./clip-player";
 import Looper from "./looper";
@@ -111,11 +112,7 @@ const ADD_CLIENT_CLIP = gql`
 const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const startAudioContext = (): AudioContext => {
     try {
-      // Typing for window augmented in externals.d.ts.
-      // The webkit thing is Safari bullshit.
-      window.AudioContext = window.AudioContext || window.webkitAudioContext;
-      const context = new AudioContext();
-      return context;
+      return vampAudioContext.getAudioContext();
     } catch (e) {
       // TODO error handling.
       alert("Web audio not supported in this browser (TODO)");
@@ -152,7 +149,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const [context] = useState(startAudioContext());
   const [scheduler] = useState(new Scheduler(context));
   const [recorder] = useState(new Recorder(context));
-  const [audioStore] = useState(new AudioStore());
+  const [store] = useState(audioStore);
 
   const play = (): void => {
     scheduler.play();
@@ -228,7 +225,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       const localClip = await addClientClip({
         variables: { localFilename: referenceId, start: prevData.playPosition }
       });
-      audioStore.cacheClientClipAudio(
+      store.cacheClientClipAudio(
         localClip.data.addClientClip,
         vampId,
         file,
@@ -324,7 +321,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     if (clips) {
       for (const clip of clips) {
         // This function checks if the clip has already been cached.
-        audioStore.cacheClipAudio(clip, vampId, apolloClient, context);
+        store.cacheClipAudio(clip, vampId, apolloClient, context);
       }
       updateStartEnd(clips);
     }
@@ -336,7 +333,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       <ClipPlayer
         clips={clips}
         clientClips={clientClips}
-        audioStore={audioStore}
+        audioStore={store}
         scheduler={scheduler}
       ></ClipPlayer>
       <Looper

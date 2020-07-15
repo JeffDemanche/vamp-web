@@ -1,6 +1,6 @@
 import { ClientClip } from "../state/cache";
 import { useEffect } from "react";
-import AudioStore from "./audio-store";
+import { audioStore } from "./audio-store";
 import { Scheduler } from "./scheduler";
 
 interface ClipPlayerProps {
@@ -18,7 +18,7 @@ interface ClipPlayerProps {
     start: number;
     tempFilename: string;
   }[];
-  audioStore: AudioStore;
+  audioStore: typeof audioStore;
   scheduler: Scheduler;
 }
 

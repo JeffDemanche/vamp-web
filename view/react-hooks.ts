@@ -7,6 +7,9 @@ import { gql } from "apollo-boost";
 import { useState, useEffect, useRef } from "react";
 import { LOCAL_VAMP_ID_CLIENT } from "./queries/vamp-queries";
 
+// import { audioStore } from "./audio/audio-store";
+// import { vampAudioContext } from "./audio/vamp-audio-context";
+
 export const useCurrentVampId = (): string => {
   const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
   return data.loadedVampId;
