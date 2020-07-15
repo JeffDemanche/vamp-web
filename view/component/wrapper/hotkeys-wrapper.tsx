@@ -21,12 +21,12 @@ import {
 } from "../../state/apollotypes";
 import { useCurrentVampId } from "../../react-hooks";
 
-interface ToWrapTypes {
+interface HotKeysTypes {
   children: React.ReactNode;
 }
 
-export const HotKeysWrapper: React.FC<ToWrapTypes> = (
-  props: ToWrapTypes
+export const HotKeysWrapper: React.FC<HotKeysTypes> = (
+  props: HotKeysTypes
 ): JSX.Element => {
   const vampId = useCurrentVampId();
 

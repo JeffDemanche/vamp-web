@@ -10,7 +10,7 @@ import VampSubscriptionProvider from "./vamp-subscription-provider";
 import ClipsSubscriptionProvider from "./clips-subscription-provider";
 
 import { HotKeysWrapper } from "../wrapper/hotkeys-wrapper";
-import { SpeechRecognizer } from "../wrapper/speech-recognition-wrapper";
+import { SpeechControl } from "../wrapper/speech-control-wrapper";
 
 interface MatchParams {
   vampid: string;
@@ -27,7 +27,7 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = (
     <VampSubscriptionProvider vampId={vampId}>
       <ClipsSubscriptionProvider vampId={vampId}>
         <HotKeysWrapper>
-          <SpeechRecognizer>
+          <SpeechControl>
             <div className={styles["workspace"]}>
               <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
               <div className={styles["play-and-tracks"]}>
@@ -37,7 +37,7 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = (
                 <Timeline></Timeline>
               </div>
             </div>
-          </SpeechRecognizer>
+          </SpeechControl>
         </HotKeysWrapper>
       </ClipsSubscriptionProvider>
     </VampSubscriptionProvider>
