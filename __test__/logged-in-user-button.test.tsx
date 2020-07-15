@@ -6,19 +6,16 @@ import { act } from "react-dom/test-utils";
 
 describe("Vamp Login Button Test", () => {
   it("should render user's name", () => {
-    const VampBot = {
+    const me = {
       id: "123456",
       username: "Vamp User",
-      email: "VampUser@gmail.com"
+      email: "fakeemail123@gmail.com"
     };
-    const customResolvers = {};
-    act(() => {
-      const wrapper = render(
-        <ApolloMockedProvider customResolvers={customResolvers}>
-          <LoggedInUserButton me={VampBot} />
-        </ApolloMockedProvider>
-      );
-      expect(wrapper.text()).toContain("Vamp User");
-    });
+    const wrapper = render(
+      <ApolloMockedProvider>
+        <LoggedInUserButton me={me} />
+      </ApolloMockedProvider>
+    );
+    expect(wrapper.text()).toContain("Vamp User");
   });
 });
