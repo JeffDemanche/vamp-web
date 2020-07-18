@@ -5,6 +5,7 @@
  * See some info about recording audio here:
  * https://developers.google.com/web/fundamentals/media/recording-audio
  */
+import { vampAudioStream } from "./vamp-audio-stream";
 
 class Recorder {
   private _source: MediaStreamAudioSourceNode;
@@ -25,12 +26,13 @@ class Recorder {
       this._mediaRecorder.ondataavailable = this.handleData;
     };
 
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: true,
-        video: false /* For now?? */
-      })
-      .then(gotMedia);
+    // navigator.mediaDevices
+    //   .getUserMedia({
+    //     audio: true,
+    //     video: false /* For now?? */
+    //   })
+    //   .then(gotMedia);
+    vampAudioStream.getAudioStream().then(gotMedia);
   }
 
   /**
