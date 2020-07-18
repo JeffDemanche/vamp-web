@@ -32,14 +32,7 @@ const Looper = ({
 }: LooperProps): JSX.Element => {
   // TODO If there's lag on playback this is a potential source.
   const TIME_UPDATE_FREQ_MS = 5;
-  const trueTime = useTrueTime(
-    playing,
-    playPosition,
-    playStartTime,
-    start,
-    end,
-    TIME_UPDATE_FREQ_MS
-  );
+  const trueTime = useTrueTime(TIME_UPDATE_FREQ_MS);
   const [apolloSeek] = useMutation(SEEK_CLIENT);
 
   useEffect(() => {

@@ -12,6 +12,8 @@ import {
   useWorkspaceTime
 } from "../../../workspace-hooks";
 import MovableComponent from "../../element/movable-component";
+import Playhead from "../../element/playhead";
+import { useState } from "react";
 
 const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
@@ -66,6 +68,8 @@ const CabMain: React.FunctionComponent = () => {
   const durationFn = useWorkpaceDuration();
   const timeFn = useWorkspaceTime();
 
+  const [adjusting, setAdjusting] = useState(false);
+
   const [updateCab] = useMutation<UpdateCab>(UPDATE_CAB);
 
   const { data, loading, error } = useQuery<CabMainQuery>(CAB_MAIN_QUERY, {
@@ -107,6 +111,10 @@ const CabMain: React.FunctionComponent = () => {
     });
   };
 
+  const playhead = adjusting ? null : (
+    <Playhead containerStart={start} containerDuration={duration} />
+  );
+
   return (
     <MovableComponent
       initialWidth={widthFn(duration)}
@@ -118,8 +126,12 @@ const CabMain: React.FunctionComponent = () => {
       onLeftChanged={(newLeft): void => {
         updateCabWithClient(userId, vampId, duration, timeFn(newLeft));
       }}
+      onAdjust={(active): void => {
+        setAdjusting(active);
+      }}
     >
       <div className={styles["cab-main"]}>
+        {playhead}
         <img src={require("../../../img/vector/record.svg")} />
       </div>
     </MovableComponent>

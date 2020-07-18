@@ -6,6 +6,7 @@ import Clip from "../clip/clip";
 interface TimelineClipsProps {
   clips: {
     id: string;
+    start: number;
     audio: {
       id: string;
       filename: string;

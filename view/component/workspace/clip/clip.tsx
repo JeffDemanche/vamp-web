@@ -3,10 +3,12 @@ import * as React from "react";
 import styles = require("./clip.less");
 import { Oscilloscope } from "../oscilloscope/oscilloscope";
 import { useWorkspaceWidth } from "../../../workspace-hooks";
+import Playhead from "../../element/playhead";
 
 interface ClipProps {
   clip: {
     id: string;
+    start: number;
     audio: {
       id: string;
       filename: string;
@@ -24,11 +26,14 @@ const Clip: React.FunctionComponent<ClipProps> = ({ clip }: ClipProps) => {
 
   const synced = clip.audio.filename !== "" ? "" : "not synced";
 
+  const width = widthFn(clip.audio.duration);
+
   return (
-    <div
-      className={styles["clip"]}
-      style={{ width: widthFn(clip.audio.duration), opacity: opacity }}
-    >
+    <div className={styles["clip"]} style={{ width, opacity }}>
+      <Playhead
+        containerStart={clip.start}
+        containerDuration={clip.audio.duration}
+      />
       <Oscilloscope
         audio={clip.audio}
         dimensions={{

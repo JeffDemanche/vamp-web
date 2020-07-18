@@ -60,10 +60,6 @@ const Timeline: React.FunctionComponent<{
   // If empty we render in the "new Vamp" layout.
   const empty = clipsData ? clipsData.vamp.clips.length == 0 : true;
 
-  // const { data: viewStateData, loading: viewStateLoading } = useQuery<
-  //   ViewStateClient
-  // >(VIEW_STATE_CLIENT, { variables: { vampId } });
-
   if (!data || loading) {
     return <div>Loading</div>;
   }

@@ -683,6 +683,32 @@ export interface GetCurrentUserId {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: TrueTimeClient
+// ====================================================
+
+export interface TrueTimeClient_vamp {
+  __typename: "Vamp";
+  playing: boolean | null;
+  playPosition: number | null;
+  playStartTime: number | null;
+  start: number | null;
+  end: number | null;
+}
+
+export interface TrueTimeClient {
+  vamp: TrueTimeClient_vamp | null;
+}
+
+export interface TrueTimeClientVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: GetClipsServer
 // ====================================================
 

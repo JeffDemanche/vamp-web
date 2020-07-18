@@ -14,11 +14,16 @@ interface MovableComponentProps {
   height: number;
   initialLeft: number;
 
+  /**
+   * Fired when the movable component is dragged, dropped, started to be
+   * resized, and finished being resized.
+   */
+  onAdjust?: (active: boolean) => void;
   onWidthChanged?: (newWidth: number) => void;
   onLeftChanged?: (newLeft: number) => void;
 
   handleWidth?: number;
-  children: React.ReactChild | React.ReactChildren;
+  children: React.ReactChild | React.ReactChild[];
 }
 
 /**
@@ -31,13 +36,13 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
   height,
   initialLeft,
 
+  onAdjust,
   onWidthChanged,
   onLeftChanged,
 
   handleWidth,
   children
 }: MovableComponentProps) => {
-  console.log(initialLeft, initialWidth);
   const draggableRef = useRef<HTMLDivElement>();
 
   const durationFn = useWorkpaceDuration();
@@ -98,17 +103,22 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
   });
 
   const onMouseUpWindow = (): void => {
+    onAdjust(false);
     setWidthOnLeftDrag(-1);
     setLeftDragging(false);
     setRightDragging(false);
     setMoving(false);
     setMoveDown(-1);
 
-    // TODO We should only call these if the width/left changed.
-    if (prevData.width !== widthRef.current && (rightDragging || leftDragging))
-      onWidthChanged && onWidthChanged(widthRef.current);
-    if (prevData.left !== leftRef.current)
-      onLeftChanged && onLeftChanged(leftRef.current);
+    if (prevData) {
+      if (
+        prevData.width !== widthRef.current &&
+        (rightDragging || leftDragging)
+      )
+        onWidthChanged && onWidthChanged(widthRef.current);
+      if (prevData.left !== leftRef.current)
+        onLeftChanged && onLeftChanged(leftRef.current);
+    }
   };
 
   useEffect(() => {
@@ -141,6 +151,7 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
             setWidthOnLeftDrag(
               draggableRef.current.getBoundingClientRect().width
             );
+            onAdjust(true);
           }}
         ></div>
         <div
@@ -149,6 +160,7 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
             e.preventDefault();
             setMoving(true);
             setMoveDown(e.clientX);
+            onAdjust(true);
           }}
         ></div>
         <div
@@ -157,6 +169,7 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
           onMouseDown={(e): void => {
             e.preventDefault();
             setRightDragging(true);
+            onAdjust(true);
           }}
         ></div>
       </div>

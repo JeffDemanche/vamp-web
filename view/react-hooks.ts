@@ -6,6 +6,7 @@ import { useQuery } from "react-apollo";
 import { gql } from "apollo-boost";
 import { useState, useEffect, useRef } from "react";
 import { LOCAL_VAMP_ID_CLIENT } from "./state/queries/vamp-queries";
+import { TrueTimeClient } from "./state/apollotypes";
 
 // import { audioStore } from "./audio/audio-store";
 // import { vampAudioContext } from "./audio/vamp-audio-context";
@@ -43,14 +44,34 @@ export const usePrevious = <T>(value: T): T => {
   return ref.current;
 };
 
-export const useTrueTime = (
-  playing: boolean,
-  playPosition: number,
-  playStartTime: number,
-  start: number,
-  end: number,
-  updateFreqMs: number
-): number => {
+/**
+ * Returns a state value that can be used to track true time of the play
+ * position down to a given accuracy, which is defined by the argument
+ * updateFreqMs.
+ *
+ * Returns true time in seconds.
+ */
+export const useTrueTime = (updateFreqMs: number): number => {
+  const vampId = useCurrentVampId();
+  const {
+    data: {
+      vamp: { start, end, playing, playPosition, playStartTime }
+    }
+  } = useQuery<TrueTimeClient>(
+    gql`
+      query TrueTimeClient($vampId: ID!) {
+        vamp(id: $vampId) @client {
+          playing @client
+          playPosition @client
+          playStartTime @client
+          start @client
+          end @client
+        }
+      }
+    `,
+    { variables: { vampId } }
+  );
+
   // This "local state" time is initially set to the playPosition from the
   // Apollo Cache.
   const [trueTime, setTrueTime] = useState(playPosition);
