@@ -109,8 +109,10 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     try {
       // Typing for window augmented in externals.d.ts.
       // The webkit thing is Safari bullshit.
-      window.AudioContext = window.AudioContext || window.webkitAudioContext;
-      return new AudioContext();
+      // window.AudioContext = window.AudioContext || window.webkitAudioContext;
+      // return new AudioContext();
+      // this is done in the constructor of this module now
+      return vampAudioContext.getAudioContext();
     } catch (e) {
       // TODO error handling.
       alert("Web audio not supported in this browser (TODO)");
