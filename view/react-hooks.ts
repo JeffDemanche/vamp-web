@@ -7,9 +7,10 @@ import { gql } from "apollo-boost";
 import { useState, useEffect, useRef } from "react";
 import { LOCAL_VAMP_ID_CLIENT } from "./state/queries/vamp-queries";
 import { TrueTimeClient } from "./state/apollotypes";
-
-// import { audioStore } from "./audio/audio-store";
-// import { vampAudioContext } from "./audio/vamp-audio-context";
+import { audioStore } from "./audio/audio-store";
+import * as tf from "@tensorflow/tfjs";
+import { Tensor1D } from "@tensorflow/tfjs";
+import { vampAudioContext } from "./audio/vamp-audio-context";
 
 export const useCurrentVampId = (): string => {
   const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
@@ -135,4 +136,46 @@ export const useHover = (): [React.RefObject<HTMLDivElement>, boolean] => {
   }, [ref.current]);
 
   return [ref, value];
+};
+
+export const useStoredAudio = (id: string): number[] => {
+  const [audioData, setAudioData] = useState([]);
+  const fileBuffer = audioStore.getStoredAudio(id);
+
+  //Called upon recieving the data
+  const handleAudioBuffer = (audioBuffer: AudioBuffer): void => {
+    const data = tf.tensor1d(audioBuffer.getChannelData(0));
+    // TODO:Scaling constant normalizes the data, this is called Min-Max feature scaling
+    const max = tf.max(data);
+    const min = tf.min(data);
+    const lower = -0.5;
+    const upper = 0.5;
+    const normalizingConstant = max.sub(min);
+    const normalizedData: Tensor1D = tf.add(
+      lower,
+      tf.div(tf.mul(data.sub(min), upper - lower), normalizingConstant)
+    );
+    normalizedData.array().then(array => {
+      setAudioData(array);
+    });
+  };
+
+  // Use stored audio
+  useEffect(() => {
+    if (fileBuffer) {
+      fileBuffer.data.arrayBuffer().then(arrayBuffer => {
+        const audioBuffer = vampAudioContext
+          .getAudioContext()
+          .decodeAudioData(arrayBuffer);
+        audioBuffer.then(audioBuffer => {
+          // does webgl garbage collection of tensors, if using webgl backend
+          tf.tidy(() => {
+            handleAudioBuffer(audioBuffer);
+          });
+        });
+      });
+    }
+  }, [fileBuffer]);
+
+  return audioData;
 };
