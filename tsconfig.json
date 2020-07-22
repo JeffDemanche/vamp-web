@@ -6,16 +6,13 @@
     "noImplicitAny": true,
     "module": "commonjs",
     "target": "es5",
-    "lib": ["es5", "es6", "es7", "es2017", "dom"],
+    "lib": ["WebWorker", "es5", "es6", "es7", "es2017", "dom"],
     "jsx": "react",
     "allowJs": true,
     "moduleResolution": "node",
     "rootDirs": ["view/stories"],
-    "baseUrl": "src",
+    "baseUrl": "src"
   },
-  "includes": [
-    "./externals.d.ts",
-    "tests"
-  ],
+  "includes": ["./externals.d.ts", "tests"],
   "exclude": ["node_modules", "build", "scripts", "e2e", "cypress"]
 }
