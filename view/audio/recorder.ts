@@ -26,13 +26,7 @@ class Recorder {
       this._mediaRecorder.ondataavailable = this.handleData;
     };
 
-    // navigator.mediaDevices
-    //   .getUserMedia({
-    //     audio: true,
-    //     video: false /* For now?? */
-    //   })
-    //   .then(gotMedia);
-    vampAudioStream.getAudioStream().then(gotMedia);
+    gotMedia(vampAudioStream.getAudioStream());
   }
 
   /**

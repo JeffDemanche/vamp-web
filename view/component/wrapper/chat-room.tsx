@@ -11,7 +11,6 @@ import { Row } from "react-bootstrap";
 // Reference: https://www.youtube.com/watch?v=R1sfHPwEH7A
 
 const audioContext = vampAudioContext.getAudioContext();
-const userAudioStream = vampAudioStream.getAudioStream();
 
 // Wrapper for the peer's audio stream
 interface PeerStreamProps {
@@ -39,7 +38,6 @@ const PeerStream: React.FC<PeerStreamProps> = (props: PeerStreamProps) => {
 };
 
 // Wrapper component for handling chatroom with other users
-
 interface ChatRoomProps {
   vampId: string;
   children: React.ReactNode;
@@ -100,42 +98,40 @@ export const ChatRoom: React.FC<ChatRoomProps> = (
 
   useEffect(() => {
     socketRef.current = io.connect("/");
+    const userAudioStream = vampAudioStream.getAudioStream();
+    userAudio.current.srcObject = userAudioStream;
+    socketRef.current.emit("join room", roomId);
 
-    userAudioStream.then(stream => {
-      userAudio.current.srcObject = stream;
-      socketRef.current.emit("join room", roomId);
-
-      // Notify all users of every other user -- "full-mesh network"
-      socketRef.current.on("all users", (users: any[]) => {
-        const peers: Peer.Instance[] = [];
-        users.forEach(userID => {
-          const peer = createPeer(userID, socketRef.current.id, stream);
-          peersRef.current.push({
-            peerID: userID,
-            peer
-          });
-          peers.push(peer);
+    // Notify all users of every other user -- "full-mesh network"
+    socketRef.current.on("all users", (users: any[]) => {
+      const peers: Peer.Instance[] = [];
+      users.forEach(userID => {
+        const peer = createPeer(userID, socketRef.current.id, userAudioStream);
+        peersRef.current.push({
+          peerID: userID,
+          peer
         });
-        setPeers(peers);
+        peers.push(peer);
       });
+      setPeers(peers);
+    });
 
-      // New browser on this vamp
-      socketRef.current.on("user joined", (payload: any) => {
-        const item = peersRef.current.find(p => p.peerID === payload.callerID);
-        if (!item) {
-          const peer = addPeer(payload.signal, payload.callerID, stream);
-          peersRef.current.push({
-            peerID: payload.callerID,
-            peer
-          });
-          setPeers(users => [...users, peer]);
-        }
-      });
+    // New browser on this vamp
+    socketRef.current.on("user joined", (payload: any) => {
+      const item = peersRef.current.find(p => p.peerID === payload.callerID);
+      if (!item) {
+        const peer = addPeer(payload.signal, payload.callerID, userAudioStream);
+        peersRef.current.push({
+          peerID: payload.callerID,
+          peer
+        });
+        setPeers(users => [...users, peer]);
+      }
+    });
 
-      socketRef.current.on("receiving returned signal", (payload: any) => {
-        const item = peersRef.current.find(p => p.peerID === payload.id);
-        item.peer.signal(payload.signal);
-      });
+    socketRef.current.on("receiving returned signal", (payload: any) => {
+      const item = peersRef.current.find(p => p.peerID === payload.id);
+      item.peer.signal(payload.signal);
     });
   }, []);
 
