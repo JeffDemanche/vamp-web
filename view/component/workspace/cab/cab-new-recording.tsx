@@ -5,6 +5,7 @@ import { useQuery } from "react-apollo";
 import { gql } from "apollo-boost";
 import { useTrueTime, useCurrentVampId } from "../../../react-hooks";
 import { CabRecording } from "../../../state/apollotypes";
+import { Oscilloscope } from "../oscilloscope/oscilloscope";
 
 const CAB_RECORDING_QUERY = gql`
   query CabRecording($vampId: ID!) {
@@ -16,7 +17,7 @@ const CAB_RECORDING_QUERY = gql`
   }
 `;
 
-/**
+/*
  * CabNew becomes CabNewRecording when it starts recording.
  */
 const CabNewRecording = (): JSX.Element => {
@@ -31,9 +32,13 @@ const CabNewRecording = (): JSX.Element => {
   // updates the true time and redraws the component every so often.
   const trueTime = useTrueTime(200);
 
-  const width = `${100 * trueTime * viewState.temporalZoom}px`;
+  const width = 100 * trueTime * viewState.temporalZoom;
 
-  return <div style={{ width }} className={styles["cab-recording"]}></div>;
+  return (
+    <div style={{ width: `${width}px` }} className={styles["cab-recording"]}>
+      <Oscilloscope dimensions={{ height: 150, width: width }}></Oscilloscope>
+    </div>
+  );
 };
 
 export { CabNewRecording };

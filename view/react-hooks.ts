@@ -11,6 +11,7 @@ import { audioStore } from "./audio/audio-store";
 import * as tf from "@tensorflow/tfjs";
 import { Tensor1D } from "@tensorflow/tfjs";
 import { vampAudioContext } from "./audio/vamp-audio-context";
+import { vampAudioStream } from "./audio/vamp-audio-stream";
 
 export const useCurrentVampId = (): string => {
   const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
@@ -138,27 +139,10 @@ export const useHover = (): [React.RefObject<HTMLDivElement>, boolean] => {
   return [ref, value];
 };
 
+// Grabs the stored auido from audio store
 export const useStoredAudio = (id: string): number[] => {
   const [audioData, setAudioData] = useState([]);
   const fileBuffer = audioStore.getStoredAudio(id);
-
-  //Called upon recieving the data
-  const handleAudioBuffer = (audioBuffer: AudioBuffer): void => {
-    const data = tf.tensor1d(audioBuffer.getChannelData(0));
-    // TODO:Scaling constant normalizes the data, this is called Min-Max feature scaling
-    const max = tf.max(data);
-    const min = tf.min(data);
-    const lower = -0.5;
-    const upper = 0.5;
-    const normalizingConstant = max.sub(min);
-    const normalizedData: Tensor1D = tf.add(
-      lower,
-      tf.div(tf.mul(data.sub(min), upper - lower), normalizingConstant)
-    );
-    normalizedData.array().then(array => {
-      setAudioData(array);
-    });
-  };
 
   // Use stored audio
   useEffect(() => {
@@ -168,14 +152,51 @@ export const useStoredAudio = (id: string): number[] => {
           .getAudioContext()
           .decodeAudioData(arrayBuffer);
         audioBuffer.then(audioBuffer => {
-          // does webgl garbage collection of tensors, if using webgl backend
-          tf.tidy(() => {
-            handleAudioBuffer(audioBuffer);
-          });
+          setAudioData(Array.from(audioBuffer.getChannelData(0)));
         });
       });
     }
   }, [fileBuffer]);
 
   return audioData;
+};
+
+// If there's no stored audio, we use the user's mic stream and animate
+export const useStreamedAudio = (): number[] => {
+  const context = vampAudioContext.getAudioContext();
+  const stream = vampAudioStream.getAudioStream();
+
+  let _data: Float32Array;
+
+  // user audio stream  -> analyser
+  const source = context.createMediaStreamSource(stream);
+  const analyser = context.createAnalyser();
+  source.connect(analyser);
+
+  const requestRef = useRef(null);
+  const previousTimeRef = useRef(null);
+  const audioDataRef = useRef([]);
+
+  const update = (time: number): void => {
+    const audioData = audioDataRef.current;
+    if (previousTimeRef.current != undefined) {
+      _data = new Float32Array(analyser.fftSize);
+      // Copy new values into the blank data array
+      analyser.getFloatTimeDomainData(_data);
+      audioDataRef.current = audioData.concat(Array.from(_data));
+    }
+    // To slow animation down, browser can't handle faster fr (as of now)
+    const rate = 100;
+    setTimeout(() => {
+      previousTimeRef.current = time;
+      requestRef.current = requestAnimationFrame(update);
+    }, rate);
+  };
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(update);
+    return (): void => cancelAnimationFrame(requestRef.current);
+  }, []);
+
+  return audioDataRef.current;
 };
