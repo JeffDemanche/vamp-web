@@ -54,6 +54,7 @@ const SettingSelect: React.FunctionComponent<SettingSelectProps> = ({
         ref={wrapperRef}
         value={value}
         onChange={(e): void => onChange(e.target.value)}
+        className={styles["setting-select-editing"]}
       >
         {selectOptions}
       </select>
