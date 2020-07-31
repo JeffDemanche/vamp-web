@@ -9,7 +9,7 @@ class VampAudioStream {
 
   // TODO: would effects get attached here
   constructor() {
-    navigator.mediaDevices
+    window.navigator.mediaDevices
       .getUserMedia({ audio: true, video: false })
       .then(stream => (this._stream = stream));
   }

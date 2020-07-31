@@ -3,7 +3,6 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
-    "proxy": "http://localhost:4567",
     "scripts": {
         "dev": "nodemon --exec babel-node server.js",
         "webpack": "./node_modules/.bin/webpack --mode development --watch",

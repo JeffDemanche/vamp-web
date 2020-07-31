@@ -8,10 +8,11 @@ import { useState, useEffect, useRef } from "react";
 import { LOCAL_VAMP_ID_CLIENT } from "./state/queries/vamp-queries";
 import { TrueTimeClient } from "./state/apollotypes";
 import { audioStore } from "./audio/audio-store";
-import * as tf from "@tensorflow/tfjs";
-import { Tensor1D } from "@tensorflow/tfjs";
+import * as io from "socket.io-client";
+import * as Peer from "simple-peer";
 import { vampAudioContext } from "./audio/vamp-audio-context";
 import { vampAudioStream } from "./audio/vamp-audio-stream";
+import { vampVideoStream } from "./video/vamp-video-stream";
 
 export const useCurrentVampId = (): string => {
   const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
@@ -199,4 +200,113 @@ export const useStreamedAudio = (): number[] => {
   }, []);
 
   return audioDataRef.current;
+};
+
+/*
+  Hook for web rtc + socket io, returns an array of peer 
+  instances, each of which has a media stream accessible from the 
+  following pattern, for example:
+
+      useEffect(() => {
+        // Add the stream from other user's in the user's
+        peer.on("stream", (stream: MediaStream) => {
+          //do something with the stream
+        });
+      }, []);
+  
+  For video chat (for example), we make a ref connect to the stream 
+  and use that ref in the <video /> tag
+*/
+export const usePeers = (streamType?: string): Peer.Instance[] => {
+  let stream: MediaStream;
+  switch (streamType) {
+    case "audio": {
+      stream = vampAudioStream.getAudioStream();
+      break;
+    }
+    case "video": {
+      stream = vampVideoStream.getVideoStream();
+      break;
+    }
+    default:
+      stream = vampAudioStream.getAudioStream();
+      break;
+    // TODO: any other p2p data we want to send
+  }
+  const vampId = useCurrentVampId();
+  const [peers, setPeers] = useState<Peer.Instance[]>([]);
+  const socketRef = useRef<SocketIOClient.Socket>(null);
+  const userStream = useRef<MediaStream>(null);
+  const peersRef = useRef([]);
+
+  const createPeer = (
+    userToSignal: any,
+    callerID: string,
+    stream: MediaStream
+  ): Peer.Instance => {
+    const peer = new Peer({
+      initiator: true,
+      trickle: false,
+      stream
+    });
+    peer.on("signal", signal => {
+      socketRef.current.emit("sending signal", {
+        userToSignal,
+        callerID,
+        signal
+      });
+    });
+    return peer;
+  };
+
+  const addPeer = (
+    incomingSignal: string | Peer.SignalData,
+    callerID: string,
+    stream: MediaStream
+  ): Peer.Instance => {
+    const peer = new Peer({
+      initiator: false,
+      trickle: false,
+      stream
+    });
+    peer.on("signal", signal => {
+      socketRef.current.emit("returning signal", { signal, callerID });
+    });
+    peer.signal(incomingSignal);
+    return peer;
+  };
+
+  useEffect(() => {
+    socketRef.current = io.connect("/");
+    userStream.current = stream;
+    socketRef.current.emit("join vamp", vampId);
+    socketRef.current.on("all users", (users: string[]) => {
+      users.forEach((userId: string) => {
+        const peer = createPeer(userId, socketRef.current.id, stream);
+        peersRef.current.push({
+          peerID: userId,
+          peer
+        });
+        peers.push(peer);
+      });
+      setPeers(peers);
+    });
+    socketRef.current.on("user joined", (payload: any) => {
+      const item = peersRef.current.find(p => p.peerID === payload.callerID);
+      if (!item) {
+        const peer = addPeer(payload.signal, payload.callerID, stream);
+        peersRef.current.push({
+          peerID: payload.callerID,
+          peer
+        });
+        setPeers(users => [...users, peer]);
+      }
+    });
+    socketRef.current.on("receiving returned signal", (payload: any) => {
+      const item = peersRef.current.find(p => p.peerID === payload.id);
+      item.peer.signal(payload.signal);
+    });
+  }, []);
+
+  return peers;
 };
