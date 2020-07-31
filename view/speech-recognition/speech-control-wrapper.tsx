@@ -6,11 +6,11 @@ import {
   STOP_CLIENT,
   RECORD_CLIENT,
   SEEK_CLIENT
-} from "../../state/queries/vamp-mutations";
+} from "../state/queries/vamp-mutations";
 import {
   PLAYING_CLIENT,
   RECORDING_CLIENT
-} from "../../state/queries/vamp-queries";
+} from "../state/queries/vamp-queries";
 import {
   PlayClient,
   StopClient,
@@ -19,8 +19,8 @@ import {
   PauseClient,
   PlayingClient,
   RecordingClient
-} from "../../state/apollotypes";
-import { useCurrentVampId } from "../../react-hooks";
+} from "../state/apollotypes";
+import { useCurrentVampId } from "../react-hooks";
 import { useEffect, useState } from "react";
 import { vampSpeechRecognizer } from "./vamp-speech-recognizer";
 

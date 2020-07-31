@@ -3,13 +3,12 @@ import * as React from "react";
 import { RouteComponentProps } from "react-router";
 
 import { HotKeysWrapper } from "../wrapper/hotkeys-wrapper";
-import { SpeechControl } from "../wrapper/speech-control-wrapper";
+import { SpeechControl } from "../../speech-recognition/speech-control-wrapper";
 import UserInVampProvider from "./user-in-vamp-provider";
 import { useCurrentUserId } from "../../react-hooks";
 import VampProvider from "./vamp-provider";
 import ClipsProvider from "./clips-provider";
 import WorkspaceContent from "./workspace-content";
-import { ChatRoom } from "../wrapper/chat-room";
 
 interface MatchParams {
   vampid: string;
@@ -32,13 +31,11 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = (
     <VampProvider vampId={vampId}>
       <ClipsProvider vampId={vampId}>
         <UserInVampProvider vampId={vampId} userId={userId}>
-          <ChatRoom vampId={vampId}>
-            <HotKeysWrapper>
-              <SpeechControl>
-                <WorkspaceContent />
-              </SpeechControl>
-            </HotKeysWrapper>
-          </ChatRoom>
+          <HotKeysWrapper>
+            <SpeechControl>
+              <WorkspaceContent />
+            </SpeechControl>
+          </HotKeysWrapper>
         </UserInVampProvider>
       </ClipsProvider>
     </VampProvider>
