@@ -19,7 +19,9 @@ import {
   ViewStateClient,
   GetClipsClient,
   GetClipsClient_vamp,
-  ViewLeftClient
+  ViewLeftClient,
+  CabClient,
+  MeClient
 } from "../apollotypes";
 import {
   GET_CLIENT_CLIPS_CLIENT,
@@ -27,6 +29,8 @@ import {
   GET_CLIPS_CLIENT
 } from "../queries/clips-queries";
 import ObjectID from "bson-objectid";
+import { CAB_CLIENT } from "../queries/user-in-vamp-queries";
+import { ME_CLIENT } from "../queries/user-queries";
 
 const defaults = {
   Vamp: {
@@ -144,6 +148,16 @@ const resolvers: Partial<AppResolvers> = {
       const { loadedVampId: vampId } = cache.readQuery<LocalVampIdClient>({
         query: LOCAL_VAMP_ID_CLIENT
       });
+      const { me } = cache.readQuery<MeClient>({
+        query: ME_CLIENT
+      });
+      const {
+        userInVamp: { cab }
+      } = cache.readQuery<CabClient>({
+        query: CAB_CLIENT,
+        variables: { vampId, userId: me.id }
+      });
+      // TODO Right now this will seek to the cab position.
       cache.writeData({
         data: {
           vamp: {
@@ -151,7 +165,7 @@ const resolvers: Partial<AppResolvers> = {
             id: vampId,
             playing: false,
             recording: false,
-            playPosition: 0,
+            playPosition: cab.start,
             playStartTime: -1
           }
         }

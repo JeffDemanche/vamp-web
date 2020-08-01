@@ -5,9 +5,11 @@ import { useQuery } from "react-apollo";
 import { gql } from "apollo-boost";
 import { useTrueTime, useCurrentVampId } from "../../../react-hooks";
 import { CabRecording } from "../../../state/apollotypes";
+import { Oscilloscope } from "../oscilloscope/oscilloscope";
+import { CabNewRecording } from "../../../state/apollotypes";
 
-const CAB_RECORDING_QUERY = gql`
-  query CabRecording($vampId: ID!) {
+const CAB_NEW_RECORDING_QUERY = gql`
+  query CabNewRecording($vampId: ID!) {
     vamp(id: $vampId) @client {
       viewState @client {
         temporalZoom @client
@@ -16,7 +18,7 @@ const CAB_RECORDING_QUERY = gql`
   }
 `;
 
-/**
+/*
  * CabNew becomes CabNewRecording when it starts recording.
  */
 const CabNewRecording = (): JSX.Element => {
@@ -25,15 +27,21 @@ const CabNewRecording = (): JSX.Element => {
     data: {
       vamp: { viewState }
     }
-  } = useQuery<CabRecording>(CAB_RECORDING_QUERY, { variables: { vampId } });
+  } = useQuery<CabNewRecording>(CAB_NEW_RECORDING_QUERY, {
+    variables: { vampId }
+  });
 
   // This is the same method used in timecode.tsx, see there for info. Basically
   // updates the true time and redraws the component every so often.
   const trueTime = useTrueTime(200);
 
-  const width = `${100 * trueTime * viewState.temporalZoom}px`;
+  const width = 100 * trueTime * viewState.temporalZoom;
 
-  return <div style={{ width }} className={styles["cab-recording"]}></div>;
+  return (
+    <div style={{ width: `${width}px` }} className={styles["cab-recording"]}>
+      <Oscilloscope dimensions={{ height: 150, width: width }}></Oscilloscope>
+    </div>
+  );
 };
 
 export { CabNewRecording };

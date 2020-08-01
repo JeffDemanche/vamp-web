@@ -4,7 +4,13 @@ import * as styles from "./cab.less";
 import { useQuery, useMutation, useApolloClient } from "react-apollo";
 import { useCurrentVampId, useCurrentUserId } from "../../../react-hooks";
 import { gql } from "apollo-boost";
-import { CabMainQuery, UpdateCab } from "../../../state/apollotypes";
+import {
+  CabMainQuery,
+  UpdateCab,
+  StopClient,
+  RecordClient,
+  Seek
+} from "../../../state/apollotypes";
 import {
   useWorkspaceWidth,
   useWorkspaceLeft,
@@ -13,7 +19,12 @@ import {
 } from "../../../workspace-hooks";
 import MovableComponent from "../../element/movable-component";
 import Playhead from "../../element/playhead";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  STOP_CLIENT,
+  RECORD_CLIENT,
+  SEEK_CLIENT
+} from "../../../state/queries/vamp-mutations";
 
 const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
@@ -56,7 +67,7 @@ const UPDATE_CAB = gql`
  *
  * The cab will also mutate to the server.
  */
-const CabMain: React.FunctionComponent = () => {
+const CabMain: React.FC = () => {
   const client = useApolloClient();
 
   const vampId = useCurrentVampId();
@@ -72,11 +83,13 @@ const CabMain: React.FunctionComponent = () => {
 
   const [updateCab] = useMutation<UpdateCab>(UPDATE_CAB);
 
+  const [stop] = useMutation<StopClient>(STOP_CLIENT);
+  const [record] = useMutation<RecordClient>(RECORD_CLIENT);
+  const [seek] = useMutation<Seek>(SEEK_CLIENT);
+
   const { data, loading, error } = useQuery<CabMainQuery>(CAB_MAIN_QUERY, {
     variables: { vampId, userId }
   });
-
-  if (loading || !data) return null;
 
   if (error) console.error(error);
 
@@ -85,7 +98,11 @@ const CabMain: React.FunctionComponent = () => {
       id: userInVampId,
       cab: { start, duration }
     }
-  } = data;
+  } = data || { userInVamp: { id: "", cab: { start: 0, duration: 0 } } };
+
+  useEffect(() => {
+    seek({ variables: { time: start } });
+  }, [start]);
 
   /**
    * updateCab does not update the local cache, so we're doing it manually here.
@@ -115,27 +132,36 @@ const CabMain: React.FunctionComponent = () => {
     <Playhead containerStart={start} containerDuration={duration} />
   );
 
-  return (
-    <MovableComponent
-      initialWidth={widthFn(duration)}
-      height={150}
-      initialLeft={positionFn(start)}
-      onWidthChanged={(newWidth): void => {
-        updateCabWithClient(userId, vampId, durationFn(newWidth), start);
-      }}
-      onLeftChanged={(newLeft): void => {
-        updateCabWithClient(userId, vampId, duration, timeFn(newLeft));
-      }}
-      onAdjust={(active): void => {
-        setAdjusting(active);
-      }}
-    >
-      <div className={styles["cab-main"]}>
-        {playhead}
-        <img src={require("../../../img/vector/record.svg")} />
-      </div>
-    </MovableComponent>
-  );
+  if (loading || !data) {
+    return null;
+  } else {
+    return (
+      <MovableComponent
+        initialWidth={widthFn(duration)}
+        height={150}
+        initialLeft={positionFn(start)}
+        onWidthChanged={(newWidth): void => {
+          updateCabWithClient(userId, vampId, durationFn(newWidth), start);
+        }}
+        onLeftChanged={(newLeft): void => {
+          const start = timeFn(newLeft);
+          updateCabWithClient(userId, vampId, duration, start);
+        }}
+        onAdjust={(active): void => {
+          setAdjusting(active);
+        }}
+        onClick={(): void => {
+          console.log("recording");
+          //record();
+        }}
+      >
+        <div className={styles["cab-main"]}>
+          {playhead}
+          <img src={require("../../../img/vector/record.svg")} />
+        </div>
+      </MovableComponent>
+    );
+  }
 };
 
 export default CabMain;

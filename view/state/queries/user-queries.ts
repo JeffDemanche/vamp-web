@@ -22,9 +22,9 @@ export const ME_SERVER = gql`
 export const ME_CLIENT = gql`
   query MeClient {
     me @client {
-      id
-      username
-      email
+      id @client
+      username @client
+      email @client
     }
   }
 `;

@@ -5,16 +5,16 @@
 */
 
 class VampAudioStream {
-  private _stream: Promise<MediaStream>;
+  private _stream: MediaStream;
 
   // TODO: would effects get attached here
   constructor() {
-    this._stream = navigator.mediaDevices
+    window.navigator.mediaDevices
       .getUserMedia({ audio: true, video: false })
-      .then(stream => stream);
+      .then(stream => (this._stream = stream));
   }
 
-  getAudioStream = (): Promise<MediaStream> => this._stream;
+  getAudioStream = (): MediaStream => this._stream;
 }
 
 // eslint-disable-next-line prefer-const

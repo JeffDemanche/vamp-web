@@ -26,8 +26,10 @@ import {
   AddClientClip,
   AddClip,
   StopClient,
-  PlayClient
+  PlayClient,
+  CabClient
 } from "../state/apollotypes";
+import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!) {
@@ -119,6 +121,9 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     }
   };
 
+  const userId = useCurrentUserId();
+
+  // State query for clientside Vamp playback info.
   const {
     data: {
       vamp: {
@@ -137,7 +142,17 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     variables: { vampId }
   });
 
-  const userId = useCurrentUserId();
+  // State query for cab info.
+  const { data: userInVampData } = useQuery<CabClient>(CAB_CLIENT, {
+    variables: { vampId, userId }
+  });
+  const {
+    userInVamp: {
+      cab: { start: cabStart, duration: cabDuration }
+    }
+  } = userInVampData || {
+    userInVamp: { cab: { cabStart: 0, cabDuration: 0 } }
+  };
 
   const [apolloPlay] = useMutation<PlayClient>(PLAY_CLIENT);
   const [apolloStop] = useMutation<StopClient>(STOP_CLIENT);
@@ -168,12 +183,16 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     }
   };
 
-  const stop = (): void => {
-    scheduler.stop();
-  };
-
   const seek = (time: number): void => {
     scheduler.seek(time);
+  };
+
+  const setPlayPosition = (time: number): void => {
+    scheduler.setTime(time);
+  };
+
+  const stop = (): void => {
+    scheduler.stop();
   };
 
   // TODO If we end up needing to reuse this functionality it should be put in a
@@ -296,8 +315,15 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         prevData.playing &&
         playStartTime != prevData.playStartTime
       ) {
-        seek(start);
+        seek(cabStart);
       }
+
+      // Signalled when when a seek occured while not playing.
+      if (!playing && playPosition != prevData.playPosition) {
+        setPlayPosition(playPosition);
+      }
+
+      scheduler.setIdleTime(cabStart);
 
       // Check for removed Clips and ClientClips and stop their playback.
       const removeEventForClips = (

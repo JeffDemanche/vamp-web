@@ -21,6 +21,7 @@ interface MovableComponentProps {
   onAdjust?: (active: boolean) => void;
   onWidthChanged?: (newWidth: number) => void;
   onLeftChanged?: (newLeft: number) => void;
+  onClick?: (e: React.MouseEvent) => void;
 
   handleWidth?: number;
   children: React.ReactChild | React.ReactChild[];
@@ -39,6 +40,7 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
   onAdjust,
   onWidthChanged,
   onLeftChanged,
+  onClick,
 
   handleWidth,
   children
@@ -99,7 +101,8 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
 
   const prevData = usePrevious({
     width: widthRef.current,
-    left: leftRef.current
+    left: leftRef.current,
+    moveDown
   });
 
   const onMouseUpWindow = (): void => {
@@ -114,10 +117,12 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
       if (
         prevData.width !== widthRef.current &&
         (rightDragging || leftDragging)
-      )
+      ) {
         onWidthChanged && onWidthChanged(widthRef.current);
-      if (prevData.left !== leftRef.current)
+      }
+      if (prevData.left !== leftRef.current) {
         onLeftChanged && onLeftChanged(leftRef.current);
+      }
     }
   };
 
@@ -161,6 +166,14 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
             setMoving(true);
             setMoveDown(e.clientX);
             onAdjust(true);
+          }}
+          onMouseUp={(e: React.MouseEvent): void => {
+            e.preventDefault();
+            // This will evaluate to true when the clip was moved at all (note,
+            // not that the *mouse* was moved).
+            if (prevData.moveDown !== -1) {
+              onClick(e);
+            }
           }}
         ></div>
         <div

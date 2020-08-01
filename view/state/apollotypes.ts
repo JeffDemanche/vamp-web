@@ -141,6 +141,33 @@ export interface AddClientClipVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: CabMainRecording
+// ====================================================
+
+export interface CabMainRecording_vamp_viewState {
+  __typename: "ViewState";
+  temporalZoom: number | null;
+}
+
+export interface CabMainRecording_vamp {
+  __typename: "Vamp";
+  viewState: CabMainRecording_vamp_viewState | null;
+}
+
+export interface CabMainRecording {
+  vamp: CabMainRecording_vamp | null;
+}
+
+export interface CabMainRecordingVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: CabMainQuery
 // ====================================================
 
@@ -202,30 +229,24 @@ export interface UpdateCabVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: CabRecording
+// GraphQL query operation: CabNewRecording
 // ====================================================
 
-export interface CabRecording_vamp_viewState {
+export interface CabNewRecording_vamp_viewState {
   __typename: "ViewState";
   temporalZoom: number | null;
 }
 
-export interface CabRecording_vamp {
+export interface CabNewRecording_vamp {
   __typename: "Vamp";
-  start: number | null;
-  end: number | null;
-  playing: boolean | null;
-  playPosition: number | null;
-  playStartTime: number | null;
-  recording: boolean | null;
-  viewState: CabRecording_vamp_viewState | null;
+  viewState: CabNewRecording_vamp_viewState | null;
 }
 
-export interface CabRecording {
-  vamp: CabRecording_vamp | null;
+export interface CabNewRecording {
+  vamp: CabNewRecording_vamp | null;
 }
 
-export interface CabRecordingVariables {
+export interface CabNewRecordingVariables {
   vampId: string;
 }
 
@@ -428,32 +449,6 @@ export interface UpdateMetronomeSound {
 
 export interface UpdateMetronomeSoundVariables {
   update: VampUpdateInput;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL query operation: TimecodeClient
-// ====================================================
-
-export interface TimecodeClient_vamp {
-  __typename: "Vamp";
-  playing: boolean | null;
-  playPosition: number | null;
-  playStartTime: number | null;
-  start: number | null;
-  end: number | null;
-}
-
-export interface TimecodeClient {
-  vamp: TimecodeClient_vamp | null;
-}
-
-export interface TimecodeClientVariables {
-  vampId: string;
 }
 
 /* tslint:disable */
@@ -665,24 +660,6 @@ export interface AddVampVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: GetCurrentUserId
-// ====================================================
-
-export interface GetCurrentUserId_me {
-  __typename: "User";
-  id: string;
-}
-
-export interface GetCurrentUserId {
-  me: GetCurrentUserId_me | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
 // GraphQL query operation: TrueTimeClient
 // ====================================================
 
@@ -861,6 +838,36 @@ export interface UserInVampClient {
 }
 
 export interface UserInVampClientVariables {
+  vampId: string;
+  userId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: CabClient
+// ====================================================
+
+export interface CabClient_userInVamp_cab {
+  __typename: "Cab";
+  start: number;
+  duration: number;
+}
+
+export interface CabClient_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  cab: CabClient_userInVamp_cab;
+}
+
+export interface CabClient {
+  userInVamp: CabClient_userInVamp | null;
+}
+
+export interface CabClientVariables {
   vampId: string;
   userId: string;
 }

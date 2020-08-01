@@ -11,6 +11,7 @@ import { audioStore } from "./audio/audio-store";
 import * as tf from "@tensorflow/tfjs";
 import { Tensor1D } from "@tensorflow/tfjs";
 import { vampAudioContext } from "./audio/vamp-audio-context";
+import { ME_CLIENT } from "./state/queries/user-queries";
 
 export const useCurrentVampId = (): string => {
   const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
@@ -18,13 +19,7 @@ export const useCurrentVampId = (): string => {
 };
 
 export const useCurrentUserId = (): string => {
-  const { data } = useQuery(gql`
-    query GetCurrentUserId {
-      me @client {
-        id
-      }
-    }
-  `);
+  const { data } = useQuery(ME_CLIENT);
   if (data.me == null) {
     return null;
   }

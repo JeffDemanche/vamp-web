@@ -28,17 +28,32 @@ interface WorkspaceEvent {
   // TODO do this instead of hasStarted
   playImmediately?: boolean;
 
+  /**
+   * A flag field used by the loop() function to help with dispatching events
+   * when play begins in the middle of such events.
+   */
   hasStarted?: boolean;
 }
 
 /**
- * Handles timing, accumulates events that need to take place at some point in
- * the workspace timeline.
+ * Handles audio timing, accumulates events that need to take place at some
+ * point in the workspace timeline.
+ *
+ * Important to note that this is NOT a component, meaning fields within here
+ * need to be manually updated with the state (usually this updating occurs in
+ * WorkspaceAudio).
  */
 class Scheduler {
   private _context: AudioContext;
   private _isPlaying: boolean;
   private _seconds: number;
+
+  /**
+   * A value that needs to be updated from WorkspaceAudio, the place where the
+   * playhead should be in an idle state (i.e. might be the position of the
+   * cab). Basically, when we press stop, where does the Vamp seek to?
+   */
+  private _idleTime: number;
 
   /**
    * If an event's dispatch function returns an AudioScheduledSourceNode, that
@@ -70,11 +85,29 @@ class Scheduler {
     this._dispatchedAudioNodes = {};
   }
 
+  /**
+   * Plays audio beginning at the scheduler _seconds field.
+   */
   play = async (): Promise<void> => {
     this._isPlaying = true;
     this.loop();
   };
 
+  setTime = (time: number): void => {
+    this._seconds = time;
+  };
+
+  /**
+   * Sets the time in seconds that the scheduler will return to after being
+   * stopped.
+   */
+  setIdleTime = (idleTime: number): void => {
+    this._idleTime = idleTime;
+  };
+
+  /**
+   * Seek the scheduler to a time in seconds while playing.
+   */
   seek = async (time: number): Promise<void> => {
     this.stop();
     clearTimeout(this._loopTimeout);
@@ -82,6 +115,9 @@ class Scheduler {
     this.play();
   };
 
+  /**
+   * Stops looping and stops all dispatched nodes from playing audio.
+   */
   stop = async (): Promise<void> => {
     this._isPlaying = false;
     Object.keys(this._dispatchedAudioNodes).forEach(nodeKey => {
@@ -91,8 +127,11 @@ class Scheduler {
     this._dispatchedAudioNodes = {};
   };
 
+  /**
+   * Called from loop(). Resets the scheduler _seconds field to the idle time.
+   */
   private postStop = (): void => {
-    this._seconds = 0;
+    this._seconds = this._idleTime;
   };
 
   time = (): number => this._seconds;
@@ -102,7 +141,6 @@ class Scheduler {
   };
 
   removeEvent = (id: string, stopNode = true): void => {
-    console.time("removed clip");
     if (stopNode) {
       this._dispatchedAudioNodes[id].disconnect();
       this._dispatchedAudioNodes[id].stop(0);
@@ -136,10 +174,16 @@ class Scheduler {
     const loopBeginWorkspace: number = this._seconds;
     const loopBeginUnix: number = Date.now();
 
+    console.log(this._seconds, this._events);
+    for (const eventId in this._events) {
+      this._events[eventId].hasStarted = false;
+    }
+
     const runTimeout = (): void => {
       if (this._isPlaying) {
         this._loopTimeout = global.setTimeout(async () => {
           const elapsedUnix = Date.now() - loopBeginUnix;
+          // Time marker at beginning of tick.
           const preTime = this._seconds;
           this._seconds = 0.001 * elapsedUnix + loopBeginWorkspace;
 
@@ -154,15 +198,18 @@ class Scheduler {
             if (repeat) {
               // Play repeating events if this is negative.
               const timeDiff = (this._seconds % repeat) - (preTime % repeat);
-              if (start == preTime || timeDiff < 0) {
+
+              // (The event or it's repetitions begin right at the tick) OR
+              // (we've passed the time where we should repeat the event).
+              if (start == preTime % repeat || timeDiff < 0) {
                 dispatch(this._context).then(sourceNode => {
                   if (sourceNode)
                     this._dispatchedAudioNodes[eventId] = sourceNode;
                 });
               }
             } else {
-              // Distance between the last tick and when this event is
-              // scheduled. If negative then the event begins some time after
+              // Distance between the beginngin of this tick and when this event
+              // is scheduled. If negative then the event begins some time after
               // this tick. If positive, the clip is either already playing or
               // was just added, in which case we should play it with the
               // correct offset.

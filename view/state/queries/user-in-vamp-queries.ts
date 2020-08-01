@@ -20,3 +20,15 @@ export const USER_IN_VAMP_CLIENT = gql`
     }
   }
 `;
+
+export const CAB_CLIENT = gql`
+  query CabClient($vampId: ID!, $userId: ID!) {
+    userInVamp(vampId: $vampId, userId: $userId) @client {
+      id @client
+      cab @client {
+        start @client
+        duration @client
+      }
+    }
+  }
+`;
