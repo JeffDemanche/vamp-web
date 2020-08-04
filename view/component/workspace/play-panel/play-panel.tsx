@@ -10,6 +10,7 @@ import * as styles from "./play-panel.less";
 import Timecode from "./timecode";
 import { useHover } from "../../../react-hooks";
 import { useEffect, useState } from "react";
+import { TitleSetting } from "./title-setting";
 
 const PlayPanel: React.FunctionComponent = () => {
   const metronomeOptions = [
@@ -38,13 +39,16 @@ const PlayPanel: React.FunctionComponent = () => {
   const style = width == -1 ? {} : { width };
 
   return (
-    <div className={styles["play-panel"]} ref={hoverRef} style={style}>
-      <PlayStopButton></PlayStopButton>
-      <Timecode></Timecode>
-      <div className={styles["play-options"]}>
-        <BPMSetting></BPMSetting>
-        <BeatsPerBarSetting></BeatsPerBarSetting>
-        <MetronomeSetting></MetronomeSetting>
+    <div>
+      <TitleSetting></TitleSetting>
+      <div className={styles["play-panel"]} ref={hoverRef} style={style}>
+        <PlayStopButton></PlayStopButton>
+        <Timecode></Timecode>
+        <div className={styles["play-options"]}>
+          <BPMSetting></BPMSetting>
+          <BeatsPerBarSetting></BeatsPerBarSetting>
+          <MetronomeSetting></MetronomeSetting>
+        </div>
       </div>
     </div>
   );

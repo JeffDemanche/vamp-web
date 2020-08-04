@@ -12,7 +12,7 @@ import * as io from "socket.io-client";
 import * as Peer from "simple-peer";
 import { vampAudioContext } from "./audio/vamp-audio-context";
 import { vampAudioStream } from "./audio/vamp-audio-stream";
-import { vampVideoStream } from "./video/vamp-video-stream";
+// import { vampVideoStream } from "./video/vamp-video-stream";
 
 export const useCurrentVampId = (): string => {
   const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
@@ -224,10 +224,10 @@ export const usePeers = (streamType?: string): Peer.Instance[] => {
       stream = vampAudioStream.getAudioStream();
       break;
     }
-    case "video": {
-      stream = vampVideoStream.getVideoStream();
-      break;
-    }
+    // case "video": {
+    //   stream = vampVideoStream.getVideoStream();
+    //   break;
+    // }
     default:
       stream = vampAudioStream.getAudioStream();
       break;
