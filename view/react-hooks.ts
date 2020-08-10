@@ -13,6 +13,7 @@ import * as Peer from "simple-peer";
 import { vampAudioContext } from "./audio/vamp-audio-context";
 import { vampAudioStream } from "./audio/vamp-audio-stream";
 import { vampVideoStream } from "./video/vamp-video-stream";
+// import { vampVideoStream } from "./video/vamp-video-stream";
 
 export const useCurrentVampId = (): string => {
   const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
@@ -204,6 +205,7 @@ export const useStreamedAudio = (): number[] => {
   Hook for web rtc + socket io, returns an array of peer 
   instances, each of which has a media stream accessible from the 
   following pattern, for example:
+
       useEffect(() => {
         // Add the stream from other user's in the user's
         peer.on("stream", (stream: MediaStream) => {
