@@ -6,7 +6,8 @@ import { GET_CLIPS_SERVER } from "../../state/queries/clips-queries";
 import {
   RemoveClientClip,
   GetClipsServer,
-  ClipsSubscription
+  ClipsSubscription,
+  GetClipsServer_clips
 } from "../../state/apollotypes";
 import { ViewLoading } from "../loading/view-loading";
 import { ViewNotFound } from "../not-found/view-not-found";
@@ -85,8 +86,14 @@ const ClipsProvider: React.FunctionComponent<ClipsProviderProps> = ({
             removeClientClip({ variables: { tempFilename: refId } });
           }
 
-          console.log(subscriptionData.data);
-          console.log("Clip subscription updated");
+          return { clips: newClips };
+        } else if (subscriptionData.data.subClips.mutation === "REMOVED") {
+          const newClips: GetClipsServer_clips[] = [];
+          prev.clips.forEach(clip => {
+            if (clip.id != subscriptionData.data.subClips.updatedClip.id) {
+              newClips.push(clip);
+            }
+          });
           return { clips: newClips };
         }
       }

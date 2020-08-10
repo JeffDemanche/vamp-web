@@ -151,8 +151,7 @@ const CabMain: React.FC = () => {
           setAdjusting(active);
         }}
         onClick={(): void => {
-          console.log("recording");
-          //record();
+          record();
         }}
       >
         <div className={styles["cab-main"]}>

@@ -169,9 +169,9 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
           }}
           onMouseUp={(e: React.MouseEvent): void => {
             e.preventDefault();
-            // This will evaluate to true when the clip was moved at all (note,
-            // not that the *mouse* was moved).
-            if (prevData.moveDown !== -1) {
+            // This will evaluate to true when the clip was not moved (note, not
+            // that the *mouse* was not moved).
+            if (prevData.moveDown === -1) {
               onClick(e);
             }
           }}

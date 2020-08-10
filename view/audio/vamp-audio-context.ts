@@ -1,7 +1,6 @@
-/*
-Wrapper class for the AudioContext
-*/
-
+/**
+ * Wrapper class for the AudioContext
+ */
 class VampAudioContext {
   private _context: AudioContext;
 

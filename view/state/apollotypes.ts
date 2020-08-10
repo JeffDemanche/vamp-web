@@ -107,6 +107,7 @@ export interface AddClipVariables {
   vampId: string;
   file: any;
   referenceId?: string | null;
+  start?: number | null;
 }
 
 /* tslint:disable */
@@ -154,12 +155,32 @@ export interface CabMainRecording_vamp {
   viewState: CabMainRecording_vamp_viewState | null;
 }
 
+export interface CabMainRecording_userInVamp_cab_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface CabMainRecording_userInVamp_cab {
+  __typename: "Cab";
+  user: CabMainRecording_userInVamp_cab_user;
+  start: number;
+  duration: number;
+}
+
+export interface CabMainRecording_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  cab: CabMainRecording_userInVamp_cab;
+}
+
 export interface CabMainRecording {
   vamp: CabMainRecording_vamp | null;
+  userInVamp: CabMainRecording_userInVamp | null;
 }
 
 export interface CabMainRecordingVariables {
   vampId: string;
+  userId: string;
 }
 
 /* tslint:disable */
@@ -660,6 +681,24 @@ export interface AddVampVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: GetCurrentUserId
+// ====================================================
+
+export interface GetCurrentUserId_me {
+  __typename: "User";
+  id: string;
+}
+
+export interface GetCurrentUserId {
+  me: GetCurrentUserId_me | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: TrueTimeClient
 // ====================================================
 
@@ -678,6 +717,24 @@ export interface TrueTimeClient {
 
 export interface TrueTimeClientVariables {
   vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: RemoveClipServer
+// ====================================================
+
+export interface RemoveClipServer {
+  removeClip: boolean;
+}
+
+export interface RemoveClipServerVariables {
+  vampId: string;
+  clipId: string;
 }
 
 /* tslint:disable */

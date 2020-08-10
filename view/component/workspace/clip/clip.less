@@ -1,10 +1,22 @@
 @import "../../../constants/gradients.less";
 
 .clip {
+  cursor: pointer;
   height: 150px;
   overflow: hidden;
   position: relative;
   border-radius: 16px;
   background: @gradient-passion;
   display: flex;
+}
+
+.display-on-hover {
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.clip:hover .display-on-hover {
+  display: inline;
 }

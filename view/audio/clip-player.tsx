@@ -56,7 +56,14 @@ const ClipPlayer = ({
 
             source.buffer = decodedData;
             source.connect(context.destination);
-            source.start(0, offset);
+
+            // The WAA start function takes different params for delaying the
+            // start of a node (when) and playing the node from a point other
+            // than the start (offset).
+            const when = offset < 0 ? -offset : 0;
+            const offsetVal = offset > 0 ? offset : 0;
+
+            source.start(when, offsetVal);
 
             return source;
           }
@@ -87,7 +94,11 @@ const ClipPlayer = ({
 
             source.buffer = decodedData;
             source.connect(context.destination);
-            source.start(0, offset);
+
+            const when = offset < 0 ? -offset : 0;
+            const offsetVal = offset > 0 ? offset : 0;
+
+            source.start(when, offsetVal);
 
             return source;
           }

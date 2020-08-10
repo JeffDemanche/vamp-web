@@ -4,7 +4,6 @@ import * as styles from "./cab.less";
 import { useQuery } from "react-apollo";
 import { gql } from "apollo-boost";
 import { useTrueTime, useCurrentVampId } from "../../../react-hooks";
-import { CabRecording } from "../../../state/apollotypes";
 import { Oscilloscope } from "../oscilloscope/oscilloscope";
 import { CabNewRecording } from "../../../state/apollotypes";
 
@@ -38,7 +37,10 @@ const CabNewRecording = (): JSX.Element => {
   const width = 100 * trueTime * viewState.temporalZoom;
 
   return (
-    <div style={{ width: `${width}px` }} className={styles["cab-recording"]}>
+    <div
+      style={{ width: `${width}px` }}
+      className={styles["cab-new-recording"]}
+    >
       <Oscilloscope dimensions={{ height: 150, width: width }}></Oscilloscope>
     </div>
   );

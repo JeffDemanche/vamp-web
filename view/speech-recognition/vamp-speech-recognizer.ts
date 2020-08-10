@@ -1,10 +1,11 @@
 import jspeech from "jspeech";
 
-/*
-Wrapper class for web speech API's recognizer
-*/
-
+/**
+ * Wrapper class for web speech API's recognizer
+ */
 class VampSpeechRecognizer {
+  private _enabled: boolean;
+
   private _assistantName: string;
   private _recognition: SpeechRecognition;
 
@@ -13,13 +14,20 @@ class VampSpeechRecognizer {
 
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
-    this._recognition = new SpeechRecognition();
 
-    this._recognition.grammars = this.getGrammar();
+    if (!SpeechRecognition) {
+      this._enabled = false;
+    } else {
+      this._enabled = true;
 
-    this._recognition.lang = "en-US";
-    this._recognition.continuous = true;
-    this._recognition.start();
+      this._recognition = new SpeechRecognition();
+
+      this._recognition.grammars = this.getGrammar();
+
+      this._recognition.lang = "en-US";
+      this._recognition.continuous = true;
+      this._recognition.start();
+    }
   }
 
   getGrammar = (): SpeechGrammarList => {

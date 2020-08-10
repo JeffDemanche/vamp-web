@@ -77,6 +77,7 @@ const ADD_CLIP_SERVER = gql`
     $vampId: ID!
     $file: Upload!
     $referenceId: ID
+    $start: Float
   ) {
     addClip(
       clip: {
@@ -84,6 +85,7 @@ const ADD_CLIP_SERVER = gql`
         vampId: $vampId
         file: $file
         referenceId: $referenceId
+        start: $start
       }
     ) {
       id
@@ -224,7 +226,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   /**
    * Gets fired when the state of `recording` goes from true to false.
    */
-  const endRecordingAndAddClip = async (): Promise<void> => {
+  const endRecordingAndAddClip = async (start: number): Promise<void> => {
     if (recorder.mediaRecorderInitialized()) {
       // We send a "reference ID" to the server so that we can immediately add
       // this clip client-side and then updated it later when we get the
@@ -233,7 +235,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       const file = await recorder.stopRecording();
       addClipServer({
         variables: {
-          start: prevData.playPosition,
+          start,
           vampId,
           userId,
           file,
@@ -298,7 +300,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         startRecording();
       }
       if (!recording && prevData.recording) {
-        endRecordingAndAddClip();
+        endRecordingAndAddClip(cabStart);
       }
       if (playing && !prevData.playing) {
         play();

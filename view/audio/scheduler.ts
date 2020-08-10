@@ -109,7 +109,7 @@ class Scheduler {
    * Seek the scheduler to a time in seconds while playing.
    */
   seek = async (time: number): Promise<void> => {
-    this.stop();
+    await this.stop();
     clearTimeout(this._loopTimeout);
     this._seconds = time;
     this.play();
@@ -141,7 +141,7 @@ class Scheduler {
   };
 
   removeEvent = (id: string, stopNode = true): void => {
-    if (stopNode) {
+    if (stopNode && this._dispatchedAudioNodes[id]) {
       this._dispatchedAudioNodes[id].disconnect();
       this._dispatchedAudioNodes[id].stop(0);
       delete this._dispatchedAudioNodes[id];
@@ -174,10 +174,11 @@ class Scheduler {
     const loopBeginWorkspace: number = this._seconds;
     const loopBeginUnix: number = Date.now();
 
-    console.log(this._seconds, this._events);
     for (const eventId in this._events) {
       this._events[eventId].hasStarted = false;
     }
+
+    let firstTick = true;
 
     const runTimeout = (): void => {
       if (this._isPlaying) {
@@ -197,18 +198,33 @@ class Scheduler {
             // Might just be the metronome that requires this functionality.
             if (repeat) {
               // Play repeating events if this is negative.
-              const timeDiff = (this._seconds % repeat) - (preTime % repeat);
+              let timeDiff =
+                ((this._seconds + start) % repeat) -
+                ((preTime + start) % repeat);
 
-              // (The event or it's repetitions begin right at the tick) OR
-              // (we've passed the time where we should repeat the event).
-              if (start == preTime % repeat || timeDiff < 0) {
+              // Modulo breaks down on the loop tick when we pass the 0-second
+              // mark. This fixes that case.
+              if (this._seconds > 0 && preTime < 0) {
+                timeDiff =
+                  ((this._seconds + start) % repeat) -
+                  ((preTime + start + repeat) % repeat);
+              }
+
+              // True if this tick began exactly on a repeating event repeat.
+              const startingOnEvent = (preTime + start) % repeat == 0;
+
+              // Generally, we'll dispatch the event if it starts between the
+              // tick preTime and the current time (i.e. when timeDiff < 0).
+              // However if there's an event that's dispatched on the first tick
+              // we need to handle that as a separate case.
+              if (timeDiff < 0 || (firstTick && startingOnEvent)) {
                 dispatch(this._context).then(sourceNode => {
                   if (sourceNode)
                     this._dispatchedAudioNodes[eventId] = sourceNode;
                 });
               }
             } else {
-              // Distance between the beginngin of this tick and when this event
+              // Distance between the beginning of this tick and when this event
               // is scheduled. If negative then the event begins some time after
               // this tick. If positive, the clip is either already playing or
               // was just added, in which case we should play it with the
@@ -227,6 +243,8 @@ class Scheduler {
               }
             }
           }
+
+          firstTick = false;
 
           runTimeout();
         }, this._loopDuration);

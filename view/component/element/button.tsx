@@ -44,7 +44,7 @@ const VampButton = ({
   style?: React.CSSProperties;
   variant?: ButtonVariant;
   onClick?: () => void;
-  children?: string;
+  children?: React.ReactChildren | React.ReactChild;
 }): JSX.Element => {
   const classes = classnames(styles["btn"], variantToClassname(variant));
 

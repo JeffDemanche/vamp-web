@@ -8,10 +8,11 @@ import { useState, useEffect, useRef } from "react";
 import { LOCAL_VAMP_ID_CLIENT } from "./state/queries/vamp-queries";
 import { TrueTimeClient } from "./state/apollotypes";
 import { audioStore } from "./audio/audio-store";
-import * as tf from "@tensorflow/tfjs";
-import { Tensor1D } from "@tensorflow/tfjs";
+import * as io from "socket.io-client";
+import * as Peer from "simple-peer";
 import { vampAudioContext } from "./audio/vamp-audio-context";
-import { ME_CLIENT } from "./state/queries/user-queries";
+import { vampAudioStream } from "./audio/vamp-audio-stream";
+import { vampVideoStream } from "./video/vamp-video-stream";
 
 export const useCurrentVampId = (): string => {
   const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
@@ -19,15 +20,19 @@ export const useCurrentVampId = (): string => {
 };
 
 export const useCurrentUserId = (): string => {
-  const { data } = useQuery(ME_CLIENT);
+  const { data } = useQuery(gql`
+    query GetCurrentUserId {
+      me @client {
+        id
+      }
+    }
+  `);
   if (data.me == null) {
     return null;
   }
   return data.me.id;
 };
 
-// TODO If we end up needing to reuse this functionality it should be put in a
-// scripts file somewhere.
 /**
  * Basically "what the component state was before the last component state
  * change."
@@ -133,27 +138,10 @@ export const useHover = (): [React.RefObject<HTMLDivElement>, boolean] => {
   return [ref, value];
 };
 
+// Grabs the stored auido from audio store
 export const useStoredAudio = (id: string): number[] => {
   const [audioData, setAudioData] = useState([]);
   const fileBuffer = audioStore.getStoredAudio(id);
-
-  //Called upon recieving the data
-  const handleAudioBuffer = (audioBuffer: AudioBuffer): void => {
-    const data = tf.tensor1d(audioBuffer.getChannelData(0));
-    // TODO:Scaling constant normalizes the data, this is called Min-Max feature scaling
-    const max = tf.max(data);
-    const min = tf.min(data);
-    const lower = -0.5;
-    const upper = 0.5;
-    const normalizingConstant = max.sub(min);
-    const normalizedData: Tensor1D = tf.add(
-      lower,
-      tf.div(tf.mul(data.sub(min), upper - lower), normalizingConstant)
-    );
-    normalizedData.array().then(array => {
-      setAudioData(array);
-    });
-  };
 
   // Use stored audio
   useEffect(() => {
@@ -163,14 +151,159 @@ export const useStoredAudio = (id: string): number[] => {
           .getAudioContext()
           .decodeAudioData(arrayBuffer);
         audioBuffer.then(audioBuffer => {
-          // does webgl garbage collection of tensors, if using webgl backend
-          tf.tidy(() => {
-            handleAudioBuffer(audioBuffer);
-          });
+          setAudioData(Array.from(audioBuffer.getChannelData(0)));
         });
       });
     }
   }, [fileBuffer]);
 
   return audioData;
+};
+
+// If there's no stored audio, we use the user's mic stream and animate
+export const useStreamedAudio = (): number[] => {
+  const context = vampAudioContext.getAudioContext();
+  const stream = vampAudioStream.getAudioStream();
+
+  let _data: Float32Array;
+
+  // user audio stream  -> analyser
+  const source = context.createMediaStreamSource(stream);
+  const analyser = context.createAnalyser();
+  source.connect(analyser);
+
+  const requestRef = useRef(null);
+  const previousTimeRef = useRef(null);
+  const audioDataRef = useRef([]);
+
+  const update = (time: number): void => {
+    const audioData = audioDataRef.current;
+    if (previousTimeRef.current != undefined) {
+      _data = new Float32Array(analyser.fftSize);
+      // Copy new values into the blank data array
+      analyser.getFloatTimeDomainData(_data);
+      audioDataRef.current = audioData.concat(Array.from(_data));
+    }
+    // To slow animation down, browser can't handle faster fr (as of now)
+    const rate = 100;
+    setTimeout(() => {
+      previousTimeRef.current = time;
+      requestRef.current = requestAnimationFrame(update);
+    }, rate);
+  };
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(update);
+    return (): void => cancelAnimationFrame(requestRef.current);
+  }, []);
+
+  return audioDataRef.current;
+};
+
+/*
+  Hook for web rtc + socket io, returns an array of peer 
+  instances, each of which has a media stream accessible from the 
+  following pattern, for example:
+      useEffect(() => {
+        // Add the stream from other user's in the user's
+        peer.on("stream", (stream: MediaStream) => {
+          //do something with the stream
+        });
+      }, []);
+  
+  For video chat (for example), we make a ref connect to the stream 
+  and use that ref in the <video /> tag
+*/
+export const usePeers = (streamType?: string): Peer.Instance[] => {
+  let stream: MediaStream;
+  switch (streamType) {
+    case "audio": {
+      stream = vampAudioStream.getAudioStream();
+      break;
+    }
+    case "video": {
+      stream = vampVideoStream.getVideoStream();
+      break;
+    }
+    default:
+      stream = vampAudioStream.getAudioStream();
+      break;
+    // TODO: any other p2p data we want to send
+  }
+  const vampId = useCurrentVampId();
+  const [peers, setPeers] = useState<Peer.Instance[]>([]);
+  const socketRef = useRef<SocketIOClient.Socket>(null);
+  const userStream = useRef<MediaStream>(null);
+  const peersRef = useRef([]);
+
+  const createPeer = (
+    userToSignal: any,
+    callerID: string,
+    stream: MediaStream
+  ): Peer.Instance => {
+    const peer = new Peer({
+      initiator: true,
+      trickle: false,
+      stream
+    });
+    peer.on("signal", signal => {
+      socketRef.current.emit("sending signal", {
+        userToSignal,
+        callerID,
+        signal
+      });
+    });
+    return peer;
+  };
+
+  const addPeer = (
+    incomingSignal: string | Peer.SignalData,
+    callerID: string,
+    stream: MediaStream
+  ): Peer.Instance => {
+    const peer = new Peer({
+      initiator: false,
+      trickle: false,
+      stream
+    });
+    peer.on("signal", signal => {
+      socketRef.current.emit("returning signal", { signal, callerID });
+    });
+    peer.signal(incomingSignal);
+    return peer;
+  };
+
+  useEffect(() => {
+    socketRef.current = io.connect("/");
+    userStream.current = stream;
+    socketRef.current.emit("join vamp", vampId);
+    socketRef.current.on("all users", (users: string[]) => {
+      users.forEach((userId: string) => {
+        const peer = createPeer(userId, socketRef.current.id, stream);
+        peersRef.current.push({
+          peerID: userId,
+          peer
+        });
+        peers.push(peer);
+      });
+      setPeers(peers);
+    });
+    socketRef.current.on("user joined", (payload: any) => {
+      const item = peersRef.current.find(p => p.peerID === payload.callerID);
+      if (!item) {
+        const peer = addPeer(payload.signal, payload.callerID, stream);
+        peersRef.current.push({
+          peerID: payload.callerID,
+          peer
+        });
+        setPeers(users => [...users, peer]);
+      }
+    });
+    socketRef.current.on("receiving returned signal", (payload: any) => {
+      const item = peersRef.current.find(p => p.peerID === payload.id);
+      item.peer.signal(payload.signal);
+    });
+  }, []);
+
+  return peers;
 };
