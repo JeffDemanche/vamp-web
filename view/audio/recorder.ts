@@ -26,7 +26,7 @@ class Recorder {
       this._mediaRecorder.ondataavailable = this.handleData;
     };
 
-    gotMedia(vampAudioStream.getAudioStream());
+    vampAudioStream.getAudioStream().then(stream => gotMedia(stream));
   }
 
   /**

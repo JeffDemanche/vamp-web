@@ -1,9 +1,8 @@
 const workerCode = (): void => {
-  let canvas: any;
-  let context: any;
+  let canvas: OffscreenCanvas;
+  let context: OffscreenCanvasRenderingContext2D;
   // cache current audio data
   let audioData: number[] = [];
-  let binSize: number;
   let leftBound: number;
   let viewportWidth: number;
 
@@ -16,36 +15,33 @@ const workerCode = (): void => {
     return numSamples;
   };
 
-  const drawLine = (coordinates: number[]): Promise<boolean> => {
+  const drawLine = (
+    coordinates: number[],
+    binSize: number
+  ): Promise<boolean> => {
     const x = coordinates[0];
     const y = coordinates[1];
 
-    // Only rendering if visible
-    if (x > -leftBound || x < viewportWidth) {
-      const gradient = context.createLinearGradient(0, 0, 170, 0);
-      gradient.addColorStop("0", "rgba(138, 18, 233, 1)");
-      gradient.addColorStop("0.5", "rgba(74, 18, 233, 1)");
-      gradient.addColorStop("1.0", "#56B0F2");
-      context.strokeStyle = gradient;
+    const gradient = context.createLinearGradient(0, 0, 170, 0);
+    gradient.addColorStop(0, "rgba(138, 18, 233, 1)");
+    gradient.addColorStop(0.5, "rgba(74, 18, 233, 1)");
+    gradient.addColorStop(1.0, "#56B0F2");
+    context.strokeStyle = gradient;
 
-      context.beginPath();
-      context.moveTo(x, 0);
-      context.lineTo(x, y);
-      context.lineTo(x + binSize, 0);
-      context.stroke();
-      context.closePath();
-      return Promise.resolve(true);
-    } else {
-      // Didn't draw
-      return Promise.resolve(false);
-    }
+    context.beginPath();
+    context.moveTo(x, 0);
+    context.lineTo(x, y);
+    context.lineTo(x + binSize, 0);
+    context.stroke();
+    context.closePath();
+    return Promise.resolve(true);
   };
 
   // Draws on the canvas in parallel
   const draw = (): void => {
     const length = audioData.length;
     const samples = getResolution(canvas.width);
-    binSize = canvas.width / length;
+    const binSize = canvas.width / length;
 
     // If the value is > size of the array, stepSize < 1 which isn't possible here
     const stepSize = Math.max(Math.floor(audioData.length / samples), 1);
@@ -61,7 +57,12 @@ const workerCode = (): void => {
     }
 
     // Draw points in parallel
-    Promise.all(coordinatesArray.map(coordinate => drawLine(coordinate)));
+    Promise.all(
+      coordinatesArray.map(coordinate => {
+        if (coordinate[0] > -leftBound || coordinate[0] < viewportWidth)
+          drawLine(coordinate, binSize);
+      })
+    );
   };
 
   // Gets the message from oscilloscope

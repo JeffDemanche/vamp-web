@@ -1,18 +1,24 @@
 /**
  * Wrapper class for the user's audio stream, exported as a module so the same
- * instance is accessible to different places in the code
+ * instance is accessible to different places in the code, note well that stream is
+ * a promise
  */
 class VampAudioStream {
-  private _stream: MediaStream;
+  private _stream: Promise<MediaStream>;
 
   // TODO: would effects get attached here
   constructor() {
-    window.navigator.mediaDevices
-      .getUserMedia({ audio: true, video: false })
-      .then(stream => (this._stream = stream));
+    this.setupMedia();
   }
 
-  getAudioStream = (): MediaStream => this._stream;
+  setupMedia = (): void => {
+    this._stream = navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: false
+    });
+  };
+
+  getAudioStream = (): Promise<MediaStream> => this._stream;
 }
 
 // eslint-disable-next-line prefer-const

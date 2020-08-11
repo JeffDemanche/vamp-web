@@ -13,7 +13,7 @@ class VampSpeechRecognizer {
     this._assistantName = "Vivian";
 
     const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+      window.speechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       this._enabled = false;
@@ -54,6 +54,8 @@ class VampSpeechRecognizer {
   getAssistantName = (): string => this._assistantName;
 
   getRecognition = (): SpeechRecognition => this._recognition;
+
+  getEnabled = (): boolean => this._enabled;
 }
 
 // eslint-disable-next-line prefer-const

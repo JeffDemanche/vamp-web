@@ -32,14 +32,18 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
   props: SpeechControlTypes
 ): JSX.Element => {
   const startSpeechRecognition = (): SpeechRecognition => {
-    try {
+    if (vampSpeechRecognizer.getEnabled()) {
       return vampSpeechRecognizer.getRecognition();
-    } catch (e) {
-      alert("Web speech not supported in this browser (TODO)");
+    } else {
+      console.log("Web speech not supported");
+      return null;
     }
   };
 
   const recognition = startSpeechRecognition();
+  if (!recognition) {
+    return <div>{props.children}</div>;
+  }
 
   const vampId = useCurrentVampId();
   const [play] = useMutation<PlayClient>(PLAY_CLIENT);
