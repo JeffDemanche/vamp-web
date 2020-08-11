@@ -12,7 +12,6 @@ import * as io from "socket.io-client";
 import * as Peer from "simple-peer";
 import { vampAudioContext } from "./audio/vamp-audio-context";
 import { vampAudioStream } from "./audio/vamp-audio-stream";
-import { vampVideoStream } from "./video/vamp-video-stream";
 // import { vampVideoStream } from "./video/vamp-video-stream";
 
 export const useCurrentVampId = (): string => {
@@ -164,14 +163,18 @@ export const useStoredAudio = (id: string): number[] => {
 // If there's no stored audio, we use the user's mic stream and animate
 export const useStreamedAudio = (): number[] => {
   const context = vampAudioContext.getAudioContext();
-  const stream = vampAudioStream.getAudioStream();
-
+  let stream: MediaStream;
   let _data: Float32Array;
-
-  // user audio stream  -> analyser
-  const source = context.createMediaStreamSource(stream);
-  const analyser = context.createAnalyser();
-  source.connect(analyser);
+  let source: MediaStreamAudioSourceNode;
+  let analyser: AnalyserNode;
+  vampAudioStream
+    .getAudioStream()
+    .then(res => (stream = res))
+    .then(() => {
+      source = context.createMediaStreamSource(stream);
+      analyser = context.createAnalyser();
+      source.connect(analyser);
+    });
 
   const requestRef = useRef(null);
   const previousTimeRef = useRef(null);
@@ -194,8 +197,10 @@ export const useStreamedAudio = (): number[] => {
   };
 
   useEffect(() => {
-    requestRef.current = requestAnimationFrame(update);
-    return (): void => cancelAnimationFrame(requestRef.current);
+    if (stream) {
+      requestRef.current = requestAnimationFrame(update);
+      return (): void => cancelAnimationFrame(requestRef.current);
+    }
   }, []);
 
   return audioDataRef.current;
@@ -220,18 +225,19 @@ export const usePeers = (streamType?: string): Peer.Instance[] => {
   let stream: MediaStream;
   switch (streamType) {
     case "audio": {
-      stream = vampAudioStream.getAudioStream();
+      vampAudioStream.getAudioStream().then(res => (stream = res));
       break;
     }
-    case "video": {
-      stream = vampVideoStream.getVideoStream();
-      break;
-    }
+    // case "video": {
+    //   stream = vampVideoStream.getVideoStream();
+    //   break;
+    // }
     default:
-      stream = vampAudioStream.getAudioStream();
+      vampAudioStream.getAudioStream().then(res => (stream = res));
       break;
     // TODO: any other p2p data we want to send
   }
+
   const vampId = useCurrentVampId();
   const [peers, setPeers] = useState<Peer.Instance[]>([]);
   const socketRef = useRef<SocketIOClient.Socket>(null);
@@ -275,6 +281,7 @@ export const usePeers = (streamType?: string): Peer.Instance[] => {
     return peer;
   };
 
+  // TODO: Might have to change because vamp stream result is now a promise again
   useEffect(() => {
     socketRef.current = io.connect("/");
     userStream.current = stream;

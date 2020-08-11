@@ -111,11 +111,6 @@ const ADD_CLIENT_CLIP = gql`
 const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const startAudioContext = (): AudioContext => {
     try {
-      // Typing for window augmented in externals.d.ts.
-      // The webkit thing is Safari bullshit.
-      // window.AudioContext = window.AudioContext || window.webkitAudioContext;
-      // return new AudioContext();
-      // this is done in the constructor of this module now
       return vampAudioContext.getAudioContext();
     } catch (e) {
       // TODO error handling.
