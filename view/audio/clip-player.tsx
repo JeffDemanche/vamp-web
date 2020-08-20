@@ -69,12 +69,10 @@ const ClipPlayer = ({
           }
         });
     });
-  }, [clips]);
 
-  // This call creates scheduler events for clips that exist only client-side
-  // ("ClientClips"). We use these so we can loop immediately without waiting to
-  // hear back from the server with the proper clip response.
-  useEffect(() => {
+    // This call creates scheduler events for clips that exist only client-side
+    // ("ClientClips"). We use these so we can loop immediately without waiting
+    // to hear back from the server with the proper clip response.
     clientClips.forEach(clientClip => {
       if (clientClip.storedLocally) {
         scheduler.addEvent({
@@ -105,7 +103,7 @@ const ClipPlayer = ({
         });
       }
     });
-  }, [clientClips]);
+  }, [clips, clientClips]);
 
   return null;
 };

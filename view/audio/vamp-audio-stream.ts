@@ -13,7 +13,9 @@ class VampAudioStream {
 
   setupMedia = (): void => {
     this._stream = navigator.mediaDevices.getUserMedia({
-      audio: true,
+      audio: {
+        sampleRate: 48000
+      },
       video: false
     });
   };

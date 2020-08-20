@@ -137,6 +137,7 @@ class Scheduler {
   time = (): number => this._seconds;
 
   addEvent = (event: WorkspaceEvent): void => {
+    if (this._events[event.id]) this.removeEvent(event.id);
     this._events[event.id] = event;
   };
 
@@ -150,13 +151,11 @@ class Scheduler {
   };
 
   removeAllClipEvents = (): void => {
-    const newEvents: { [id: string]: WorkspaceEvent } = {};
     Object.keys(this._events).forEach(id => {
-      if (!this._events[id].clip) {
-        newEvents[id] = this._events[id];
+      if (this._events[id].clip) {
+        this.removeEvent(id);
       }
     });
-    this._events = newEvents;
   };
 
   /**

@@ -20,14 +20,19 @@ import { vampAudioContext } from "./vamp-audio-context";
 import ObjectID from "bson-objectid";
 import ClipPlayer from "./clip-player";
 import Looper from "./looper";
-import { PLAY_CLIENT, STOP_CLIENT } from "../state/queries/vamp-mutations";
+import {
+  PLAY_CLIENT,
+  STOP_CLIENT,
+  SET_LOOP
+} from "../state/queries/vamp-mutations";
 import {
   WorkspaceAudioClient,
   AddClientClip,
   AddClip,
   StopClient,
   PlayClient,
-  CabClient
+  CabClient,
+  SetLoopClient
 } from "../state/apollotypes";
 import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
 
@@ -153,6 +158,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
 
   const [apolloPlay] = useMutation<PlayClient>(PLAY_CLIENT);
   const [apolloStop] = useMutation<StopClient>(STOP_CLIENT);
+  const [setLoop] = useMutation<SetLoopClient>(SET_LOOP);
 
   const [addClientClip] = useMutation<AddClientClip>(ADD_CLIENT_CLIP);
   const [addClipServer] = useMutation<AddClip>(ADD_CLIP_SERVER);
@@ -338,6 +344,14 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       removeEventForClips(clips, prevData.clips);
       removeEventForClips(clientClips, prevData.clientClips);
     }
+  });
+
+  // UseEffect for clips and clientClips.
+  useEffect(() => {
+    const empty =
+      (clips === undefined || clips.length == 0) &&
+      (clientClips === undefined || clientClips.length == 0);
+    setLoop({ variables: { loop: !empty } });
 
     // Process clips' audio and do stuff that requires access to the metadata
     // from the audio.
@@ -348,7 +362,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       }
       updateStartEnd(clips);
     }
-  });
+  }, [clips, clientClips]);
 
   return (
     <>

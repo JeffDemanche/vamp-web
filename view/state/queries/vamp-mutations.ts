@@ -30,6 +30,12 @@ export const SEEK_CLIENT = gql`
   }
 `;
 
+export const SET_LOOP = gql`
+  mutation SetLoopClient($loop: Boolean!) {
+    setLoop(loop: $loop) @client
+  }
+`;
+
 export const SET_VIEW_LEFT_CLIENT = gql`
   mutation SetViewLeftClient($viewLeft: Float!, $cumulative: Boolean) {
     setViewLeft(viewLeft: $viewLeft, cumulative: $cumulative) @client

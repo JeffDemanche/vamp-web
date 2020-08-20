@@ -144,6 +144,21 @@ const resolvers: Partial<AppResolvers> = {
       });
       return true;
     },
+    setLoop: (parent, args, { cache }: { cache: InMemoryCache }): boolean => {
+      const { loadedVampId: vampId } = cache.readQuery<LocalVampIdClient>({
+        query: LOCAL_VAMP_ID_CLIENT
+      });
+      cache.writeData({
+        data: {
+          vamp: {
+            __typename: "Vamp",
+            id: vampId,
+            loop: args.loop
+          }
+        }
+      });
+      return true;
+    },
     stop: (parent, args, { cache }: { cache: InMemoryCache }): boolean => {
       const { loadedVampId: vampId } = cache.readQuery<LocalVampIdClient>({
         query: LOCAL_VAMP_ID_CLIENT

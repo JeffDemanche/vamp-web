@@ -27,6 +27,7 @@ export const typeDefs = gql`
     play: Boolean
     pause: Boolean
     seek(time: Float!): Boolean
+    setLoop(loop: Boolean!): Boolean
     stop: Boolean
     record: Boolean
     repeat: Boolean

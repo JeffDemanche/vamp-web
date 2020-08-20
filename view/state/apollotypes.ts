@@ -478,6 +478,50 @@ export interface UpdateMetronomeSoundVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: NameClient
+// ====================================================
+
+export interface NameClient_vamp {
+  __typename: "Vamp";
+  name: string;
+}
+
+export interface NameClient {
+  vamp: NameClient_vamp | null;
+}
+
+export interface NameClientVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: UpdateName
+// ====================================================
+
+export interface UpdateName_updateVamp {
+  __typename: "Vamp";
+  name: string;
+}
+
+export interface UpdateName {
+  updateVamp: UpdateName_updateVamp | null;
+}
+
+export interface UpdateNameVariables {
+  update: VampUpdateInput;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: TimelineClient
 // ====================================================
 
@@ -1054,6 +1098,23 @@ export interface Seek {
 
 export interface SeekVariables {
   time: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: SetLoopClient
+// ====================================================
+
+export interface SetLoopClient {
+  setLoop: boolean | null;
+}
+
+export interface SetLoopClientVariables {
+  loop: boolean;
 }
 
 /* tslint:disable */
