@@ -39,7 +39,7 @@ export const Oscilloscope: React.FC<OscilloscopeProps> = (
   if (props.audio) {
     audioData = useStoredAudio(props.audio.id);
   } else {
-    audioData = useStreamedAudio();
+    audioData = Array.from(useStreamedAudio());
   }
 
   // Helper for drawing a single line
@@ -112,8 +112,7 @@ export const Oscilloscope: React.FC<OscilloscopeProps> = (
       workerRef.current = worker;
     } catch (err) {
       console.log(
-        "Offscreen canvas is not supported by this browser, expect lag",
-        err
+        "Offscreen canvas is not supported by this browser, expect lag"
       );
       const context = canvasRef.current.getContext("2d");
       context.scale(props.dimensions.width / canvas.width, 1);

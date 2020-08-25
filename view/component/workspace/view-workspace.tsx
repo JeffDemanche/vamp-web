@@ -9,6 +9,7 @@ import { useCurrentUserId } from "../../react-hooks";
 import VampProvider from "./vamp-provider";
 import ClipsProvider from "./clips-provider";
 import WorkspaceContent from "./workspace-content";
+import { PeerAudioWrapper } from "../wrapper/peer-audio-wrapper";
 
 interface MatchParams {
   vampid: string;
@@ -33,7 +34,9 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = (
         <UserInVampProvider vampId={vampId} userId={userId}>
           <HotKeysWrapper>
             <SpeechControl>
-              <WorkspaceContent />
+              <PeerAudioWrapper>
+                <WorkspaceContent />
+              </PeerAudioWrapper>
             </SpeechControl>
           </HotKeysWrapper>
         </UserInVampProvider>
