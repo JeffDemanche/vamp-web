@@ -2,22 +2,8 @@ import * as React from "react";
 import { Popover } from "react-bootstrap";
 import { OverlayTrigger } from "react-bootstrap";
 import { Placement } from "react-bootstrap/Overlay";
-import styled, { StyledComponent } from "styled-components";
 
 import * as styles from "./popover.less";
-
-const StyledPopover: StyledComponent<Popover, any, {}, never> = styled(Popover)`
-  & > .arrow {
-    border-color: black;
-  }
-  & > .arrow::before {
-    border-style: ridge;
-  }
-  & > .arrow::after {
-    border-style: ridge;
-    border: 1px;
-  }
-`;
 
 interface VampPopoverProps {
   id: string;
