@@ -1,5 +1,9 @@
+@import "../../constants/colors.less";
+@import "../../constants/fonts.less";
+
 .setting-select {
   cursor: pointer;
+  background-color: transparent;
 
   :focus {
     outline: none;
@@ -7,10 +11,13 @@
 }
 
 .setting-select-editing {
-  color: rgba(192, 242, 86, 1);
-  border-color: rgba(192, 242, 86, 1);
-
+  background-color: transparent !important;
   :focus {
     outline: none;
   }
+}
+
+.setting-select-editing select {
+  color: @settings !important;
+  border-color: @settings !important;
 }

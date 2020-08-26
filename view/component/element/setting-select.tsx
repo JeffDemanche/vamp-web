@@ -2,6 +2,7 @@ import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 
 import * as styles from "./setting-select.less";
+import { fontsize } from "../../../__test__/test-utils/__mocks__/file-mock";
 
 interface SettingSelectProps {
   value: string;
@@ -39,25 +40,28 @@ const SettingSelect: React.FunctionComponent<SettingSelectProps> = ({
 }) => {
   const [editing, setEditing] = useState(false);
 
-  const selectOptions = options.map(option => (
-    <option key={option.index} value={option.value}>
-      {option.value}
-    </option>
-  ));
+  const selectOptions = options.map(option => {
+    return (
+      <option key={option.index} value={option.value}>
+        {option.value}
+      </option>
+    );
+  });
 
   const wrapperRef = useRef(null);
   useOutsideClick(wrapperRef, setEditing, onChange);
 
   if (editing)
     return (
-      <select
-        ref={wrapperRef}
-        value={value}
-        onChange={(e): void => onChange(e.target.value)}
-        className={styles["setting-select-editing"]}
-      >
-        {selectOptions}
-      </select>
+      <div className={styles["setting-select-editing"]}>
+        <select
+          ref={wrapperRef}
+          value={value}
+          onChange={(e): void => onChange(e.target.value)}
+        >
+          {selectOptions}
+        </select>
+      </div>
     );
   else
     return (
