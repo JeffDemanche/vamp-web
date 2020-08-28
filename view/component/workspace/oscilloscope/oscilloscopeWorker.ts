@@ -1,19 +1,9 @@
 const workerCode = (): void => {
   let canvas: OffscreenCanvas;
   let context: OffscreenCanvasRenderingContext2D;
-  // cache current audio data
-  let audioData: number[] = [];
+  let audioData: Float32Array = new Float32Array();
   let leftBound: number;
-  let viewportWidth: number;
-
-  // Adaptive resolution
-  const getResolution = (width: number): number => {
-    // Played around with Desmos to get this function, maybe needs tweaking
-    const numSamples =
-      Math.floor(width * Math.log(width)) * Number(width > 100) +
-      200 * Number(width <= 100);
-    return numSamples;
-  };
+  let rightBound: number;
 
   const drawLine = (
     coordinates: number[],
@@ -40,7 +30,10 @@ const workerCode = (): void => {
   // Draws on the canvas in parallel
   const draw = (): void => {
     const length = audioData.length;
-    const samples = getResolution(canvas.width);
+    const width = canvas.width;
+    const samples =
+      Math.floor(width * Math.log(width)) * Number(width > 100) +
+      200 * Number(width <= 100);
     const binSize = canvas.width / length;
 
     // If the value is > size of the array, stepSize < 1 which isn't possible here
@@ -59,7 +52,7 @@ const workerCode = (): void => {
     // Draw points in parallel
     Promise.all(
       coordinatesArray.map(coordinate => {
-        if (coordinate[0] > -leftBound || coordinate[0] < viewportWidth)
+        if (coordinate[0] > -leftBound || coordinate[0] < rightBound)
           drawLine(coordinate, binSize);
       })
     );
@@ -70,20 +63,17 @@ const workerCode = (): void => {
     if (evt.data) {
       if (!canvas) {
         canvas = evt.data.canvas;
-        canvas.width = evt.data.width;
-        canvas.height = evt.data.height;
+        context = canvas.getContext("2d");
       }
-      if (!context) {
-        context = canvas.getContext("2d", { alpha: true });
-      }
+
       // If I'm sending audio data, it's changed
       if (evt.data.audioData) {
         audioData = evt.data.audioData;
       }
-      // On zoom
+
+      // On zoom, scale the canvas
       leftBound = evt.data.leftBound;
-      viewportWidth = evt.data.viewportWidth;
-      context.scale(evt.data.width / canvas.width, 1);
+      rightBound = evt.data.rightBound;
       canvas.width = evt.data.width;
       context.translate(0, canvas.height / 2);
       draw();
