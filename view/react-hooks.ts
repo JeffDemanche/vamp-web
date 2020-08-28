@@ -139,8 +139,8 @@ export const useHover = (): [React.RefObject<HTMLDivElement>, boolean] => {
 };
 
 // Grabs the stored auido from audio store
-export const useStoredAudio = (id: string): number[] => {
-  const [audioData, setAudioData] = useState([]);
+export const useStoredAudio = (id: string): Float32Array => {
+  const [audioData, setAudioData] = useState<Float32Array>(new Float32Array());
   const fileBuffer = audioStore.getStoredAudio(id);
 
   // Use stored audio
@@ -151,7 +151,7 @@ export const useStoredAudio = (id: string): number[] => {
           .getAudioContext()
           .decodeAudioData(arrayBuffer);
         audioBuffer.then(audioBuffer => {
-          setAudioData(Array.from(audioBuffer.getChannelData(0)));
+          setAudioData(audioBuffer.getChannelData(0));
         });
       });
     }
@@ -160,35 +160,39 @@ export const useStoredAudio = (id: string): number[] => {
   return audioData;
 };
 
+const Float32Concat = (
+  first: Float32Array,
+  second: Float32Array
+): Float32Array => {
+  const firstLength = first.length,
+    result = new Float32Array(firstLength + second.length);
+
+  result.set(first);
+  result.set(second, firstLength);
+
+  return result;
+};
+
 // If there's no stored audio, we use the user's mic stream and animate
-export const useStreamedAudio = (): number[] => {
+export const useStreamedAudio = (): Float32Array => {
   const context = vampAudioContext.getAudioContext();
   let stream: MediaStream;
-  let _data: Float32Array;
+  let data: Float32Array;
   let source: MediaStreamAudioSourceNode;
   let analyser: AnalyserNode;
-  vampAudioStream
-    .getAudioStream()
-    .then(res => (stream = res))
-    .then(() => {
-      source = context.createMediaStreamSource(stream);
-      analyser = context.createAnalyser();
-      source.connect(analyser);
-    });
 
-  const requestRef = useRef(null);
-  const previousTimeRef = useRef(null);
-  const audioDataRef = useRef([]);
+  const requestRef = useRef<number>(null);
+  const previousTimeRef = useRef<number>(null);
+  const audioDataRef = useRef<Float32Array>(new Float32Array());
 
   const update = (time: number): void => {
     const audioData = audioDataRef.current;
     if (previousTimeRef.current != undefined) {
-      _data = new Float32Array(analyser.fftSize);
+      data = new Float32Array(analyser.fftSize);
       // Copy new values into the blank data array
-      analyser.getFloatTimeDomainData(_data);
-      audioDataRef.current = audioData.concat(Array.from(_data));
+      analyser.getFloatTimeDomainData(data);
+      audioDataRef.current = Float32Concat(audioData, data);
     }
-    // To slow animation down, browser can't handle faster fr (as of now)
     const rate = 100;
     setTimeout(() => {
       previousTimeRef.current = time;
@@ -197,10 +201,18 @@ export const useStreamedAudio = (): number[] => {
   };
 
   useEffect(() => {
-    if (stream) {
-      requestRef.current = requestAnimationFrame(update);
-      return (): void => cancelAnimationFrame(requestRef.current);
-    }
+    vampAudioStream
+      .getAudioStream()
+      .then(res => (stream = res))
+      .then(() => {
+        source = context.createMediaStreamSource(stream);
+        analyser = context.createAnalyser();
+        source.connect(analyser);
+      })
+      .then(() => {
+        requestRef.current = requestAnimationFrame(update);
+        return (): void => cancelAnimationFrame(requestRef.current);
+      });
   }, []);
 
   return audioDataRef.current;
