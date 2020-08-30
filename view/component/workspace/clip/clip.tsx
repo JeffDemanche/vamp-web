@@ -4,10 +4,7 @@ import styles = require("./clip.less");
 import { Oscilloscope } from "../oscilloscope/oscilloscope";
 import { useWorkspaceWidth, useWorkspaceLeft } from "../../../workspace-hooks";
 import Playhead from "../../element/playhead";
-import { VampButton } from "../../element/button";
 import TrashButton from "./trash-button";
-import { useContext } from "react";
-import { TemporalZoomContext } from "../workspace-content";
 
 interface ClipProps {
   clip: {
@@ -46,8 +43,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({ clip }: ClipProps) => {
       <Oscilloscope
         audio={clip.audio}
         dimensions={{
-          height: 150,
-          width: widthFn(clip.audio.duration)
+          width: width
         }}
       ></Oscilloscope>
       {synced}

@@ -5,10 +5,7 @@ import { useStoredAudio, useStreamedAudio } from "../../../react-hooks";
 import { workerScript } from "./oscilloscopeWorker";
 import * as styles from "./oscilloscope.less";
 import { useWindowDimensions } from "../../../workspace-hooks";
-
-/*
-  Sources: https://css-tricks.com/making-an-audio-waveform-visualizer-with-vanilla-javascript/
-*/
+import { draw } from "./oscilloscopeScripts";
 
 interface OscilloscopeProps {
   audio?: {
@@ -19,7 +16,6 @@ interface OscilloscopeProps {
     duration: number;
   };
   dimensions: {
-    height: number;
     width: number;
   };
 }
@@ -27,14 +23,13 @@ interface OscilloscopeProps {
 export const Oscilloscope: React.FC<OscilloscopeProps> = (
   props: OscilloscopeProps
 ) => {
-  // How far out we want to render past what's visible
-  const renderingMargin = 10;
+  const renderingMargin = 10; // Render past what's visible
   const divRef = useRef<HTMLDivElement>(null);
   const workerRef = useRef<Worker>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { width: viewportWidth } = useWindowDimensions();
+  const { width: right } = useWindowDimensions();
 
-  let audioData: number[];
+  let audioData: Float32Array;
 
   if (props.audio) {
     audioData = useStoredAudio(props.audio.id);
@@ -42,107 +37,67 @@ export const Oscilloscope: React.FC<OscilloscopeProps> = (
     audioData = useStreamedAudio();
   }
 
-  // Helper for drawing a single line
-  const drawLine = (
-    coordinates: number[],
-    binSize: number
-  ): Promise<boolean> => {
-    const x = coordinates[0];
-    const y = coordinates[1];
-    const context = canvasRef.current.getContext("2d");
-    const gradient = context.createLinearGradient(0, 0, 170, 0);
-    gradient.addColorStop(0, "rgba(138, 18, 233, 1)");
-    gradient.addColorStop(0.5, "rgba(74, 18, 233, 1)");
-    gradient.addColorStop(1.0, "#56B0F2");
-    context.strokeStyle = gradient;
-    context.beginPath();
-    context.moveTo(x, 0);
-    context.lineTo(x, y);
-    context.lineTo(x + binSize, 0);
-    context.stroke();
-    context.closePath();
-    return Promise.resolve(true);
-  };
-
-  // Draws on the canvas in parallel
-  const draw = (leftBound: number, viewportWidth: number): void => {
-    const length = audioData.length;
-    const width = canvasRef.current.width;
-    const samples =
-      Math.floor(width * Math.log(width)) * Number(width > 100) +
-      200 * Number(width <= 100); // Adaptive resolution
-    const binSize = width / length;
-    const stepSize = Math.max(Math.floor(audioData.length / samples), 1);
-    const canvasScale = 0.5;
-    const coordinatesArray: number[][] = [[]];
-    for (let i = 0; i < audioData.length; i = i + stepSize) {
-      const coordinate = [
-        binSize * i,
-        audioData[i] * canvasScale * canvasRef.current.height
-      ];
-      coordinatesArray.push(coordinate);
-    }
-    // Draw points in parallel
-    Promise.all(
-      coordinatesArray.map(coordinate => {
-        if (coordinate[0] > -leftBound || coordinate[0] < viewportWidth)
-          drawLine(coordinate, binSize);
-      })
-    );
-  };
-
   useEffect(() => {
     const canvas = canvasRef.current;
     const div = divRef.current;
-    const { left } = div.getBoundingClientRect();
+    const { height, left, top } = div.getBoundingClientRect();
+    canvas.width = props.dimensions.width;
+    canvas.height = height;
+    canvas.style.left = `${left}px`;
+    canvas.style.top = `${top}px`;
     let offscreen: OffscreenCanvas;
     try {
+      // Graphics on a seperate thread if offscreen canvas possible
       offscreen = canvas.transferControlToOffscreen();
       const worker = new Worker(workerScript);
       worker.postMessage(
         {
           canvas: offscreen,
           width: Math.max(props.dimensions.width, 1), // To fix a bug
-          height: props.dimensions.height,
-          viewportWidth: viewportWidth + renderingMargin,
+          rightBound: right + renderingMargin,
           leftBound: left - renderingMargin
         },
         [offscreen]
       );
       workerRef.current = worker;
     } catch (err) {
-      console.log(
-        "Offscreen canvas is not supported by this browser, expect lag",
-        err
-      );
-      const context = canvasRef.current.getContext("2d");
-      context.scale(props.dimensions.width / canvas.width, 1);
+      console.log("Offscreen canvas is not supported by this browser");
       canvas.width = props.dimensions.width;
+      const context = canvasRef.current.getContext("2d");
       context.translate(0, canvas.height / 2);
-      draw(left, viewportWidth);
+      draw(
+        canvasRef.current,
+        audioData,
+        left - renderingMargin,
+        right + renderingMargin
+      ); // Helper script
       canvasRef.current = canvas;
     }
   }, []);
 
-  // On change in the audio data or zoom, tell worker to redraw
+  // On change in the audio data or zoom, adjust the drawing
   useEffect(() => {
     const div = divRef.current;
-    const { left: leftBound } = div.getBoundingClientRect();
+    const { left } = div.getBoundingClientRect();
     if (workerRef.current) {
       const worker = workerRef.current;
       worker.postMessage({
         audioData: audioData,
         width: Math.max(props.dimensions.width, 1),
-        leftBound: leftBound,
-        viewportWidth: viewportWidth
+        leftBound: left - renderingMargin,
+        rightBound: right + renderingMargin
       });
     } else {
-      const context = canvasRef.current.getContext("2d");
       const canvas = canvasRef.current;
-      context.scale(props.dimensions.width / canvas.width, 1);
       canvas.width = props.dimensions.width;
+      const context = canvasRef.current.getContext("2d");
       context.translate(0, canvas.height / 2);
-      draw(leftBound, viewportWidth);
+      draw(
+        canvasRef.current,
+        audioData,
+        left - renderingMargin,
+        right + renderingMargin
+      );
       canvasRef.current = canvas;
     }
   }, [audioData, props.dimensions.width]);

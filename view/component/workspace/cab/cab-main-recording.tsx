@@ -11,6 +11,7 @@ import { CabMainRecording } from "../../../state/apollotypes";
 import { useWorkspaceLeft } from "../../../workspace-hooks";
 import { TemporalZoomContext } from "../workspace-content";
 import { useContext } from "react";
+import { Oscilloscope } from "../oscilloscope/oscilloscope";
 
 const CAB_MAIN_RECORDING_QUERY = gql`
   query CabMainRecording($vampId: ID!, $userId: ID!) {
@@ -51,10 +52,20 @@ const CabMainRecording: React.FC = () => {
   const trueTime = useTrueTime(200);
 
   const temporalZoom = useContext(TemporalZoomContext);
-  const width = `${100 * (trueTime - cab.start) * temporalZoom}px`;
+  const widthPx = `${100 * (trueTime - cab.start) * temporalZoom}px`;
+  const widthNum = 100 * (trueTime - cab.start) * viewState.temporalZoom;
 
   return (
-    <div style={{ left, width }} className={styles["cab-main-recording"]}></div>
+    <div
+      style={{ left, width: widthPx }}
+      className={styles["cab-main-recording"]}
+    >
+      <Oscilloscope
+        dimensions={{
+          width: widthNum
+        }}
+      ></Oscilloscope>
+    </div>
   );
 };
 

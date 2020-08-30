@@ -44,7 +44,11 @@ const CabNewRecording = (): JSX.Element => {
       style={{ width: `${width}px` }}
       className={styles["cab-new-recording"]}
     >
-      <Oscilloscope dimensions={{ height: 150, width: width }}></Oscilloscope>
+      <Oscilloscope
+        dimensions={{
+          width: width
+        }}
+      ></Oscilloscope>
     </div>
   );
 };
