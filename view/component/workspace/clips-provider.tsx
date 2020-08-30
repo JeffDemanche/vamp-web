@@ -2,7 +2,6 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useQuery, useApolloClient, useMutation } from "react-apollo";
 import { gql } from "apollo-boost";
-import { GET_CLIPS_SERVER } from "../../state/queries/clips-queries";
 import {
   RemoveClientClip,
   GetClipsServer,
@@ -11,6 +10,7 @@ import {
 } from "../../state/apollotypes";
 import { ViewLoading } from "../loading/view-loading";
 import { ViewNotFound } from "../not-found/view-not-found";
+import { GET_CLIPS_SERVER } from "../../state/queries/clips-queries";
 
 const CLIPS_SUBSCRIPTION = gql`
   subscription ClipsSubscription($vampId: ID!) {
@@ -19,6 +19,9 @@ const CLIPS_SUBSCRIPTION = gql`
       updatedClip {
         id
         start
+        track {
+          id
+        }
         audio {
           id
           filename
@@ -88,6 +91,7 @@ const ClipsProvider: React.FunctionComponent<ClipsProviderProps> = ({
 
           return { clips: newClips };
         } else if (subscriptionData.data.subClips.mutation === "REMOVED") {
+          console.log(subscriptionData.data);
           const newClips: GetClipsServer_clips[] = [];
           prev.clips.forEach(clip => {
             if (clip.id != subscriptionData.data.subClips.updatedClip.id) {

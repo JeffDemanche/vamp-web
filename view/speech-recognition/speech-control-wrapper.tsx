@@ -136,5 +136,9 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
   // maybe we'd like to render something if we're listening
   useEffect(() => {}, [isListening]);
 
-  return <div className={"speech-control"}>{props.children}</div>;
+  return (
+    <div className={"speech-control"} style={{ height: "inherit" }}>
+      {props.children}
+    </div>
+  );
 };

@@ -17,6 +17,10 @@ const VAMP_QUERY = gql`
       bpm
       beatsPerBar
       metronomeSound
+      tracks {
+        id
+      }
+
       clientClips @client {
         id @client
       }
@@ -43,6 +47,10 @@ const VAMP_SUBSCRIPTION = gql`
       bpm
       beatsPerBar
       metronomeSound
+      tracks {
+        id
+      }
+
       clientClips @client {
         id @client
       }
@@ -95,6 +103,7 @@ const VampProvider: React.FunctionComponent<VampProviderProps> = ({
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
         const newVamp = subscriptionData.data.subVamp;
+        console.log(newVamp);
 
         return {
           vamp: newVamp

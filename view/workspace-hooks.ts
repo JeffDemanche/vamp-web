@@ -1,16 +1,10 @@
 import { useQuery } from "react-apollo";
-import {
-  TEMPORAL_ZOOM_CLIENT,
-  METRONOME_INFO_CLIENT
-} from "./state/queries/vamp-queries";
-import {
-  ViewBoundsDataClient,
-  TemporalZoomClient,
-  MetronomeClient
-} from "./state/apollotypes";
+import { METRONOME_INFO_CLIENT } from "./state/queries/vamp-queries";
+import { ViewBoundsDataClient, MetronomeClient } from "./state/apollotypes";
 import { useCurrentVampId, useCurrentUserId } from "./react-hooks";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { gql } from "apollo-boost";
+import { TemporalZoomContext } from "./component/workspace/workspace-content";
 
 /**
  * Returns a function that will determine width for a duration, which should be
@@ -18,16 +12,9 @@ import { gql } from "apollo-boost";
  * component function definition.
  */
 export const useWorkspaceWidth = (): ((duration: number) => number) => {
-  const vampId = useCurrentVampId();
+  const temporalZoom = useContext(TemporalZoomContext);
 
-  const { data } = useQuery<TemporalZoomClient>(TEMPORAL_ZOOM_CLIENT, {
-    variables: { vampId }
-  });
-
-  if (!data) return (): number => 0;
-
-  const width = (duration: number): number =>
-    100 * duration * data.vamp.viewState.temporalZoom;
+  const width = (duration: number): number => 100 * duration * temporalZoom;
   return width;
 };
 
@@ -36,16 +23,9 @@ export const useWorkspaceWidth = (): ((duration: number) => number) => {
  * pixel-width of a workspace object, gives the duration in seconds.
  */
 export const useWorkpaceDuration = (): ((width: number) => number) => {
-  const vampId = useCurrentVampId();
+  const temporalZoom = useContext(TemporalZoomContext);
 
-  const { data } = useQuery<TemporalZoomClient>(TEMPORAL_ZOOM_CLIENT, {
-    variables: { vampId }
-  });
-
-  if (!data) return (): number => 0;
-
-  const duration = (width: number): number =>
-    width / (100 * data.vamp.viewState.temporalZoom);
+  const duration = (width: number): number => width / (100 * temporalZoom);
   return duration;
 };
 
@@ -56,16 +36,9 @@ export const useWorkpaceDuration = (): ((width: number) => number) => {
  * whenever you want.
  */
 export const useWorkspaceLeft = (): ((time: number) => number) => {
-  const vampId = useCurrentVampId();
+  const temporalZoom = useContext(TemporalZoomContext);
 
-  const { data } = useQuery<TemporalZoomClient>(TEMPORAL_ZOOM_CLIENT, {
-    variables: { vampId }
-  });
-
-  if (!data) return (): number => 0;
-
-  const left = (time: number): number =>
-    100 * time * data.vamp.viewState.temporalZoom;
+  const left = (time: number): number => 100 * time * temporalZoom;
   return left;
 };
 
@@ -74,16 +47,9 @@ export const useWorkspaceLeft = (): ((time: number) => number) => {
  * pixel-position into the time position in seconds.
  */
 export const useWorkspaceTime = (): ((left: number) => number) => {
-  const vampId = useCurrentVampId();
+  const temporalZoom = useContext(TemporalZoomContext);
 
-  const { data } = useQuery<TemporalZoomClient>(TEMPORAL_ZOOM_CLIENT, {
-    variables: { vampId }
-  });
-
-  if (!data) return (): number => 0;
-
-  const time = (left: number): number =>
-    left / (100 * data.vamp.viewState.temporalZoom);
+  const time = (left: number): number => left / (100 * temporalZoom);
   return time;
 };
 

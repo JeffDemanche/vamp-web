@@ -5,6 +5,9 @@ export const GET_CLIPS_SERVER = gql`
     clips(vampId: $vampId) {
       id
       start
+      track {
+        id
+      }
       vamp {
         id
       }

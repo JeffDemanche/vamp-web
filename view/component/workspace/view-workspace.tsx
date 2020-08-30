@@ -8,7 +8,7 @@ import UserInVampProvider from "./user-in-vamp-provider";
 import { useCurrentUserId } from "../../react-hooks";
 import VampProvider from "./vamp-provider";
 import ClipsProvider from "./clips-provider";
-import WorkspaceContent from "./workspace-content";
+import { WorkspaceContent } from "./workspace-content";
 
 interface MatchParams {
   vampid: string;

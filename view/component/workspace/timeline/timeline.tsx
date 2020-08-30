@@ -19,11 +19,16 @@ import { MutableRefObject } from "react";
 
 const TIMELINE_CLIENT = gql`
   query TimelineClient($vampId: ID!) {
-    # loadedVampId @client @export(as: "vampId")
     vamp(id: $vampId) @client {
+      tracks @client {
+        id @client
+      }
       clips @client {
         id @client
         start @client
+        track @client {
+          id @client
+        }
         audio @client {
           id @client
           filename @client
@@ -36,12 +41,19 @@ const TIMELINE_CLIENT = gql`
   }
 `;
 
+interface TimelineProps {
+  offsetRef: MutableRefObject<HTMLDivElement>;
+  // See workspace-content.tsx for how this works.
+  tracksRef: (node: HTMLDivElement) => void;
+}
+
 /**
  * Timeline is everything below the play panel.
  */
-const Timeline: React.FunctionComponent<{
-  offsetRef: MutableRefObject<HTMLDivElement>;
-}> = ({ offsetRef }: { offsetRef: MutableRefObject<HTMLDivElement> }) => {
+const Timeline: React.FunctionComponent<TimelineProps> = ({
+  offsetRef,
+  tracksRef
+}: TimelineProps) => {
   const vampId = useCurrentVampId();
 
   // Queries the cache to update state based on whether the client is recording.
@@ -49,7 +61,7 @@ const Timeline: React.FunctionComponent<{
     variables: { vampId }
   });
 
-  const { data, loading } = useQuery<TimelineClient>(TIMELINE_CLIENT, {
+  const { data, loading, error } = useQuery<TimelineClient>(TIMELINE_CLIENT, {
     variables: { vampId }
   });
 
@@ -68,10 +80,20 @@ const Timeline: React.FunctionComponent<{
     <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
   ) : (
     <>
-      <MetronomeBar></MetronomeBar>
-      <VerticalSpacer height={20}></VerticalSpacer>
-      <TimelineClips clips={data.vamp.clips}></TimelineClips>
-      <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
+      <div className={styles["top-cell"]}>
+        <MetronomeBar></MetronomeBar>
+      </div>
+      <div className={styles["middle-cell"]}>
+        <TimelineClips
+          tracks={data.vamp.tracks}
+          clips={data.vamp.clips}
+          tracksRef={tracksRef}
+        ></TimelineClips>
+      </div>
+      <div className={styles["bottom-cell"]}>
+        <VerticalSpacer height={50} />
+        <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
+      </div>
     </>
   );
 

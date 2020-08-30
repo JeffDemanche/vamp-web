@@ -1,11 +1,30 @@
 .timeline {
   position: relative;
+  flex-grow: 1;
+  height: 0;
 }
 
 .timeline-clips {
-  
+  position: relative;
+  height: 100%;
 }
 
 .position-offset {
   position: relative;
+  height: 100%;
+  transition: left 0.1s linear;
+  display: grid;
+  grid-template-rows: 50px auto 225px;
+}
+
+.top-cell {
+
+}
+
+.middle-cell {
+  min-height: 100px;
+}
+
+.bottom-cell {
+
 }

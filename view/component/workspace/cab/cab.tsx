@@ -25,14 +25,12 @@ const Cab: React.FunctionComponent<CabProps> = ({ empty, recording }) => {
     if (recording) {
       return (
         <>
-          <VerticalSpacer height={50} />
           <CabMainRecording />
         </>
       );
     } else {
       return (
         <>
-          <VerticalSpacer height={50}></VerticalSpacer>
           <CabMain></CabMain>
         </>
       );

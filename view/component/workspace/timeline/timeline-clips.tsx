@@ -3,11 +3,17 @@ import * as React from "react";
 import styles = require("./timeline.less");
 import Clip from "../clip/clip";
 import VerticalSpacer from "../../element/vertical-spacer";
+import Track from "./track";
+import { MutableRefObject } from "react";
 
 interface TimelineClipsProps {
+  tracks: { id: string }[];
   clips: {
     id: string;
     start: number;
+    track: {
+      id: string;
+    };
     audio: {
       id: string;
       filename: string;
@@ -16,23 +22,28 @@ interface TimelineClipsProps {
       duration: number;
     };
   }[];
+  tracksRef: (node: HTMLDivElement) => void;
 }
 
 const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({
-  clips
+  tracks,
+  clips,
+  tracksRef
 }: TimelineClipsProps) => {
-  // Insert vertical spacers between clips but not after the last one.
-  const clipsMarkup = clips.map((clip, index) =>
-    index === clips.length - 1 ? (
-      <Clip key={index} clip={clip}></Clip>
-    ) : (
-      <React.Fragment key={index}>
-        <Clip key={index} clip={clip}></Clip>
-        <VerticalSpacer height={10} />
-      </React.Fragment>
-    )
+  const tracksMarkup = tracks.map((track, trackIndex) => {
+    const trackClips = clips
+      .filter(clip => clip.track.id === track.id)
+      .map((clip, clipIndex) => {
+        return <Clip key={clipIndex} clip={clip}></Clip>;
+      });
+    return <Track key={trackIndex}>{trackClips}</Track>;
+  });
+
+  return (
+    <div className={styles["timeline-clips"]} ref={tracksRef}>
+      {tracksMarkup}
+    </div>
   );
-  return <div className={styles["timeline-clips"]}>{clipsMarkup}</div>;
 };
 
 export default TimelineClips;

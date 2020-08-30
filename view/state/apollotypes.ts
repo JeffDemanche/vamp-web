@@ -280,6 +280,11 @@ export interface CabNewRecordingVariables {
 // GraphQL subscription operation: ClipsSubscription
 // ====================================================
 
+export interface ClipsSubscription_subClips_updatedClip_track {
+  __typename: "Track";
+  id: string;
+}
+
 export interface ClipsSubscription_subClips_updatedClip_audio {
   __typename: "Audio";
   id: string;
@@ -303,6 +308,7 @@ export interface ClipsSubscription_subClips_updatedClip {
   __typename: "Clip";
   id: string;
   start: number;
+  track: ClipsSubscription_subClips_updatedClip_track;
   audio: ClipsSubscription_subClips_updatedClip_audio;
   user: ClipsSubscription_subClips_updatedClip_user;
   vamp: ClipsSubscription_subClips_updatedClip_vamp;
@@ -525,6 +531,16 @@ export interface UpdateNameVariables {
 // GraphQL query operation: TimelineClient
 // ====================================================
 
+export interface TimelineClient_vamp_tracks {
+  __typename: "Track";
+  id: string;
+}
+
+export interface TimelineClient_vamp_clips_track {
+  __typename: "Track";
+  id: string;
+}
+
 export interface TimelineClient_vamp_clips_audio {
   __typename: "Audio";
   id: string;
@@ -538,11 +554,13 @@ export interface TimelineClient_vamp_clips {
   __typename: "Clip";
   id: string;
   start: number;
+  track: TimelineClient_vamp_clips_track;
   audio: TimelineClient_vamp_clips_audio;
 }
 
 export interface TimelineClient_vamp {
   __typename: "Vamp";
+  tracks: TimelineClient_vamp_tracks[];
   clips: TimelineClient_vamp_clips[];
 }
 
@@ -614,6 +632,11 @@ export interface GetOrAddUserInVampVariables {
 // GraphQL query operation: GetVamp
 // ====================================================
 
+export interface GetVamp_vamp_tracks {
+  __typename: "Track";
+  id: string;
+}
+
 export interface GetVamp_vamp_clientClips {
   __typename: "ClientClip";
   id: string;
@@ -632,6 +655,7 @@ export interface GetVamp_vamp {
   bpm: number;
   beatsPerBar: number;
   metronomeSound: string;
+  tracks: GetVamp_vamp_tracks[];
   clientClips: (GetVamp_vamp_clientClips | null)[] | null;
   playing: boolean | null;
   playPosition: number | null;
@@ -660,6 +684,11 @@ export interface GetVampVariables {
 // GraphQL subscription operation: VampSubscription
 // ====================================================
 
+export interface VampSubscription_subVamp_tracks {
+  __typename: "Track";
+  id: string;
+}
+
 export interface VampSubscription_subVamp_clientClips {
   __typename: "ClientClip";
   id: string;
@@ -678,6 +707,7 @@ export interface VampSubscription_subVamp {
   bpm: number;
   beatsPerBar: number;
   metronomeSound: string;
+  tracks: VampSubscription_subVamp_tracks[];
   clientClips: (VampSubscription_subVamp_clientClips | null)[] | null;
   playing: boolean | null;
   playPosition: number | null;
@@ -790,6 +820,11 @@ export interface RemoveClipServerVariables {
 // GraphQL query operation: GetClipsServer
 // ====================================================
 
+export interface GetClipsServer_clips_track {
+  __typename: "Track";
+  id: string;
+}
+
 export interface GetClipsServer_clips_vamp {
   __typename: "Vamp";
   id: string;
@@ -813,6 +848,7 @@ export interface GetClipsServer_clips {
   __typename: "Clip";
   id: string;
   start: number;
+  track: GetClipsServer_clips_track;
   vamp: GetClipsServer_clips_vamp;
   user: GetClipsServer_clips_user;
   audio: GetClipsServer_clips_audio;

@@ -6,6 +6,8 @@ import { useWorkspaceWidth, useWorkspaceLeft } from "../../../workspace-hooks";
 import Playhead from "../../element/playhead";
 import { VampButton } from "../../element/button";
 import TrashButton from "./trash-button";
+import { useContext } from "react";
+import { TemporalZoomContext } from "../workspace-content";
 
 interface ClipProps {
   clip: {
