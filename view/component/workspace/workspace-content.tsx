@@ -18,17 +18,22 @@ const TemporalZoomContext = React.createContext(100);
 const WorkspaceContent: React.FC = () => {
   const vampId = useCurrentVampId();
 
+  const offsetRef = useRef<HTMLDivElement>();
+
   const [temporalZoom, setTemporalZoom] = useState<number>(1.0);
 
   const [verticalPos, setVerticalPos] = useState<number>(0.0);
+  const [horizontalPos, setHorizontalPos] = useState<number>(0.0);
 
-  const offsetRef = useRef<HTMLDivElement>();
-
-  const onWheel = (e: React.WheelEvent<HTMLDivElement>): void => {
+  const onWheel = (e: React.WheelEvent): void => {
     if (e.altKey) {
       // Temporal zoom.
       const dist: number = e.deltaY > 0 ? 0.9 : 1.1;
       setTemporalZoom(temporalZoom * dist);
+    } else if (e.shiftKey) {
+      const dist: number = e.deltaY > 0 ? 40 : -40;
+      setHorizontalPos(horizontalPos + dist);
+      offsetRef.current.style.left = `${horizontalPos}px`;
     } else {
       // Pretty sure e.deltaY returns different values for different browsers.
       const dist: number = e.deltaY > 0 ? 0.075 : -0.075;
@@ -79,7 +84,7 @@ const WorkspaceContent: React.FC = () => {
 
   return (
     <TemporalZoomContext.Provider value={temporalZoom}>
-      <div className={styles["workspace"]} onWheel={onWheel}>
+      <div className={styles["workspace"]} onWheelCapture={onWheel}>
         <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
         <div className={styles["play-and-tracks"]}>
           <div className={styles["play-panel"]}>
