@@ -35,6 +35,7 @@ import {
   SetLoopClient
 } from "../state/apollotypes";
 import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
+import { vampAudioStream } from "./vamp-audio-stream";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!) {
@@ -256,7 +257,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       );
       console.timeEnd("local clip cached in");
     } else {
-      // TODO User-facing warning.
+      vampAudioStream.sendAlert();
       console.error("Stopped audio because of no microphone access.");
     }
   };
