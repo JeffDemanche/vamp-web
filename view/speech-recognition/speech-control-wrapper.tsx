@@ -42,7 +42,7 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
 
   const recognition = startSpeechRecognition();
   if (!recognition) {
-    return <div>{props.children}</div>;
+    return <div style={{ height: "100%" }}>{props.children}</div>;
   }
 
   const vampId = useCurrentVampId();
