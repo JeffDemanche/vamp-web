@@ -2,7 +2,11 @@ import * as React from "react";
 
 import * as styles from "./cab.less";
 import { useQuery, useMutation, useApolloClient } from "react-apollo";
-import { useCurrentVampId, useCurrentUserId } from "../../../react-hooks";
+import {
+  useCurrentVampId,
+  useCurrentUserId,
+  usePrevious
+} from "../../../react-hooks";
 import { gql } from "apollo-boost";
 import {
   CabMainQuery,
@@ -28,7 +32,7 @@ import {
 
 const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
-    userInVamp(vampId: $vampId, userId: $userId) @client {
+    userInVamp(vampId: $vampId, userId: $userId) {
       id @client
       cab @client {
         user @client {
@@ -100,8 +104,12 @@ const CabMain: React.FC = () => {
     }
   } = data || { userInVamp: { id: "", cab: { start: 0, duration: 0 } } };
 
+  const prevStart = usePrevious(start);
+
   useEffect(() => {
-    seek({ variables: { time: start } });
+    if (prevStart !== undefined) {
+      seek({ variables: { time: start } });
+    }
   }, [start]);
 
   /**

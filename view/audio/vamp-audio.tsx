@@ -27,12 +27,13 @@ import {
 } from "../state/queries/vamp-mutations";
 import {
   WorkspaceAudioClient,
-  AddClientClip,
+  BeginClientClip,
   AddClip,
   StopClient,
   PlayClient,
   CabClient,
-  SetLoopClient
+  SetLoopClient,
+  EndClientClip
 } from "../state/apollotypes";
 import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
 
@@ -68,9 +69,10 @@ const WORKSPACE_AUDIO_CLIENT = gql`
       clientClips @client {
         id @client
         start @client
-        tempFilename @client
+        audioStoreKey @client
+        realClipId @client
+        inProgress @client
         duration @client
-        storedLocally @client
       }
     }
   }
@@ -102,14 +104,19 @@ interface WorkspaceAudioProps {
   vampId: string;
 }
 
-const ADD_CLIENT_CLIP = gql`
-  mutation AddClientClip($localFilename: String!, $start: Float!) {
-    addClientClip(localFilename: $localFilename, start: $start) @client {
+const BEGIN_CLIENT_CLIP = gql`
+  mutation BeginClientClip($audioStoreKey: String!, $start: Float!) {
+    beginClientClip(audioStoreKey: $audioStoreKey, start: $start) @client {
       id @client
-      tempFilename @client
-      storedLocally @client
+      audioStoreKey @client
       start @client
     }
+  }
+`;
+
+const END_CLIENT_CLIP = gql`
+  mutation EndClientClip($audioStoreKey: String!) {
+    endClientClip(audioStoreKey: $audioStoreKey) @client
   }
 `;
 
@@ -160,8 +167,11 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const [apolloStop] = useMutation<StopClient>(STOP_CLIENT);
   const [setLoop] = useMutation<SetLoopClient>(SET_LOOP);
 
-  const [addClientClip] = useMutation<AddClientClip>(ADD_CLIENT_CLIP);
+  const [beginClientClip] = useMutation<BeginClientClip>(BEGIN_CLIENT_CLIP);
+  const [endClientClip] = useMutation<EndClientClip>(END_CLIENT_CLIP);
   const [addClipServer] = useMutation<AddClip>(ADD_CLIP_SERVER);
+
+  const [clientClipRefID, setClientClipRefID] = useState<string>(null);
 
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
@@ -173,12 +183,19 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     scheduler.play();
   };
 
-  const startRecording = (): void => {
+  const startRecording = async (start: number): Promise<void> => {
     if (recorder.mediaRecorderInitialized()) {
       if (!playing) {
         console.info("Note: Started recording while not playing.");
       }
-      recorder.startRecording();
+
+      const referenceId = ObjectID.generate();
+      setClientClipRefID(referenceId);
+      recorder.startRecording(referenceId);
+
+      await beginClientClip({
+        variables: { audioStoreKey: referenceId, start }
+      });
     } else {
       // TODO Give a user-facing warning about microphone access.
       console.error("No microhpone access granted.");
@@ -232,29 +249,19 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       // We send a "reference ID" to the server so that we can immediately add
       // this clip client-side and then updated it later when we get the
       // subscription back from the server.
-      const referenceId = ObjectID.generate();
       const file = await recorder.stopRecording();
-      addClipServer({
-        variables: {
-          start,
-          vampId,
-          userId,
-          file,
-          referenceId
-        }
-      });
-      console.time("local clip cached in");
-      const localClip = await addClientClip({
-        variables: { localFilename: referenceId, start: prevData.playPosition }
-      });
-      store.cacheClientClipAudio(
-        localClip.data.addClientClip,
-        vampId,
-        file,
-        apolloClient,
-        context
-      );
-      console.timeEnd("local clip cached in");
+      if (clientClipRefID) {
+        addClipServer({
+          variables: {
+            start,
+            vampId,
+            userId,
+            file,
+            referenceId: clientClipRefID
+          }
+        });
+        endClientClip({ variables: { audioStoreKey: clientClipRefID } });
+      }
     } else {
       // TODO User-facing warning.
       console.error("Stopped audio because of no microphone access.");
@@ -298,7 +305,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       // the play control mutations are properly set up in resolvers.ts, play()
       // and stop() should be appropriately called.
       if (recording && !prevData.recording) {
-        startRecording();
+        startRecording(prevData.playPosition);
       }
       if (!recording && prevData.recording) {
         endRecordingAndAddClip(cabStart);
@@ -327,22 +334,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       }
 
       scheduler.setIdleTime(cabStart);
-
-      // Check for removed Clips and ClientClips and stop their playback.
-      const removeEventForClips = (
-        clips: { id: string }[],
-        prevClips: { id: string }[]
-      ): void => {
-        const removedIds: string[] = [];
-        const prevIds = prevClips.map(clip => clip.id);
-        const currIds = clips.map(clip => clip.id);
-        prevIds.forEach(id => {
-          if (!currIds.includes(id)) removedIds.push(id);
-        });
-        removedIds.forEach(id => scheduler.removeEvent(id));
-      };
-      removeEventForClips(clips, prevData.clips);
-      removeEventForClips(clientClips, prevData.clientClips);
     }
   });
 

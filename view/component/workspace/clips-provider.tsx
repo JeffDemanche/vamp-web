@@ -3,10 +3,10 @@ import { useEffect } from "react";
 import { useQuery, useApolloClient, useMutation } from "react-apollo";
 import { gql } from "apollo-boost";
 import {
-  RemoveClientClip,
   GetClipsServer,
   ClipsSubscription,
-  GetClipsServer_clips
+  GetClipsServer_clips,
+  HandOffClientClip
 } from "../../state/apollotypes";
 import { ViewLoading } from "../loading/view-loading";
 import { ViewNotFound } from "../not-found/view-not-found";
@@ -41,9 +41,10 @@ const CLIPS_SUBSCRIPTION = gql`
   }
 `;
 
-const REMOVE_CLIENT_CLIP = gql`
-  mutation RemoveClientClip($tempFilename: String!) {
-    removeClientClip(tempFilename: $tempFilename) @client
+const HAND_OFF_CLIENT_CLIP = gql`
+  mutation HandOffClientClip($audioStoreKey: String!, $realClipId: ID!) {
+    handOffClientClip(audioStoreKey: $audioStoreKey, realClipId: $realClipId)
+      @client
   }
 `;
 
@@ -70,7 +71,9 @@ const ClipsProvider: React.FunctionComponent<ClipsProviderProps> = ({
     variables: { vampId }
   });
 
-  const [removeClientClip] = useMutation<RemoveClientClip>(REMOVE_CLIENT_CLIP);
+  const [handOffClientClip] = useMutation<HandOffClientClip>(
+    HAND_OFF_CLIENT_CLIP
+  );
 
   const client = useApolloClient();
 
@@ -82,16 +85,16 @@ const ClipsProvider: React.FunctionComponent<ClipsProviderProps> = ({
         if (!subscriptionData.data) return prev;
         if (subscriptionData.data.subClips.mutation === "ADDED") {
           const newClips = prev.clips ? [...prev.clips] : [];
-          newClips.push(subscriptionData.data.subClips.updatedClip);
-
+          const addedClip = subscriptionData.data.subClips.updatedClip;
+          newClips.push(addedClip);
           const refId = subscriptionData.data.subClips.referenceId;
           if (refId) {
-            removeClientClip({ variables: { tempFilename: refId } });
+            handOffClientClip({
+              variables: { audioStoreKey: refId, realClipId: addedClip.id }
+            });
           }
-
           return { clips: newClips };
         } else if (subscriptionData.data.subClips.mutation === "REMOVED") {
-          console.log(subscriptionData.data);
           const newClips: GetClipsServer_clips[] = [];
           prev.clips.forEach(clip => {
             if (clip.id != subscriptionData.data.subClips.updatedClip.id) {
@@ -113,40 +116,9 @@ const ClipsProvider: React.FunctionComponent<ClipsProviderProps> = ({
   if (!clipsData) {
     return <ViewNotFound />;
   }
-
-  // TODO should definitely be rethought/put in a different file. Fills in clip
-  // fields that we don't get from the clips query but need client-side.
-  // const localizeClips = (): Clip[] => {
-  //   clipsData.clips.forEach(clip => {
-  //     if (!clip.audio.storedLocally) clip.audio.storedLocally = false;
-  //     if (!clip.audio.duration) clip.audio.duration = -1;
-  //     if (!clip.audio.tempFilename) clip.audio.tempFilename = "";
-  //   });
-  //   return clipsData.clips;
-  // };
-
-  // console.log(clipsData.clips);
   client.writeData({
     data: { vamp: { __typename: "Vamp", id: vampId, clips: clipsData.clips } }
   });
-  // const data = client.readQuery({
-  //   query: gql`
-  //     query Test($vampId: ID!) {
-  //       vamp(id: $vampId) @client {
-  //         id @client
-  //         clips @client {
-  //           id @client
-  //           start @client
-  //           audio @client {
-  //             id @client
-  //           }
-  //         }
-  //       }
-  //     }
-  //   `,
-  //   variables: { vampId }
-  // });
-  // console.log(data);
 
   return <>{children}</>;
 };

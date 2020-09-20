@@ -1,10 +1,7 @@
 import { ApolloClient } from "apollo-boost";
 
-import {
-  GET_CLIPS_CLIENT,
-  GET_CLIENT_CLIPS_CLIENT
-} from "../state/queries/clips-queries";
-import { GetClipsClient, GetClientClipsClient } from "../state/apollotypes";
+import { GET_CLIPS_CLIENT } from "../state/queries/clips-queries";
+import { GetClipsClient } from "../state/apollotypes";
 
 interface StoredAudio {
   data: Blob;
@@ -25,43 +22,20 @@ class AudioStore {
   getStoredAudio = (audioId: string): StoredAudio => this._store[audioId];
 
   /**
-   * Adds a ClientClip to the cache. Since this is a different type than the
-   * Clip type which gets retrieved from the server, it's slightly different
-   * than cacheClipAudio. But it does essentially the same thing.
+   * Appends a chunk of audio data onto a store entry by key. If the key doesn't
+   * exist, a new entry is created with only the provided blob data.
    */
-  async cacheClientClipAudio(
-    clip: { id: string; storedLocally: boolean; tempFilename: string },
-    vampId: string,
-    blob: Blob,
-    apolloClient: ApolloClient<object>,
-    audioContext: AudioContext
-  ): Promise<void> {
-    if (!clip.storedLocally) {
-      const arrBuf = await blob.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrBuf);
-      const duration = audioBuffer.duration;
-
-      const currentClientClips: GetClientClipsClient = apolloClient.readQuery({
-        query: GET_CLIENT_CLIPS_CLIENT,
-        variables: { vampId }
+  appendBlob = (storeKey: string, blob: Blob): Blob => {
+    if (this._store[storeKey]) {
+      const existingBlob = this._store[storeKey].data;
+      this._store[storeKey].data = new Blob([existingBlob, blob], {
+        type: existingBlob.type
       });
-      const newClips = [...currentClientClips.vamp.clientClips];
-      newClips.forEach((c, index) => {
-        if (c.id === clip.id) {
-          newClips[index].duration = duration;
-          newClips[index].storedLocally = true;
-        }
-      });
-
-      apolloClient.writeData({
-        data: {
-          vamp: { __typename: "Vamp", id: vampId, clientClips: newClips }
-        }
-      });
-
-      this._store[clip.tempFilename] = { data: blob };
+    } else {
+      this._store[storeKey] = { data: blob };
     }
-  }
+    return this._store[storeKey].data;
+  };
 
   /**
    * Handles downloading the audio for a Clip and stores it in the audio store.
@@ -110,6 +84,5 @@ class AudioStore {
   }
 }
 
-// this is throwing a default export error, but this how we make audio store resuseable
 // eslint-disable-next-line prefer-const
 export let audioStore = new AudioStore();

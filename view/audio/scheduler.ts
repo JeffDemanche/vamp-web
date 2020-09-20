@@ -110,6 +110,7 @@ class Scheduler {
    */
   seek = async (time: number): Promise<void> => {
     await this.stop();
+    await this.cancelDispatch();
     clearTimeout(this._loopTimeout);
     this._seconds = time;
     this.play();
@@ -120,6 +121,12 @@ class Scheduler {
    */
   stop = async (): Promise<void> => {
     this._isPlaying = false;
+  };
+
+  /**
+   * Stops all started audio nodes.
+   */
+  private cancelDispatch = async (): Promise<void> => {
     Object.keys(this._dispatchedAudioNodes).forEach(nodeKey => {
       this._dispatchedAudioNodes[nodeKey].disconnect();
       this._dispatchedAudioNodes[nodeKey].stop(0);
@@ -132,6 +139,7 @@ class Scheduler {
    */
   private postStop = (): void => {
     this._seconds = this._idleTime;
+    this.cancelDispatch();
   };
 
   time = (): number => this._seconds;
