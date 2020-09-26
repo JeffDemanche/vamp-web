@@ -5,9 +5,23 @@ import { useCurrentVampId } from "../../react-hooks";
 import { WorkspaceAudio } from "../../audio/vamp-audio";
 import { PlayPanel } from "./play-panel/play-panel";
 import Timeline from "./timeline/timeline";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
+import gql from "graphql-tag";
+import { useQuery } from "react-apollo";
+import { WorkspaceContentClient } from "../../state/apollotypes";
+import { i } from "mathjs";
 
 const TemporalZoomContext = React.createContext(100);
+
+const WORKSPACE_CONTENT_CLIENT = gql`
+  query WorkspaceContentClient($vampId: ID!) {
+    vamp(id: $vampId) @client {
+      tracks @client {
+        id @client
+      }
+    }
+  }
+`;
 
 /**
  * Contains the content of the ViewWorkspace component (that component is
@@ -19,6 +33,13 @@ const WorkspaceContent: React.FC = () => {
   const vampId = useCurrentVampId();
 
   const offsetRef = useRef<HTMLDivElement>();
+
+  const { data } = useQuery<WorkspaceContentClient>(WORKSPACE_CONTENT_CLIENT, {
+    variables: { vampId }
+  });
+  const tracks = data.vamp.tracks;
+
+  const [trackRefTrigger, setTrackRefTrigger] = useState<boolean>(false);
 
   const [temporalZoom, setTemporalZoom] = useState<number>(1.0);
 
@@ -42,6 +63,16 @@ const WorkspaceContent: React.FC = () => {
   };
 
   /**
+   * The point here is to listen to changes to tracks and then trigger the
+   * callback function below on *the next* update, adjusting the track heights.
+   * If we just listened to this straight on the callback function, the tracks
+   * component won't have been updated yet.
+   */
+  useEffect(() => {
+    setTrackRefTrigger(true);
+  }, [tracks]);
+
+  /**
    * Ideally we don't want scrolling to trigger any component re-renders.
    * Instead, we hold ref objects for every component that changes style on
    * scroll events. This callback function in particular will fire first when
@@ -52,7 +83,7 @@ const WorkspaceContent: React.FC = () => {
    */
   const trackRefUpdate = useCallback(
     (node: HTMLDivElement) => {
-      if (node !== null) {
+      if (node !== null && node.children.length > 0) {
         const maxHeight = 0.3;
 
         const children = node.children;
@@ -61,9 +92,7 @@ const WorkspaceContent: React.FC = () => {
         for (let i = 0; i < children.length; i++) {
           const trackPos = i / children.length;
           const distFromPosition = Math.abs(verticalPos - trackPos);
-          unnormalized.push(
-            Math.min(0.9, Math.max(0.1, 1 - distFromPosition)) * 0.2
-          );
+          unnormalized.push(Math.min(0.9, Math.max(0.1, 1 - distFromPosition)));
         }
 
         // TODO: Quick fix for that Type error
@@ -82,8 +111,9 @@ const WorkspaceContent: React.FC = () => {
           }
         }
       }
+      setTrackRefTrigger(false);
     },
-    [verticalPos]
+    [verticalPos, trackRefTrigger]
   );
 
   return (

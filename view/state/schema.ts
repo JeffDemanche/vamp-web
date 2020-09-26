@@ -33,8 +33,10 @@ export const typeDefs = gql`
     repeat: Boolean
     setTemporalZoom(temporalZoom: Float!, cumulative: Boolean): Boolean
     setViewLeft(viewLeft: Float!, cumulative: Boolean): Boolean
-    addClientClip(localFilename: String!, start: Float!): ClientClip
-    removeClientClip(tempFilename: String!): Boolean
+    beginClientClip(audioStoreKey: String!, start: Float!): ClientClip
+    endClientClip(audioStoreKey: String!): Boolean
+    handOffClientClip(audioStoreKey: String!, realClipId: ID): Boolean
+    removeClientClip(audioStoreKey: String!): Boolean
   }
 
   extend type Vamp {
@@ -59,10 +61,15 @@ export const typeDefs = gql`
     viewState: ViewState
   }
 
+  extend type Clip {
+    referenceId: ID
+  }
+
   ###
   # Client-side types
   ###
 
+  # DEPRECATED (not used anymore)
   type ViewState {
     # Seconds per 100 horizontal pixels.
     temporalZoom: Float
@@ -74,9 +81,10 @@ export const typeDefs = gql`
   type ClientClip {
     id: ID!
     start: Float!
-    tempFilename: String!
+    audioStoreKey: String!
+    realClipId: ID
     duration: Float!
-    storedLocally: Boolean!
+    inProgress: Boolean!
   }
 `;
 

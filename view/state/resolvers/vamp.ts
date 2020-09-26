@@ -5,28 +5,24 @@ import {
   PLAY_POSITION_START_TIME_CLIENT,
   PLAYING_CLIENT,
   TEMPORAL_ZOOM_CLIENT,
-  VIEW_STATE_CLIENT,
   VIEW_LEFT_CLIENT
 } from "../queries/vamp-queries";
 import {
   LocalVampIdClient,
   PlayingClient,
   GetClientClipsClient,
-  AddClientClip_addClientClip,
   GetClientClipsClient_vamp_clientClips,
   GetClipsServer,
   GetClipsServer_clips,
   ViewStateClient,
-  GetClipsClient,
-  GetClipsClient_vamp,
   ViewLeftClient,
   CabClient,
-  MeClient
+  MeClient,
+  BeginClientClip_beginClientClip
 } from "../apollotypes";
 import {
   GET_CLIENT_CLIPS_CLIENT,
-  GET_CLIPS_SERVER,
-  GET_CLIPS_CLIENT
+  GET_CLIPS_SERVER
 } from "../queries/clips-queries";
 import ObjectID from "bson-objectid";
 import { CAB_CLIENT } from "../queries/user-in-vamp-queries";
@@ -273,26 +269,33 @@ const resolvers: Partial<AppResolvers> = {
       return true;
     },
 
-    addClientClip: (
+    /**
+     * Adds a new client clip to the store after recording begins. At this
+     * state, the realClipId is null, meaning that a "real clip" doesn't exist
+     * yet, and inProgress is true, meaning the client clip is currently being
+     * recorded.
+     */
+    beginClientClip: (
       parent,
       args,
       { cache }: { cache: InMemoryCache }
-    ): AddClientClip_addClientClip => {
+    ): BeginClientClip_beginClientClip => {
       const { loadedVampId: vampId } = cache.readQuery<LocalVampIdClient>({
         query: LOCAL_VAMP_ID_CLIENT
       });
-      const clipsData = cache.readQuery<GetClientClipsClient>({
+      const clientClipsData = cache.readQuery<GetClientClipsClient>({
         query: GET_CLIENT_CLIPS_CLIENT,
         variables: { vampId }
       });
-      const clientClipsCopy = [...clipsData.vamp.clientClips];
+      const clientClipsCopy = [...clientClipsData.vamp.clientClips];
       const newClientClip: GetClientClipsClient_vamp_clientClips = {
         __typename: "ClientClip",
         id: ObjectID.generate(),
+        audioStoreKey: args.audioStoreKey,
+        realClipId: null,
         start: args.start,
-        tempFilename: args.localFilename,
         duration: -1,
-        storedLocally: false
+        inProgress: true
       };
       clientClipsCopy.push(newClientClip);
       cache.writeData({
@@ -302,6 +305,71 @@ const resolvers: Partial<AppResolvers> = {
       });
       return newClientClip;
     },
+    /**
+     * Called when recording ends, sets a client clip's inProgress property to
+     * false, signifying that it's not being recorded.
+     */
+    endClientClip: (
+      parent,
+      args,
+      { cache }: { cache: InMemoryCache }
+    ): boolean => {
+      const { loadedVampId: vampId } = cache.readQuery<LocalVampIdClient>({
+        query: LOCAL_VAMP_ID_CLIENT
+      });
+      const clientClipsData = cache.readQuery<GetClientClipsClient>({
+        query: GET_CLIENT_CLIPS_CLIENT,
+        variables: { vampId }
+      });
+      const clientClipsCopy: GetClientClipsClient_vamp_clientClips[] = [];
+      clientClipsData.vamp.clientClips.forEach(clientClip => {
+        if (clientClip.audioStoreKey == args.audioStoreKey) {
+          clientClip.inProgress = false;
+        }
+        clientClipsCopy.push(clientClip);
+      });
+      cache.writeData({
+        data: {
+          vamp: { __typename: "Vamp", id: vampId, clientClips: clientClipsCopy }
+        }
+      });
+      return true;
+    },
+    /**
+     * Sets the realClipId property on a client clip, signifying that a "real
+     * clip" has been recieved and is ready for playback. The ID of that real
+     * clip is the value of realClipId.
+     */
+    handOffClientClip: (
+      parent,
+      args,
+      { cache }: { cache: InMemoryCache }
+    ): boolean => {
+      const { loadedVampId: vampId } = cache.readQuery<LocalVampIdClient>({
+        query: LOCAL_VAMP_ID_CLIENT
+      });
+      const clipsData = cache.readQuery<GetClientClipsClient>({
+        query: GET_CLIENT_CLIPS_CLIENT,
+        variables: { vampId }
+      });
+      const clientClipsCopy: GetClientClipsClient_vamp_clientClips[] = [];
+      clipsData.vamp.clientClips.forEach(clientClip => {
+        if (clientClip.audioStoreKey == args.audioStoreKey) {
+          clientClipsCopy.push({ ...clientClip, realClipId: args.realClipId });
+        } else {
+          clientClipsCopy.push(clientClip);
+        }
+      });
+      cache.writeData({
+        data: {
+          vamp: { __typename: "Vamp", id: vampId, clientClips: clientClipsCopy }
+        }
+      });
+      return true;
+    },
+    /**
+     * Called to remove a client clip from the cache.
+     */
     removeClientClip: (
       parent,
       args,
@@ -317,7 +385,7 @@ const resolvers: Partial<AppResolvers> = {
       });
       const clientClipsCopy: GetClientClipsClient_vamp_clientClips[] = [];
       clipsData.vamp.clientClips.forEach(clientClip => {
-        if (clientClip.tempFilename == args.tempFilename) {
+        if (clientClip.audioStoreKey == args.audioStoreKey) {
           removed = true;
         } else {
           clientClipsCopy.push(clientClip);

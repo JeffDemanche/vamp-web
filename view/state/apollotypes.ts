@@ -4,6 +4,23 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL mutation operation: RemoveClientClip
+// ====================================================
+
+export interface RemoveClientClip {
+  removeClientClip: boolean | null;
+}
+
+export interface RemoveClientClipVariables {
+  audioStoreKey: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: MetronomeClient
 // ====================================================
 
@@ -54,9 +71,10 @@ export interface WorkspaceAudioClient_vamp_clientClips {
   __typename: "ClientClip";
   id: string;
   start: number;
-  tempFilename: string;
+  audioStoreKey: string;
+  realClipId: string | null;
+  inProgress: boolean;
   duration: number;
-  storedLocally: boolean;
 }
 
 export interface WorkspaceAudioClient_vamp {
@@ -116,24 +134,40 @@ export interface AddClipVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL mutation operation: AddClientClip
+// GraphQL mutation operation: BeginClientClip
 // ====================================================
 
-export interface AddClientClip_addClientClip {
+export interface BeginClientClip_beginClientClip {
   __typename: "ClientClip";
   id: string;
-  tempFilename: string;
-  storedLocally: boolean;
+  audioStoreKey: string;
   start: number;
 }
 
-export interface AddClientClip {
-  addClientClip: AddClientClip_addClientClip | null;
+export interface BeginClientClip {
+  beginClientClip: BeginClientClip_beginClientClip | null;
 }
 
-export interface AddClientClipVariables {
-  localFilename: string;
+export interface BeginClientClipVariables {
+  audioStoreKey: string;
   start: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: EndClientClip
+// ====================================================
+
+export interface EndClientClip {
+  endClientClip: boolean | null;
+}
+
+export interface EndClientClipVariables {
+  audioStoreKey: string;
 }
 
 /* tslint:disable */
@@ -308,7 +342,7 @@ export interface ClipsSubscription_subClips_updatedClip {
   __typename: "Clip";
   id: string;
   start: number;
-  track: ClipsSubscription_subClips_updatedClip_track;
+  track: ClipsSubscription_subClips_updatedClip_track | null;
   audio: ClipsSubscription_subClips_updatedClip_audio;
   user: ClipsSubscription_subClips_updatedClip_user;
   vamp: ClipsSubscription_subClips_updatedClip_vamp;
@@ -335,15 +369,16 @@ export interface ClipsSubscriptionVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL mutation operation: RemoveClientClip
+// GraphQL mutation operation: HandOffClientClip
 // ====================================================
 
-export interface RemoveClientClip {
-  removeClientClip: boolean | null;
+export interface HandOffClientClip {
+  handOffClientClip: boolean | null;
 }
 
-export interface RemoveClientClipVariables {
-  tempFilename: string;
+export interface HandOffClientClipVariables {
+  audioStoreKey: string;
+  realClipId: string;
 }
 
 /* tslint:disable */
@@ -554,7 +589,7 @@ export interface TimelineClient_vamp_clips {
   __typename: "Clip";
   id: string;
   start: number;
-  track: TimelineClient_vamp_clips_track;
+  track: TimelineClient_vamp_clips_track | null;
   audio: TimelineClient_vamp_clips_audio;
 }
 
@@ -689,17 +724,6 @@ export interface VampSubscription_subVamp_tracks {
   id: string;
 }
 
-export interface VampSubscription_subVamp_clientClips {
-  __typename: "ClientClip";
-  id: string;
-}
-
-export interface VampSubscription_subVamp_viewState {
-  __typename: "ViewState";
-  temporalZoom: number | null;
-  viewLeft: number | null;
-}
-
 export interface VampSubscription_subVamp {
   __typename: "Vamp";
   id: string;
@@ -708,15 +732,6 @@ export interface VampSubscription_subVamp {
   beatsPerBar: number;
   metronomeSound: string;
   tracks: VampSubscription_subVamp_tracks[];
-  clientClips: (VampSubscription_subVamp_clientClips | null)[] | null;
-  playing: boolean | null;
-  playPosition: number | null;
-  playStartTime: number | null;
-  start: number | null;
-  end: number | null;
-  loop: boolean | null;
-  recording: boolean | null;
-  viewState: VampSubscription_subVamp_viewState | null;
 }
 
 export interface VampSubscription {
@@ -724,6 +739,33 @@ export interface VampSubscription {
 }
 
 export interface VampSubscriptionVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: WorkspaceContentClient
+// ====================================================
+
+export interface WorkspaceContentClient_vamp_tracks {
+  __typename: "Track";
+  id: string;
+}
+
+export interface WorkspaceContentClient_vamp {
+  __typename: "Vamp";
+  tracks: WorkspaceContentClient_vamp_tracks[];
+}
+
+export interface WorkspaceContentClient {
+  vamp: WorkspaceContentClient_vamp | null;
+}
+
+export interface WorkspaceContentClientVariables {
   vampId: string;
 }
 
@@ -848,7 +890,7 @@ export interface GetClipsServer_clips {
   __typename: "Clip";
   id: string;
   start: number;
-  track: GetClipsServer_clips_track;
+  track: GetClipsServer_clips_track | null;
   vamp: GetClipsServer_clips_vamp;
   user: GetClipsServer_clips_user;
   audio: GetClipsServer_clips_audio;
@@ -913,9 +955,10 @@ export interface GetClientClipsClient_vamp_clientClips {
   __typename: "ClientClip";
   id: string;
   start: number;
-  tempFilename: string;
+  audioStoreKey: string;
+  realClipId: string | null;
   duration: number;
-  storedLocally: boolean;
+  inProgress: boolean;
 }
 
 export interface GetClientClipsClient_vamp {

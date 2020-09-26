@@ -50,21 +50,6 @@ const VAMP_SUBSCRIPTION = gql`
       tracks {
         id
       }
-
-      clientClips @client {
-        id @client
-      }
-      playing @client
-      playPosition @client
-      playStartTime @client
-      start @client
-      end @client
-      loop @client
-      recording @client
-      viewState @client {
-        temporalZoom @client
-        viewLeft @client
-      }
     }
   }
 `;
@@ -103,7 +88,6 @@ const VampProvider: React.FunctionComponent<VampProviderProps> = ({
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
         const newVamp = subscriptionData.data.subVamp;
-        console.log(newVamp);
 
         return {
           vamp: newVamp

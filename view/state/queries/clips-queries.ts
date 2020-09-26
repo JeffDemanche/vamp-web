@@ -52,9 +52,10 @@ export const GET_CLIENT_CLIPS_CLIENT = gql`
       clientClips @client {
         id @client
         start @client
-        tempFilename @client
+        audioStoreKey @client
+        realClipId @client
         duration @client
-        storedLocally @client
+        inProgress @client
       }
     }
   }
