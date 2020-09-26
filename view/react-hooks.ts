@@ -212,6 +212,10 @@ export const useStreamedAudio = (): Float32Array => {
       .then(() => {
         requestRef.current = requestAnimationFrame(update);
         return (): void => cancelAnimationFrame(requestRef.current);
+      })
+      .catch(() => {
+        // Tell the user they need to enable their mic manually
+        vampAudioStream.sendAlert();
       });
   }, []);
 
@@ -237,7 +241,12 @@ export const usePeers = (streamType?: string): Peer.Instance[] => {
   let stream: MediaStream;
   switch (streamType) {
     case "audio": {
-      vampAudioStream.getAudioStream().then(res => (stream = res));
+      vampAudioStream
+        .getAudioStream()
+        .then(res => (stream = res))
+        .catch(() => {
+          vampAudioStream.sendAlert();
+        });
       break;
     }
     // case "video": {
@@ -245,7 +254,12 @@ export const usePeers = (streamType?: string): Peer.Instance[] => {
     //   break;
     // }
     default:
-      vampAudioStream.getAudioStream().then(res => (stream = res));
+      vampAudioStream
+        .getAudioStream()
+        .then(res => (stream = res))
+        .catch(() => {
+          vampAudioStream.sendAlert();
+        });
       break;
     // TODO: any other p2p data we want to send
   }

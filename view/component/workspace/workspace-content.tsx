@@ -66,7 +66,11 @@ const WorkspaceContent: React.FC = () => {
           );
         }
 
-        const sum = unnormalized.reduce((acc, cur) => acc + cur);
+        // TODO: Quick fix for that Type error
+        const sum =
+          unnormalized.length > 0
+            ? unnormalized.reduce((acc, cur) => acc + cur)
+            : 0;
 
         for (let i = 0; i < children.length; i++) {
           const child = node.children.item(i) as HTMLElement;
