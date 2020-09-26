@@ -342,3 +342,36 @@ export const usePeers = (streamType?: string): Peer.Instance[] => {
 
   return peers;
 };
+
+/**
+ * Scroll events are hard because different mouses/input devices can send them
+ * at different rates. This hook accumulates scroll distance over `timer`
+ * millisecond chunks of time, and dispatches `onWheel` at the end of each
+ * chunk. It returns an event function that can be passed into a component's
+ * `onWheel` event.
+ */
+export const useScrollTimeout = (
+  onWheel: (dist: number, lastEvent: React.WheelEvent) => void,
+  timer: number
+): ((e: React.WheelEvent) => void) => {
+  const [dist, setDist] = useState<number>(0);
+
+  const [chunkStart, setChunkStart] = useState<number>(Date.now());
+  const [lastEvent, setLastEvent] = useState<React.WheelEvent>(null);
+
+  useEffect(() => {
+    if (chunkStart + timer < Date.now() && lastEvent != null) {
+      onWheel(dist, lastEvent);
+      setChunkStart(Date.now());
+      setDist(0);
+      setLastEvent(null);
+    }
+  }, [dist]);
+
+  return (e: React.WheelEvent): void => {
+    e.persist();
+
+    setLastEvent(e);
+    setDist(dist + e.deltaY);
+  };
+};

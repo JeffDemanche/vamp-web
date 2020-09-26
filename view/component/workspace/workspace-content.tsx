@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import * as styles from "./workspace-content.less";
-import { useCurrentVampId } from "../../react-hooks";
+import { useCurrentVampId, useScrollTimeout } from "../../react-hooks";
 import { WorkspaceAudio } from "../../audio/vamp-audio";
 import { PlayPanel } from "./play-panel/play-panel";
 import Timeline from "./timeline/timeline";
@@ -9,7 +9,6 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import gql from "graphql-tag";
 import { useQuery } from "react-apollo";
 import { WorkspaceContentClient } from "../../state/apollotypes";
-import { i } from "mathjs";
 
 const TemporalZoomContext = React.createContext(100);
 
@@ -46,21 +45,26 @@ const WorkspaceContent: React.FC = () => {
   const [verticalPos, setVerticalPos] = useState<number>(0.0);
   const [horizontalPos, setHorizontalPos] = useState<number>(0.0);
 
-  const onWheel = (e: React.WheelEvent): void => {
-    if (e.altKey) {
-      // Temporal zoom.
-      const dist: number = e.deltaY > 0 ? 0.9 : 1.1;
-      setTemporalZoom(temporalZoom * dist);
-    } else if (e.shiftKey) {
-      const dist: number = e.deltaY > 0 ? 40 : -40;
-      setHorizontalPos(horizontalPos + dist);
-      offsetRef.current.style.left = `${horizontalPos}px`;
-    } else {
-      // Pretty sure e.deltaY returns different values for different browsers.
-      const dist: number = e.deltaY > 0 ? 0.075 : -0.075;
-      setVerticalPos(Math.min(1.0, Math.max(0.0, verticalPos + dist)));
-    }
-  };
+  const onWheel = useScrollTimeout(
+    (dist: number, lastEvent: React.WheelEvent) => {
+      if (lastEvent.altKey) {
+        // Temporal zoom.
+        const dist: number = lastEvent.deltaY > 0 ? 0.9 : 1.1;
+        setTemporalZoom(temporalZoom * dist);
+      } else if (lastEvent.shiftKey) {
+        const dist: number = lastEvent.deltaY > 0 ? 40 : -40;
+        setHorizontalPos(horizontalPos + dist);
+        offsetRef.current.style.left = `${horizontalPos}px`;
+      } else {
+        // Pretty sure e.deltaY returns different values for different browsers.
+        // TODO The 100.0 here controls sensitivity and needs to be changed for
+        // different input devices.
+        const dist: number = lastEvent.deltaY / 100.0;
+        setVerticalPos(verticalPos + dist);
+      }
+    },
+    100
+  );
 
   /**
    * The point here is to listen to changes to tracks and then trigger the
@@ -84,29 +88,39 @@ const WorkspaceContent: React.FC = () => {
   const trackRefUpdate = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null && node.children.length > 0) {
-        const maxHeight = 0.3;
+        // Determines the decimal height of clips when they don't need to enable
+        // scrolling.
+        const clipHeightNoScroll = 0.3;
 
         const children = node.children;
-        const unnormalized = [];
 
-        for (let i = 0; i < children.length; i++) {
-          const trackPos = i / children.length;
-          const distFromPosition = Math.abs(verticalPos - trackPos);
-          unnormalized.push(Math.min(0.9, Math.max(0.1, 1 - distFromPosition)));
+        if (verticalPos < 0) {
+          setVerticalPos(0);
+        } else if (verticalPos >= children.length) {
+          setVerticalPos(children.length - 1);
         }
 
-        // TODO: Quick fix for that Type error
+        const focusedTrack = Math.round(verticalPos);
+
+        const rawWeights = [];
+        for (let i = 0; i < children.length; i++) {
+          const indexDist = Math.abs(focusedTrack - i);
+          // The exponent here determines "vertical zoom." Higher values are
+          // more exaggerated.
+          rawWeights.push(1.0 / Math.pow(indexDist + 1, 0.7));
+        }
+
         const sum =
-          unnormalized.length > 0
-            ? unnormalized.reduce((acc, cur) => acc + cur)
+          rawWeights.length > 0
+            ? rawWeights.reduce((acc, cur) => acc + cur)
             : 0;
 
         for (let i = 0; i < children.length; i++) {
           const child = node.children.item(i) as HTMLElement;
-          if (sum <= 1.0) {
-            child.style.height = `${maxHeight * 100}%`;
+          if (clipHeightNoScroll * children.length <= 1.0) {
+            child.style.height = `${clipHeightNoScroll * 100}%`;
           } else {
-            const clampedHeight = Math.min(maxHeight, unnormalized[i] / sum);
+            const clampedHeight = rawWeights[i] / sum;
             child.style.height = `${clampedHeight * 100}%`;
           }
         }
