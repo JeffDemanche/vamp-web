@@ -16,9 +16,19 @@ import {
   useCurrentUserId
 } from "../react-hooks";
 import { SEEK_CLIENT } from "../state/queries/vamp-mutations";
-import gql from "graphql-tag";
-import { CabClient } from "../state/apollotypes";
+import {
+  CabClient,
+  EmptyClient,
+  GetClipsClient,
+  GetClientClipsClient
+} from "../state/apollotypes";
 import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
+import { EMPTY_CLIENT } from "../state/queries/vamp-queries";
+import {
+  GET_CLIPS_CLIENT,
+  GET_CLIENT_CLIPS_CLIENT
+} from "../state/queries/clips-queries";
+import { useIsEmpty } from "../workspace-hooks";
 
 interface LooperProps {
   start: number;
@@ -48,6 +58,9 @@ const Looper = ({
     userInVamp: { cab }
   } = data || { userInVamp: { cab: { start, duration: end - start } } };
 
+  // If empty we render in the "new Vamp" layout.
+  const empty = useIsEmpty(vampId);
+
   // TODO If there's lag on playback this is a potential source.
   const TIME_UPDATE_FREQ_MS = 5;
   const trueTime = useTrueTime(TIME_UPDATE_FREQ_MS);
@@ -62,7 +75,13 @@ const Looper = ({
     // looping is enabled. Once that mutation happens, the next state update
     // should trigger the actual seeking behavior that's defined in
     // vamp-audio.tsx
-    if (playing && loop && realEnd > realStart && trueTime >= realEnd) {
+    if (
+      playing &&
+      loop &&
+      realEnd > realStart &&
+      trueTime >= realEnd &&
+      !empty
+    ) {
       apolloSeek({ variables: { time: realStart } });
     }
   }, [trueTime]);

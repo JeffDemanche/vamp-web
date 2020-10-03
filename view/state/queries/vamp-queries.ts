@@ -71,3 +71,9 @@ export const METRONOME_INFO_CLIENT = gql`
     }
   }
 `;
+
+export const EMPTY_CLIENT = gql`
+  query EmptyClient($vampId: ID!) {
+    empty(vampId: $vampId) @client
+  }
+`;

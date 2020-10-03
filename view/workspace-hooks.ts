@@ -1,10 +1,19 @@
 import { useQuery } from "react-apollo";
 import { METRONOME_INFO_CLIENT } from "./state/queries/vamp-queries";
-import { ViewBoundsDataClient, MetronomeClient } from "./state/apollotypes";
+import {
+  ViewBoundsDataClient,
+  MetronomeClient,
+  GetClientClipsClient,
+  GetClipsClient
+} from "./state/apollotypes";
 import { useCurrentVampId, useCurrentUserId } from "./react-hooks";
 import { useState, useEffect, useContext } from "react";
 import { gql } from "apollo-boost";
 import { TemporalZoomContext } from "./component/workspace/workspace-content";
+import {
+  GET_CLIENT_CLIPS_CLIENT,
+  GET_CLIPS_CLIENT
+} from "./state/queries/clips-queries";
 
 /**
  * Returns a function that will determine width for a duration, which should be
@@ -180,4 +189,30 @@ export const useSnapToBeat = (): ((time: number) => number) => {
     const rounded = Math.round(inBeats);
     return rounded / (bpm / 60.0);
   };
+};
+
+/**
+ * A little centralized hook to determine if a Vamp is considered empty.
+ */
+export const useIsEmpty = (vampId: string): boolean => {
+  const { data: clipsData } = useQuery<GetClipsClient>(GET_CLIPS_CLIENT, {
+    variables: { vampId }
+  });
+
+  const { data: clientClipsData } = useQuery<GetClientClipsClient>(
+    GET_CLIENT_CLIPS_CLIENT,
+    {
+      variables: { vampId }
+    }
+  );
+
+  if (!clipsData || !clientClipsData || clipsData.vamp.clips.length > 0) {
+    return false;
+  }
+  clientClipsData.vamp.clientClips.forEach(clientClip => {
+    if (!clientClip.inProgress) {
+      return false;
+    }
+  });
+  return true;
 };
