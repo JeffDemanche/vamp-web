@@ -24,6 +24,7 @@ export const typeDefs = gql`
   }
 
   extend type Mutation {
+    # Vamp mutations
     play: Boolean
     pause: Boolean
     seek(time: Float!): Boolean
@@ -33,6 +34,14 @@ export const typeDefs = gql`
     repeat: Boolean
     setTemporalZoom(temporalZoom: Float!, cumulative: Boolean): Boolean
     setViewLeft(viewLeft: Float!, cumulative: Boolean): Boolean
+
+    # Clip mutations
+    setClipDraggingInfo(clipId: ID!, info: ClipDraggingInfo!): Boolean
+
+    # setClipDragging(clipId: ID!, dragging: Boolean!): Boolean
+    # setClipDraggingTrack(clipId: ID!, trackId: ID): Boolean
+
+    # Client clip mutations
     beginClientClip(audioStoreKey: String!, start: Float!): ClientClip
     endClientClip(audioStoreKey: String!): Boolean
     handOffClientClip(audioStoreKey: String!, realClipId: ID): Boolean
@@ -61,8 +70,20 @@ export const typeDefs = gql`
     viewState: ViewState
   }
 
+  input ClipDraggingInfo {
+    dragging: Boolean
+    track: ID
+    position: Float
+    downPosX: Int
+  }
+
   extend type Clip {
     referenceId: ID
+
+    draggingInfo: ClipDraggingInfo
+
+    # dragging: Boolean
+    # draggingTrack: ID
   }
 
   ###

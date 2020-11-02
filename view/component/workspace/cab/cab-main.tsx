@@ -146,7 +146,7 @@ const CabMain: React.FC = () => {
     return (
       <MovableComponent
         initialWidth={widthFn(duration)}
-        height={150}
+        height={"125px"}
         initialLeft={positionFn(start)}
         onWidthChanged={(newWidth): void => {
           updateCabWithClient(userId, vampId, durationFn(newWidth), start);

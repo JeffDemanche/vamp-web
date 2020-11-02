@@ -50,6 +50,21 @@ const VAMP_SUBSCRIPTION = gql`
       tracks {
         id
       }
+
+      clientClips @client {
+        id @client
+      }
+      playing @client
+      playPosition @client
+      playStartTime @client
+      start @client
+      end @client
+      loop @client
+      recording @client
+      viewState @client {
+        temporalZoom @client
+        viewLeft @client
+      }
     }
   }
 `;

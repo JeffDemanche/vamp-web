@@ -9,7 +9,9 @@ import { typeDefs } from "./schema";
 import { onError } from "apollo-link-error";
 import defaults from "./defaults";
 import vampResolvers from "./resolvers/vamp";
+import clipResolvers from "./resolvers/clip";
 import audioResolvers from "./resolvers/audio";
+import _ = require("underscore");
 
 /**
  * This *replaces* the httpLink while adding support for file uploads over GQL.
@@ -57,7 +59,7 @@ const client = new ApolloClient({
   cache,
   link,
   typeDefs,
-  resolvers: { ...vampResolvers, ...audioResolvers }
+  resolvers: [vampResolvers, clipResolvers, audioResolvers]
 });
 
 // Initialize cache to default values.

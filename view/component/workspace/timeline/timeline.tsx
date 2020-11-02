@@ -14,7 +14,6 @@ import {
 } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
 import MetronomeBar from "./metronome/metronome-bar";
-import VerticalSpacer from "../../element/vertical-spacer";
 import { MutableRefObject } from "react";
 
 const TIMELINE_CLIENT = gql`
@@ -35,6 +34,11 @@ const TIMELINE_CLIENT = gql`
           localFilename @client
           storedLocally @client
           duration @client
+        }
+        draggingInfo @client {
+          dragging @client
+          track @client
+          position @client
         }
       }
     }
@@ -91,19 +95,12 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
         ></TimelineClips>
       </div>
       <div className={styles["bottom-cell"]}>
-        <VerticalSpacer height={50} />
         <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
       </div>
     </>
   );
 
-  return (
-    <div className={styles["timeline"]}>
-      <div className={styles["position-offset"]} ref={offsetRef}>
-        {timelineContent}
-      </div>
-    </div>
-  );
+  return <div className={styles["timeline"]}>{timelineContent}</div>;
 };
 
 export default Timeline;

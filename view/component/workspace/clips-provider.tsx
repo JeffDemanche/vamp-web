@@ -35,6 +35,11 @@ const CLIPS_SUBSCRIPTION = gql`
         vamp {
           id
         }
+        draggingInfo @client {
+          dragging @client
+          track @client
+          position @client
+        }
       }
       referenceId
     }

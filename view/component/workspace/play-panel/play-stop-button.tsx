@@ -12,16 +12,23 @@ import {
   STOP_CLIENT,
   SEEK_CLIENT
 } from "../../../state/queries/vamp-mutations";
-import { RecordingClient, PlayingClient } from "../../../state/apollotypes";
+import {
+  RecordingClient,
+  PlayingClient,
+  PlayClient,
+  PauseClient,
+  StopClient,
+  Seek
+} from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
 
 const PlayStopButton: React.FunctionComponent = () => {
   const vampId = useCurrentVampId();
 
-  const [play] = useMutation(PLAY_CLIENT);
-  const [pause] = useMutation(PAUSE_CLIENT);
-  const [stop] = useMutation(STOP_CLIENT);
-  const [seek] = useMutation(SEEK_CLIENT);
+  const [play] = useMutation<PlayClient>(PLAY_CLIENT);
+  const [pause] = useMutation<PauseClient>(PAUSE_CLIENT);
+  const [stop] = useMutation<StopClient>(STOP_CLIENT);
+  const [seek] = useMutation<Seek>(SEEK_CLIENT);
 
   const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
     variables: { vampId }

@@ -9,7 +9,10 @@ import {
 import { useCurrentVampId, useCurrentUserId } from "./react-hooks";
 import { useState, useEffect, useContext } from "react";
 import { gql } from "apollo-boost";
-import { TemporalZoomContext } from "./component/workspace/workspace-content";
+import {
+  TemporalZoomContext,
+  HorizontalPosContext
+} from "./component/workspace/workspace-content";
 import {
   GET_CLIENT_CLIPS_CLIENT,
   GET_CLIPS_CLIENT
@@ -46,8 +49,10 @@ export const useWorkpaceDuration = (): ((width: number) => number) => {
  */
 export const useWorkspaceLeft = (): ((time: number) => number) => {
   const temporalZoom = useContext(TemporalZoomContext);
+  const horizontalPos = useContext(HorizontalPosContext);
 
-  const left = (time: number): number => 100 * time * temporalZoom;
+  const left = (time: number): number =>
+    100 * time * temporalZoom + horizontalPos;
   return left;
 };
 
@@ -57,8 +62,10 @@ export const useWorkspaceLeft = (): ((time: number) => number) => {
  */
 export const useWorkspaceTime = (): ((left: number) => number) => {
   const temporalZoom = useContext(TemporalZoomContext);
+  const horizontalPos = useContext(HorizontalPosContext);
 
-  const time = (left: number): number => left / (100 * temporalZoom);
+  const time = (left: number): number =>
+    (left - horizontalPos) / (100 * temporalZoom);
   return time;
 };
 
