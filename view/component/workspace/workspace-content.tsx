@@ -9,8 +9,22 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import gql from "graphql-tag";
 import { useQuery } from "react-apollo";
 import { WorkspaceContentClient } from "../../state/apollotypes";
+import { useWindowDimensions } from "../../workspace-hooks";
 
 const TemporalZoomContext = React.createContext(100);
+const HorizontalPosContext = React.createContext(0);
+
+interface DropZone<Metadata = void> {
+  id: string;
+  class: "Track" | "Cab";
+  ref: React.MutableRefObject<HTMLDivElement>;
+  metadata?: Metadata;
+}
+
+const DropZonesContext = React.createContext<{
+  dropZones: DropZone[];
+  registerDropZone: <T>(dropZone: DropZone<T>) => void;
+}>(null);
 
 const WORKSPACE_CONTENT_CLIENT = gql`
   query WorkspaceContentClient($vampId: ID!) {
@@ -38,12 +52,24 @@ const WorkspaceContent: React.FC = () => {
   });
   const tracks = data.vamp.tracks;
 
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
   const [trackRefTrigger, setTrackRefTrigger] = useState<boolean>(false);
 
   const [temporalZoom, setTemporalZoom] = useState<number>(1.0);
+  const [dropZones, setDropZones] = useState<DropZone<any>[]>([]);
 
   const [verticalPos, setVerticalPos] = useState<number>(0.0);
   const [horizontalPos, setHorizontalPos] = useState<number>(0.0);
+  const OFFSET_DEC = 0.4;
+  const [horizontalPosOffset, setHoriztontalPosOffset] = useState<number>(
+    windowWidth * OFFSET_DEC
+  );
+
+  const registerDropZone = <T,>(dropZone: DropZone<T>): void => {
+    dropZones.push(dropZone);
+    setDropZones(dropZones);
+  };
 
   const onWheel = useScrollTimeout(
     (dist: number, lastEvent: React.WheelEvent) => {
@@ -54,7 +80,7 @@ const WorkspaceContent: React.FC = () => {
       } else if (lastEvent.shiftKey) {
         const dist: number = lastEvent.deltaY > 0 ? 40 : -40;
         setHorizontalPos(horizontalPos + dist);
-        offsetRef.current.style.left = `${horizontalPos}px`;
+        //offsetRef.current.style.left = `${horizontalPos}px`;
       } else {
         // Pretty sure e.deltaY returns different values for different browsers.
         // TODO The 100.0 here controls sensitivity and needs to be changed for
@@ -76,6 +102,10 @@ const WorkspaceContent: React.FC = () => {
     setTrackRefTrigger(true);
   }, [tracks]);
 
+  useEffect(() => {
+    setHoriztontalPosOffset(windowWidth * OFFSET_DEC);
+  }, [windowWidth]);
+
   /**
    * Ideally we don't want scrolling to trigger any component re-renders.
    * Instead, we hold ref objects for every component that changes style on
@@ -93,17 +123,18 @@ const WorkspaceContent: React.FC = () => {
         const clipHeightNoScroll = 0.3;
 
         const children = node.children;
+        const numTracks = tracks.length;
 
         if (verticalPos < 0) {
           setVerticalPos(0);
-        } else if (verticalPos >= children.length) {
-          setVerticalPos(children.length - 1);
+        } else if (verticalPos >= numTracks) {
+          setVerticalPos(numTracks - 1);
         }
 
         const focusedTrack = Math.round(verticalPos);
 
-        const rawWeights = [];
-        for (let i = 0; i < children.length; i++) {
+        const rawWeights: number[] = [];
+        for (let i = 0; i < numTracks; i++) {
           const indexDist = Math.abs(focusedTrack - i);
           // The exponent here determines "vertical zoom." Higher values are
           // more exaggerated.
@@ -115,34 +146,51 @@ const WorkspaceContent: React.FC = () => {
             ? rawWeights.reduce((acc, cur) => acc + cur)
             : 0;
 
-        for (let i = 0; i < children.length; i++) {
-          const child = node.children.item(i) as HTMLElement;
-          if (clipHeightNoScroll * children.length <= 1.0) {
-            child.style.height = `${clipHeightNoScroll * 100}%`;
-          } else {
-            const clampedHeight = rawWeights[i] / sum;
-            child.style.height = `${clampedHeight * 100}%`;
-          }
-        }
+        const gridTemplateRows = tracks
+          .map((track, i) => {
+            if (clipHeightNoScroll * numTracks <= 1.0) {
+              return `${clipHeightNoScroll * 100}%`;
+            } else {
+              const clampedHeight = rawWeights[i] / sum;
+              return `${clampedHeight * 100}%`;
+            }
+          })
+          .join(" ");
+        node.style.gridTemplateRows = gridTemplateRows;
       }
       setTrackRefTrigger(false);
     },
-    [verticalPos, trackRefTrigger]
+    [verticalPos, tracks, trackRefTrigger]
   );
 
   return (
     <TemporalZoomContext.Provider value={temporalZoom}>
-      <div className={styles["workspace"]} onWheelCapture={onWheel}>
-        <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
-        <div className={styles["play-and-tracks"]}>
-          <div className={styles["play-panel"]}>
-            <PlayPanel></PlayPanel>
+      <HorizontalPosContext.Provider
+        value={horizontalPos + horizontalPosOffset}
+      >
+        <DropZonesContext.Provider value={{ dropZones, registerDropZone }}>
+          <div className={styles["workspace"]} onWheelCapture={onWheel}>
+            <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
+            <div className={styles["play-and-tracks"]}>
+              <div className={styles["play-panel"]}>
+                <PlayPanel></PlayPanel>
+              </div>
+              <Timeline
+                offsetRef={offsetRef}
+                tracksRef={trackRefUpdate}
+              ></Timeline>
+            </div>
           </div>
-          <Timeline offsetRef={offsetRef} tracksRef={trackRefUpdate}></Timeline>
-        </div>
-      </div>
+        </DropZonesContext.Provider>
+      </HorizontalPosContext.Provider>
     </TemporalZoomContext.Provider>
   );
 };
 
-export { WorkspaceContent, TemporalZoomContext };
+export {
+  WorkspaceContent,
+  TemporalZoomContext,
+  HorizontalPosContext,
+  DropZonesContext,
+  DropZone
+};

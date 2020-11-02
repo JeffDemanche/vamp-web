@@ -16,18 +16,8 @@ import {
   useCurrentUserId
 } from "../react-hooks";
 import { SEEK_CLIENT } from "../state/queries/vamp-mutations";
-import {
-  CabClient,
-  EmptyClient,
-  GetClipsClient,
-  GetClientClipsClient
-} from "../state/apollotypes";
+import { CabClient } from "../state/apollotypes";
 import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
-import { EMPTY_CLIENT } from "../state/queries/vamp-queries";
-import {
-  GET_CLIPS_CLIENT,
-  GET_CLIENT_CLIPS_CLIENT
-} from "../state/queries/clips-queries";
 import { useIsEmpty } from "../workspace-hooks";
 
 interface LooperProps {

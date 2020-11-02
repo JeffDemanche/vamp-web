@@ -21,6 +21,11 @@ export const GET_CLIPS_SERVER = gql`
         storedLocally @client
         duration @client
       }
+      draggingInfo @client {
+        dragging @client
+        track @client
+        position @client
+      }
     }
   }
 `;
@@ -39,6 +44,11 @@ export const GET_CLIPS_CLIENT = gql`
           storedLocally @client
           duration @client
           # uploader ?
+        }
+        draggingInfo @client {
+          dragging @client
+          track @client
+          position @client
         }
       }
     }

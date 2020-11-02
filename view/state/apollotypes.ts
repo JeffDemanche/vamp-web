@@ -117,6 +117,9 @@ export interface AddClip_addClip {
 }
 
 export interface AddClip {
+  /**
+   * Adds a clip and puts the new clip in the Vamp specfied.
+   */
   addClip: AddClip_addClip;
 }
 
@@ -311,6 +314,24 @@ export interface CabNewRecordingVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL mutation operation: SetClipDraggingInfo
+// ====================================================
+
+export interface SetClipDraggingInfo {
+  setClipDraggingInfo: boolean | null;
+}
+
+export interface SetClipDraggingInfoVariables {
+  clipId: string;
+  info: ClipDraggingInfo;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL subscription operation: ClipsSubscription
 // ====================================================
 
@@ -346,6 +367,7 @@ export interface ClipsSubscription_subClips_updatedClip {
   audio: ClipsSubscription_subClips_updatedClip_audio;
   user: ClipsSubscription_subClips_updatedClip_user;
   vamp: ClipsSubscription_subClips_updatedClip_vamp;
+  draggingInfo: ClipDraggingInfo | null;
 }
 
 export interface ClipsSubscription_subClips {
@@ -591,6 +613,7 @@ export interface TimelineClient_vamp_clips {
   start: number;
   track: TimelineClient_vamp_clips_track | null;
   audio: TimelineClient_vamp_clips_audio;
+  draggingInfo: ClipDraggingInfo | null;
 }
 
 export interface TimelineClient_vamp {
@@ -724,6 +747,17 @@ export interface VampSubscription_subVamp_tracks {
   id: string;
 }
 
+export interface VampSubscription_subVamp_clientClips {
+  __typename: "ClientClip";
+  id: string;
+}
+
+export interface VampSubscription_subVamp_viewState {
+  __typename: "ViewState";
+  temporalZoom: number | null;
+  viewLeft: number | null;
+}
+
 export interface VampSubscription_subVamp {
   __typename: "Vamp";
   id: string;
@@ -732,6 +766,15 @@ export interface VampSubscription_subVamp {
   beatsPerBar: number;
   metronomeSound: string;
   tracks: VampSubscription_subVamp_tracks[];
+  clientClips: (VampSubscription_subVamp_clientClips | null)[] | null;
+  playing: boolean | null;
+  playPosition: number | null;
+  playStartTime: number | null;
+  start: number | null;
+  end: number | null;
+  loop: boolean | null;
+  recording: boolean | null;
+  viewState: VampSubscription_subVamp_viewState | null;
 }
 
 export interface VampSubscription {
@@ -845,6 +888,10 @@ export interface TrueTimeClientVariables {
 // ====================================================
 
 export interface RemoveClipServer {
+  /**
+   * Removes the specified clip from the specified Vamp. Doesn't remove the clip
+   * from the database.
+   */
   removeClip: boolean;
 }
 
@@ -894,6 +941,7 @@ export interface GetClipsServer_clips {
   vamp: GetClipsServer_clips_vamp;
   user: GetClipsServer_clips_user;
   audio: GetClipsServer_clips_audio;
+  draggingInfo: ClipDraggingInfo | null;
 }
 
 export interface GetClipsServer {
@@ -927,6 +975,7 @@ export interface GetClipsClient_vamp_clips {
   id: string;
   start: number;
   audio: GetClipsClient_vamp_clips_audio;
+  draggingInfo: ClipDraggingInfo | null;
 }
 
 export interface GetClipsClient_vamp {
@@ -1485,6 +1534,13 @@ export interface ViewBoundsDataClientVariables {
 // START Enums and Input Objects
 //==============================================================
 
+export interface ClipDraggingInfo {
+  dragging?: boolean | null;
+  track?: string | null;
+  position?: number | null;
+  downPosX?: number | null;
+}
+
 /**
  * Vamp update input
  */
@@ -1494,6 +1550,7 @@ export interface VampUpdateInput {
   bpm?: number | null;
   beatsPerBar?: number | null;
   metronomeSound?: string | null;
+  allowedUsers?: string[] | null;
 }
 
 //==============================================================

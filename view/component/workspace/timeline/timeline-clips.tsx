@@ -2,9 +2,7 @@ import * as React from "react";
 
 import styles = require("./timeline.less");
 import Clip from "../clip/clip";
-import VerticalSpacer from "../../element/vertical-spacer";
 import Track from "./track";
-import { MutableRefObject } from "react";
 
 interface TimelineClipsProps {
   tracks: { id: string }[];
@@ -21,6 +19,11 @@ interface TimelineClipsProps {
       localFilename: string;
       duration: number;
     };
+    draggingInfo: {
+      dragging?: boolean;
+      track?: string;
+      position?: number;
+    };
   }[];
   tracksRef: (node: HTMLDivElement) => void;
 }
@@ -31,17 +34,31 @@ const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({
   tracksRef
 }: TimelineClipsProps) => {
   const tracksMarkup = tracks.map((track, trackIndex) => {
-    const trackClips = clips
-      .filter(clip => clip.track.id === track.id)
-      .map((clip, clipIndex) => {
-        return <Clip key={clipIndex} clip={clip}></Clip>;
-      });
-    return <Track key={trackIndex}>{trackClips}</Track>;
+    return (
+      <Track index={trackIndex} key={trackIndex} track={track}>
+        <div></div>
+      </Track>
+    );
+  });
+
+  const clipsMarkup = clips.map((clip, clipIndex) => {
+    const trackIndex = tracks.findIndex(track => track.id === clip.track.id);
+    return (
+      <Clip
+        index={clipIndex}
+        trackIndex={trackIndex}
+        key={clip.id}
+        clip={clip}
+      ></Clip>
+    );
   });
 
   return (
     <div className={styles["timeline-clips"]} ref={tracksRef}>
-      {tracksMarkup}
+      <>
+        {clipsMarkup}
+        {tracksMarkup}
+      </>
     </div>
   );
 };
