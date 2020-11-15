@@ -2,22 +2,16 @@ import * as React from "react";
 
 import * as styles from "./cab.less";
 
-import { useQuery, useMutation } from "react-apollo";
+import { useQuery } from "@apollo/client";
 import { PLAYING_CLIENT } from "../../../state/queries/vamp-queries";
-import {
-  PLAY_CLIENT,
-  PAUSE_CLIENT,
-  STOP_CLIENT,
-  RECORD_CLIENT
-} from "../../../state/queries/vamp-mutations";
-import {
-  PauseClient,
-  StopClient,
-  RecordClient,
-  PlayClient,
-  PlayingClient
-} from "../../../state/apollotypes";
+import { PlayingClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
+import {
+  usePlay,
+  usePause,
+  useStop,
+  useRecord
+} from "../../../state/vamp-state-hooks";
 
 /**
  * This is the basic record button that shows up when the Vamp is empty.
@@ -25,10 +19,10 @@ import { useCurrentVampId } from "../../../react-hooks";
 const CabNew: React.FunctionComponent = () => {
   const vampId = useCurrentVampId();
 
-  const [play] = useMutation<PlayClient>(PLAY_CLIENT);
-  const [pause] = useMutation<PauseClient>(PAUSE_CLIENT);
-  const [stop] = useMutation<StopClient>(STOP_CLIENT);
-  const [record] = useMutation<RecordClient>(RECORD_CLIENT);
+  const play = usePlay();
+  const pause = usePause();
+  const stop = useStop();
+  const record = useRecord();
 
   const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
     variables: { vampId }

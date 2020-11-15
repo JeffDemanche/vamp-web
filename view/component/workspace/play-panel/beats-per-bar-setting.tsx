@@ -1,9 +1,6 @@
 import * as React from "react";
-
+import { gql, useQuery, useMutation } from "@apollo/client";
 import { SettingNumeric } from "../../element/setting-numeric";
-
-import { gql } from "apollo-boost";
-import { useQuery, useMutation } from "react-apollo";
 import { useCurrentVampId } from "../../../react-hooks";
 import {
   BeatsPerBarClient,

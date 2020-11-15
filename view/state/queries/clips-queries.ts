@@ -1,4 +1,4 @@
-import { gql } from "apollo-boost";
+import { gql } from "@apollo/client";
 
 export const GET_CLIPS_SERVER = gql`
   query GetClipsServer($vampId: ID!) {
@@ -17,15 +17,15 @@ export const GET_CLIPS_SERVER = gql`
       audio {
         id
         filename
-        localFilename @client
-        storedLocally @client
-        duration @client
+        # localFilename @client
+        # storedLocally @client
+        # duration @client
       }
-      draggingInfo @client {
-        dragging @client
-        track @client
-        position @client
-      }
+      # draggingInfo @client {
+      #   dragging @client
+      #   track @client
+      #   position @client
+      # }
     }
   }
 `;
@@ -60,7 +60,6 @@ export const GET_CLIENT_CLIPS_CLIENT = gql`
     # loadedVampId @client @export(as: "vampId")
     vamp(id: $vampId) @client {
       clientClips @client {
-        id @client
         start @client
         audioStoreKey @client
         realClipId @client

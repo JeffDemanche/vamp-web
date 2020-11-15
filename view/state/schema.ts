@@ -5,8 +5,7 @@
  * cache to change, so we define that logic here.
  */
 
-import { gql, Resolvers } from "apollo-boost";
-import { InMemoryCache } from "apollo-cache-inmemory";
+import { gql, Resolvers, InMemoryCache } from "@apollo/client";
 
 /**
  * Local schema.
@@ -20,7 +19,7 @@ export const typeDefs = gql`
 
   extend type Query {
     loadedVampId: String
-    empty: Boolean
+    # empty: Boolean
   }
 
   extend type Mutation {
@@ -34,18 +33,6 @@ export const typeDefs = gql`
     repeat: Boolean
     setTemporalZoom(temporalZoom: Float!, cumulative: Boolean): Boolean
     setViewLeft(viewLeft: Float!, cumulative: Boolean): Boolean
-
-    # Clip mutations
-    setClipDraggingInfo(clipId: ID!, info: ClipDraggingInfo!): Boolean
-
-    # setClipDragging(clipId: ID!, dragging: Boolean!): Boolean
-    # setClipDraggingTrack(clipId: ID!, trackId: ID): Boolean
-
-    # Client clip mutations
-    beginClientClip(audioStoreKey: String!, start: Float!): ClientClip
-    endClientClip(audioStoreKey: String!): Boolean
-    handOffClientClip(audioStoreKey: String!, realClipId: ID): Boolean
-    removeClientClip(audioStoreKey: String!): Boolean
   }
 
   extend type Vamp {
@@ -66,8 +53,6 @@ export const typeDefs = gql`
     recording: Boolean
 
     clientClips: [ClientClip]
-
-    viewState: ViewState
   }
 
   input ClipDraggingInfo {
@@ -81,26 +66,13 @@ export const typeDefs = gql`
     referenceId: ID
 
     draggingInfo: ClipDraggingInfo
-
-    # dragging: Boolean
-    # draggingTrack: ID
   }
 
   ###
   # Client-side types
   ###
 
-  # DEPRECATED (not used anymore)
-  type ViewState {
-    # Seconds per 100 horizontal pixels.
-    temporalZoom: Float
-
-    # Position in seconds of the left view position.
-    viewLeft: Float
-  }
-
   type ClientClip {
-    id: ID!
     start: Float!
     audioStoreKey: String!
     realClipId: ID

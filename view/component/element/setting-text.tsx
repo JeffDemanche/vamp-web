@@ -64,7 +64,7 @@ export const SettingText: React.FunctionComponent<SettingTextProps> = ({
           ref={wrapperRef}
           type="text"
           onKeyPress={(e): void => {
-            if (e.which == 13) {
+            if (e.keyCode == 13) {
               onOutsideClick(e.target as HTMLInputElement);
               setEditing(false);
             }

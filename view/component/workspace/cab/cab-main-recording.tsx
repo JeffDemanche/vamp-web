@@ -1,25 +1,17 @@
 import * as React from "react";
 import * as styles from "./cab.less";
-import gql from "graphql-tag";
+import { gql, useQuery } from "@apollo/client";
 import {
   useCurrentVampId,
   useTrueTime,
   useCurrentUserId
 } from "../../../react-hooks";
-import { useQuery } from "react-apollo";
 import { CabMainRecording } from "../../../state/apollotypes";
-import { useWorkspaceLeft } from "../../../workspace-hooks";
-import { TemporalZoomContext } from "../workspace-content";
-import { useContext } from "react";
+import { useWorkspaceLeft, useWorkspaceWidth } from "../../../workspace-hooks";
 import { Oscilloscope } from "../oscilloscope/oscilloscope";
 
 const CAB_MAIN_RECORDING_QUERY = gql`
   query CabMainRecording($vampId: ID!, $userId: ID!) {
-    vamp(id: $vampId) @client {
-      viewState @client {
-        temporalZoom @client
-      }
-    }
     userInVamp(vampId: $vampId, userId: $userId) @client {
       id @client
       cab @client {
@@ -39,7 +31,6 @@ const CabMainRecording: React.FC = () => {
 
   const {
     data: {
-      vamp: { viewState },
       userInVamp: { cab }
     }
   } = useQuery<CabMainRecording>(CAB_MAIN_RECORDING_QUERY, {
@@ -47,17 +38,17 @@ const CabMainRecording: React.FC = () => {
   });
 
   const leftFn = useWorkspaceLeft();
+  const widthFn = useWorkspaceWidth();
+
   const left = leftFn(cab.start);
 
   const trueTime = useTrueTime(200);
 
-  const temporalZoom = useContext(TemporalZoomContext);
-  const widthPx = `${100 * (trueTime - cab.start) * temporalZoom}px`;
-  const widthNum = 100 * (trueTime - cab.start) * viewState.temporalZoom;
+  const widthNum = widthFn(trueTime - cab.start);
 
   return (
     <div
-      style={{ left, width: widthPx }}
+      style={{ left, width: `${widthNum}px` }}
       className={styles["cab-main-recording"]}
     >
       <Oscilloscope

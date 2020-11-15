@@ -2,10 +2,8 @@ import { useEffect } from "react";
 import { audioStore } from "./audio-store";
 import { Scheduler, WorkspaceEvent } from "./scheduler";
 import { usePrevious } from "../react-hooks";
-import gql from "graphql-tag";
-import { useMutation } from "react-apollo";
-import { RemoveClientClip } from "../state/apollotypes";
 import _ = require("underscore");
+import { useRemoveClientClip } from "../state/client-clip-state-hooks";
 
 interface Clip {
   id: string;
@@ -17,7 +15,6 @@ interface Clip {
 }
 
 interface ClientClip {
-  id: string;
   start: number;
   audioStoreKey: string;
   realClipId: string;
@@ -30,12 +27,6 @@ interface ClipPlayerProps {
   audioStore: typeof audioStore;
   scheduler: Scheduler;
 }
-
-const REMOVE_CLIENT_CLIP = gql`
-  mutation RemoveClientClip($audioStoreKey: String!) {
-    removeClientClip(audioStoreKey: $audioStoreKey) @client
-  }
-`;
 
 const createClipEvent = (
   id: string,
@@ -106,7 +97,7 @@ const onClientClipRemoved = (
   clientClip: ClientClip,
   scheduler: Scheduler
 ): void => {
-  scheduler.removeEvent(clientClip.id);
+  scheduler.removeEvent(clientClip.audioStoreKey);
 };
 
 /**
@@ -118,7 +109,7 @@ const onClipChanged = (
   clip: Clip,
   scheduler: Scheduler,
   clientClips: ClientClip[],
-  removeClientClip: any
+  removeClientClip: (audioStoreKey: string) => boolean
 ): void => {
   if (!prevClip.audio.storedLocally && clip.audio.storedLocally) {
     // Clip audio was just downloaded.
@@ -128,9 +119,7 @@ const onClipChanged = (
     // clip.
     const clientClip = _.findWhere(clientClips, { realClipId: clip.id });
     if (clientClip) {
-      removeClientClip({
-        variables: { audioStoreKey: clientClip.audioStoreKey }
-      });
+      removeClientClip(clientClip.audioStoreKey);
     }
   }
 };
@@ -145,8 +134,13 @@ const onClientClipChanged = (
   scheduler: Scheduler
 ): void => {
   if (prevClientClip.inProgress && !clientClip.inProgress) {
+    console.log("adding client clip event");
     scheduler.addEvent(
-      createClipEvent(clientClip.id, clientClip.start, clientClip.audioStoreKey)
+      createClipEvent(
+        clientClip.audioStoreKey,
+        clientClip.start,
+        clientClip.audioStoreKey
+      )
     );
   }
 };
@@ -164,7 +158,7 @@ const ClipPlayer = ({
 }: ClipPlayerProps): JSX.Element => {
   const prev = usePrevious({ clips, clientClips });
 
-  const [removeClientClip] = useMutation<RemoveClientClip>(REMOVE_CLIENT_CLIP);
+  const removeClientClip = useRemoveClientClip();
 
   // This call creates audio scheduler events for clips that have been retrieved
   // from the server via query or subscription.
@@ -180,10 +174,10 @@ const ClipPlayer = ({
       });
 
       const clientClipIds: Set<string> = new Set(
-        clientClips.map(clientClip => clientClip.id)
+        clientClips.map(clientClip => clientClip.audioStoreKey)
       );
       prev.clientClips.forEach(prevClientClip => {
-        if (!clientClipIds.has(prevClientClip.id)) {
+        if (!clientClipIds.has(prevClientClip.audioStoreKey)) {
           // prevClientClip got removed.
           onClientClipRemoved(prevClientClip, scheduler);
         }
@@ -199,10 +193,10 @@ const ClipPlayer = ({
       });
 
       const prevClientClipIds: Set<string> = new Set(
-        prev.clientClips.map(clientClip => clientClip.id)
+        prev.clientClips.map(clientClip => clientClip.audioStoreKey)
       );
       clientClips.forEach(clientClip => {
-        if (!prevClientClipIds.has(clientClip.id)) {
+        if (!prevClientClipIds.has(clientClip.audioStoreKey)) {
           // clientClip got added.
           onClientClipAdded(clientClip, scheduler);
         }
@@ -226,7 +220,7 @@ const ClipPlayer = ({
 
       clientClips.forEach(clientClip => {
         const prevClientClip = _.findWhere(prev.clientClips, {
-          id: clientClip.id
+          audioStoreKey: clientClip.audioStoreKey
         });
         if (clientClip && prevClientClip) {
           if (!_.isEqual(clientClip, prevClientClip)) {

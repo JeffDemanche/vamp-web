@@ -1,28 +1,20 @@
 import * as React from "react";
-import { useMutation, useQuery } from "react-apollo";
-import {
-  PLAY_CLIENT,
-  PAUSE_CLIENT,
-  STOP_CLIENT,
-  RECORD_CLIENT,
-  SEEK_CLIENT
-} from "../state/queries/vamp-mutations";
+import { useQuery } from "@apollo/client";
 import {
   PLAYING_CLIENT,
   RECORDING_CLIENT
 } from "../state/queries/vamp-queries";
-import {
-  PlayClient,
-  StopClient,
-  RecordClient,
-  Seek,
-  PauseClient,
-  PlayingClient,
-  RecordingClient
-} from "../state/apollotypes";
+import { PlayingClient, RecordingClient } from "../state/apollotypes";
 import { useCurrentVampId } from "../react-hooks";
 import { useEffect, useState } from "react";
 import { vampSpeechRecognizer } from "./vamp-speech-recognizer";
+import {
+  usePause,
+  usePlay,
+  useRecord,
+  useSeek,
+  useStop
+} from "../state/vamp-state-hooks";
 
 interface SpeechControlTypes {
   children: React.ReactNode;
@@ -46,11 +38,13 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
   }
 
   const vampId = useCurrentVampId();
-  const [play] = useMutation<PlayClient>(PLAY_CLIENT);
-  const [pause] = useMutation<PauseClient>(PAUSE_CLIENT);
-  const [stop] = useMutation<StopClient>(STOP_CLIENT);
-  const [record] = useMutation<RecordClient>(RECORD_CLIENT);
-  const [seek] = useMutation<Seek>(SEEK_CLIENT);
+
+  const play = usePlay();
+  const pause = usePause();
+  const stop = useStop();
+  const record = useRecord();
+  const seek = useSeek();
+
   const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
     variables: { vampId }
   });
@@ -92,7 +86,7 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
     } else if (transcript.includes("stop")) {
       if (data.vamp.playing) {
         if (recordingData.vamp.recording) {
-          seek({ variables: { time: 0 } });
+          seek(0);
         } else {
           stop();
         }

@@ -2,32 +2,34 @@
  * A place for custom React hooks.
  */
 import * as React from "react";
-import { useQuery } from "react-apollo";
-import { gql } from "apollo-boost";
+import * as io from "socket.io-client";
+import * as Peer from "simple-peer";
+import { gql, useQuery } from "@apollo/client";
 import { useState, useEffect, useRef } from "react";
+
 import { LOCAL_VAMP_ID_CLIENT } from "./state/queries/vamp-queries";
 import { TrueTimeClient } from "./state/apollotypes";
 import { audioStore } from "./audio/audio-store";
-import * as io from "socket.io-client";
-import * as Peer from "simple-peer";
 import { vampAudioContext } from "./audio/vamp-audio-context";
 import { vampAudioStream } from "./audio/vamp-audio-stream";
-// import { vampVideoStream } from "./video/vamp-video-stream";
+import { loadedVampIdVar } from "./state/cache";
 
 export const useCurrentVampId = (): string => {
-  const { data } = useQuery(LOCAL_VAMP_ID_CLIENT);
-  return data.loadedVampId;
+  return loadedVampIdVar();
 };
 
 export const useCurrentUserId = (): string => {
-  const { data } = useQuery(gql`
-    query GetCurrentUserId {
-      me @client {
-        id
+  const { data } = useQuery(
+    gql`
+      query GetCurrentUserId {
+        me {
+          id
+        }
       }
-    }
-  `);
-  if (data.me == null) {
+    `,
+    { fetchPolicy: "cache-first" }
+  );
+  if (!data || data.me == null) {
     return null;
   }
   return data.me.id;

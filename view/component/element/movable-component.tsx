@@ -149,7 +149,6 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
   }, [initialMoving]);
 
   useEffect(() => {
-    console.log("zone", prevZone, zone);
     if (prevZone && zone) {
       if (zone.id !== prevZone.id) {
         // zone is being set properly but this hook isn't catching it properly.

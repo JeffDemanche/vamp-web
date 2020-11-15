@@ -1,7 +1,6 @@
 import { Scheduler } from "./scheduler";
 import { useEffect, useRef } from "react";
-import { ChildProps, graphql, useQuery } from "react-apollo";
-import { gql } from "apollo-boost";
+import { gql, useQuery } from "@apollo/client";
 import { MetronomeClient } from "../state/apollotypes";
 import { useCurrentVampId } from "../react-hooks";
 

@@ -1,6 +1,7 @@
 import * as React from "react";
 
-import { Query, QueryResult } from "react-apollo";
+import { QueryResult } from "@apollo/client";
+import { Query } from "@apollo/client/react/components";
 
 import * as styles from "./header.less";
 import { VampLogo } from "./logo";
@@ -33,7 +34,7 @@ const VampHeader: React.FunctionComponent = () => {
       <div className={styles["header-right-panel"]}>
         <Query query={ME_CLIENT}>
           {({ loading, error, data }: QueryResult<MeClient>): JSX.Element => {
-            if (loading) {
+            if (loading || !data) {
               return <div>Loading...</div>;
             } else {
               if (data.me == null) {

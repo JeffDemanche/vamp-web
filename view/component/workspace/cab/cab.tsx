@@ -3,7 +3,6 @@ import * as React from "react";
 import { CabNew } from "./cab-new";
 import { CabNewRecording } from "./cab-new-recording";
 import CabMain from "./cab-main";
-import VerticalSpacer from "../../element/vertical-spacer";
 import CabMainRecording from "./cab-main-recording";
 
 /**

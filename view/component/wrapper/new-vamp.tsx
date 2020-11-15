@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { gql } from "apollo-boost";
-import { useMutation } from "react-apollo";
+import { gql, useMutation } from "@apollo/client";
 import { useHistory } from "react-router-dom";
 import { vampURL } from "../../scripts/urls";
 

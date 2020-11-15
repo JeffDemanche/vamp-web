@@ -1,7 +1,7 @@
 import * as React from "react";
 import { VampButton } from "../../element/button";
 import { REMOVE_CLIP_SERVER } from "../../../state/queries/clips-mutations";
-import { useMutation } from "react-apollo";
+import { useMutation } from "@apollo/client";
 import { RemoveClipServer } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
 

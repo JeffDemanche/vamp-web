@@ -1,4 +1,4 @@
-import gql from "graphql-tag";
+import { gql } from "@apollo/client";
 
 export const REMOVE_CLIP_SERVER = gql`
   mutation RemoveClipServer($vampId: ID!, $clipId: ID!) {

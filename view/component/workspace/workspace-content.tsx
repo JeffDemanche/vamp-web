@@ -1,13 +1,11 @@
 import * as React from "react";
-
+import { gql, useQuery } from "@apollo/client";
 import * as styles from "./workspace-content.less";
 import { useCurrentVampId, useScrollTimeout } from "../../react-hooks";
 import { WorkspaceAudio } from "../../audio/vamp-audio";
 import { PlayPanel } from "./play-panel/play-panel";
 import Timeline from "./timeline/timeline";
 import { useRef, useState, useCallback, useEffect } from "react";
-import gql from "graphql-tag";
-import { useQuery } from "react-apollo";
 import { WorkspaceContentClient } from "../../state/apollotypes";
 import { useWindowDimensions } from "../../workspace-hooks";
 
