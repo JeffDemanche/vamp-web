@@ -1,34 +1,27 @@
 import * as React from "react";
 
 import * as styles from "./play-stop-button.less";
-import { useQuery, useMutation } from "react-apollo";
+import { useQuery } from "@apollo/client";
 import {
   PLAYING_CLIENT,
   RECORDING_CLIENT
 } from "../../../state/queries/vamp-queries";
-import {
-  PLAY_CLIENT,
-  PAUSE_CLIENT,
-  STOP_CLIENT,
-  SEEK_CLIENT
-} from "../../../state/queries/vamp-mutations";
-import {
-  RecordingClient,
-  PlayingClient,
-  PlayClient,
-  PauseClient,
-  StopClient,
-  Seek
-} from "../../../state/apollotypes";
+import { RecordingClient, PlayingClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
+import {
+  usePlay,
+  usePause,
+  useStop,
+  useSeek
+} from "../../../state/vamp-state-hooks";
 
 const PlayStopButton: React.FunctionComponent = () => {
   const vampId = useCurrentVampId();
 
-  const [play] = useMutation<PlayClient>(PLAY_CLIENT);
-  const [pause] = useMutation<PauseClient>(PAUSE_CLIENT);
-  const [stop] = useMutation<StopClient>(STOP_CLIENT);
-  const [seek] = useMutation<Seek>(SEEK_CLIENT);
+  const play = usePlay();
+  const pause = usePause();
+  const stop = useStop();
+  const seek = useSeek();
 
   const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
     variables: { vampId }
@@ -44,7 +37,7 @@ const PlayStopButton: React.FunctionComponent = () => {
   const handleClick = (): void => {
     if (data.vamp.playing) {
       if (recordingData.vamp.recording) {
-        seek({ variables: { time: 0 } });
+        seek(0);
       } else {
         stop();
       }

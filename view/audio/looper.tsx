@@ -9,16 +9,16 @@
  */
 
 import { useEffect } from "react";
-import { useMutation, useQuery } from "react-apollo";
+import { useQuery } from "@apollo/client";
 import {
   useTrueTime,
   useCurrentVampId,
   useCurrentUserId
 } from "../react-hooks";
-import { SEEK_CLIENT } from "../state/queries/vamp-mutations";
 import { CabClient } from "../state/apollotypes";
 import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
 import { useIsEmpty } from "../workspace-hooks";
+import { useSeek } from "../state/vamp-state-hooks";
 
 interface LooperProps {
   start: number;
@@ -54,7 +54,8 @@ const Looper = ({
   // TODO If there's lag on playback this is a potential source.
   const TIME_UPDATE_FREQ_MS = 5;
   const trueTime = useTrueTime(TIME_UPDATE_FREQ_MS);
-  const [apolloSeek] = useMutation(SEEK_CLIENT);
+
+  const apolloSeek = useSeek();
 
   // TODO We can update these to enable/disable looping in the cab.
   const realStart = cab.start;
@@ -72,7 +73,7 @@ const Looper = ({
       trueTime >= realEnd &&
       !empty
     ) {
-      apolloSeek({ variables: { time: realStart } });
+      apolloSeek(realStart);
     }
   }, [trueTime]);
 

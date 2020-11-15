@@ -1,7 +1,7 @@
 import * as React from "react";
 import { VampButton } from "../element/button";
 import { VampPopover } from "../element/popover";
-import { useMutation } from "react-apollo";
+import { useMutation } from "@apollo/client";
 import { NewVamp } from "../wrapper/new-vamp";
 import { User } from "../../state/queries/user-queries";
 import { LOGOUT_SERVER } from "../../state/queries/user-mutations";

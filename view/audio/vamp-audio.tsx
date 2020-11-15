@@ -12,31 +12,21 @@ import Metronome from "./metronome";
 import Recorder from "./recorder";
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
-import { gql } from "apollo-boost";
-import { useApolloClient, useMutation, useQuery } from "react-apollo";
+import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { useCurrentUserId } from "../react-hooks";
 import { audioStore } from "./audio-store";
 import { vampAudioContext } from "./vamp-audio-context";
 import ObjectID from "bson-objectid";
 import ClipPlayer from "./clip-player";
 import Looper from "./looper";
-import {
-  PLAY_CLIENT,
-  STOP_CLIENT,
-  SET_LOOP
-} from "../state/queries/vamp-mutations";
-import {
-  WorkspaceAudioClient,
-  BeginClientClip,
-  AddClip,
-  StopClient,
-  PlayClient,
-  CabClient,
-  SetLoopClient,
-  EndClientClip
-} from "../state/apollotypes";
+import { WorkspaceAudioClient, AddClip, CabClient } from "../state/apollotypes";
 import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
 import { vampAudioStream } from "./vamp-audio-stream";
+import { useSetLoop, usePlay, useStop } from "../state/vamp-state-hooks";
+import {
+  useEndClientClip,
+  useBeginClientClip
+} from "../state/client-clip-state-hooks";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!) {
@@ -68,7 +58,6 @@ const WORKSPACE_AUDIO_CLIENT = gql`
       }
 
       clientClips @client {
-        id @client
         start @client
         audioStoreKey @client
         realClipId @client
@@ -104,22 +93,6 @@ const ADD_CLIP_SERVER = gql`
 interface WorkspaceAudioProps {
   vampId: string;
 }
-
-const BEGIN_CLIENT_CLIP = gql`
-  mutation BeginClientClip($audioStoreKey: String!, $start: Float!) {
-    beginClientClip(audioStoreKey: $audioStoreKey, start: $start) @client {
-      id @client
-      audioStoreKey @client
-      start @client
-    }
-  }
-`;
-
-const END_CLIENT_CLIP = gql`
-  mutation EndClientClip($audioStoreKey: String!) {
-    endClientClip(audioStoreKey: $audioStoreKey) @client
-  }
-`;
 
 const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const startAudioContext = (): AudioContext => {
@@ -164,15 +137,17 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     userInVamp: { cab: { cabStart: 0, cabDuration: 0 } }
   };
 
-  const [apolloPlay] = useMutation<PlayClient>(PLAY_CLIENT);
-  const [apolloStop] = useMutation<StopClient>(STOP_CLIENT);
-  const [setLoop] = useMutation<SetLoopClient>(SET_LOOP);
-
-  const [beginClientClip] = useMutation<BeginClientClip>(BEGIN_CLIENT_CLIP);
-  const [endClientClip] = useMutation<EndClientClip>(END_CLIENT_CLIP);
   const [addClipServer] = useMutation<AddClip>(ADD_CLIP_SERVER);
 
-  const [clientClipRefID, setClientClipRefID] = useState<string>(null);
+  const apolloPlay = usePlay();
+  const apolloStop = useStop();
+  const setLoop = useSetLoop();
+  const beginClientClip = useBeginClientClip();
+  const endClientClip = useEndClientClip();
+
+  const [clientClipAudioStoreKey, setClientClipAudioStoreKey] = useState<
+    string
+  >(null);
 
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
@@ -190,13 +165,11 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         console.info("Note: Started recording while not playing.");
       }
 
-      const referenceId = ObjectID.generate();
-      setClientClipRefID(referenceId);
-      recorder.startRecording(referenceId);
+      const clientClipAudioStoreKey = ObjectID.generate();
+      setClientClipAudioStoreKey(clientClipAudioStoreKey);
+      recorder.startRecording(clientClipAudioStoreKey);
 
-      await beginClientClip({
-        variables: { audioStoreKey: referenceId, start }
-      });
+      beginClientClip(start, clientClipAudioStoreKey);
     } else {
       // TODO Give a user-facing warning about microphone access.
       console.error("No microhpone access granted.");
@@ -251,17 +224,17 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       // this clip client-side and then updated it later when we get the
       // subscription back from the server.
       const file = await recorder.stopRecording();
-      if (clientClipRefID) {
+      if (clientClipAudioStoreKey) {
         addClipServer({
           variables: {
             start,
             vampId,
             userId,
             file,
-            referenceId: clientClipRefID
+            referenceId: clientClipAudioStoreKey
           }
         });
-        endClientClip({ variables: { audioStoreKey: clientClipRefID } });
+        endClientClip(clientClipAudioStoreKey);
       }
     } else {
       vampAudioStream.sendAlert();
@@ -292,9 +265,20 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         end = clip.start + clip.audio.duration;
       }
     });
-    apolloClient.writeData({
-      data: { vamp: { __typename: "Vamp", id: vampId, start, end } }
+    apolloClient.cache.modify({
+      id: apolloClient.cache.identify({ __typename: "Vamp", id: vampId }),
+      fields: {
+        start(): number {
+          return start;
+        },
+        end(): number {
+          return end;
+        }
+      }
     });
+    // apolloClient.writeData({
+    //   data: { vamp: { __typename: "Vamp", id: vampId, start, end } }
+    // });
   };
 
   // Run on every state update. So whenever the props fed to this component from
@@ -343,7 +327,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     const empty =
       (clips === undefined || clips.length == 0) &&
       (clientClips === undefined || clientClips.length == 0);
-    setLoop({ variables: { loop: !empty } });
+    setLoop(!empty);
 
     // Process clips' audio and do stuff that requires access to the metadata
     // from the audio.

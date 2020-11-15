@@ -36,6 +36,15 @@ request might work if we were using REST instead of GraphQL.
 In addition to querying the server, Apollo lets us cache the state of the app
 locally, and query that cache using GraphQL.
 
+Most of the querying from the server happens in `vamp-provider` and
+`user-in-vamp-provider`. We then query the local cache from individual
+components by running queries using the `@client` directive.
+
+As of Apollo Client 3, there's no local mutations. Instead, we can write to the
+cache directly, which we do using React hooks. Check out the Apollo
+documentation for how this cache modification works, and see places like
+`vamp-state-hooks` for examples.
+
 ## Coordinating between client cache and server
 
 This is the most confusing part of Apollo, IMO. We have a local cache that
@@ -52,8 +61,3 @@ handles the state of our React App. This is really good because it means
 whatever updates we decide to recieve from the server (including GraphQL
 subscriptions) are automatically reflected in React components that rely on that
 data.
-
-As for the "fetch policy" of mutations, see [this GitHub
-page](https://github.com/apollographql/apollo-client/issues/4577), which shines
-some light on how mutations talk to both the server and the client. The takeaway
-is that **by default, mutations call the server first, and then the client**.

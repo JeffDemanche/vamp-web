@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Query, QueryResult } from "react-apollo";
+import { QueryResult } from "@apollo/client";
+import { Query } from "@apollo/client/react/components";
 import { User, ME_CLIENT } from "../../state/queries/user-queries";
 import { MeClient } from "../../state/apollotypes";
 
@@ -98,7 +99,7 @@ export const ViewHome: React.FunctionComponent = () => {
   return (
     <Query query={ME_CLIENT}>
       {({ loading, error, data }: QueryResult<MeClient>): JSX.Element => {
-        if (loading) {
+        if (!data || loading) {
           return <ViewLoading></ViewLoading>;
         } else if (error) {
           return <ViewNotFound></ViewNotFound>;

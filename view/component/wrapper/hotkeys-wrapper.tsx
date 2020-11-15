@@ -1,28 +1,19 @@
 import { GlobalHotKeys } from "react-hotkeys";
 import * as React from "react";
-import { useMutation, useQuery } from "react-apollo";
-import { gql } from "apollo-boost";
-import {
-  PLAY_CLIENT,
-  PAUSE_CLIENT,
-  STOP_CLIENT,
-  RECORD_CLIENT,
-  SEEK_CLIENT
-} from "../../state/queries/vamp-mutations";
+import { useQuery } from "@apollo/client";
 import {
   PLAYING_CLIENT,
   RECORDING_CLIENT
 } from "../../state/queries/vamp-queries";
-import {
-  PlayClient,
-  StopClient,
-  RecordClient,
-  Seek,
-  PauseClient,
-  PlayingClient,
-  RecordingClient
-} from "../../state/apollotypes";
+import { PlayingClient, RecordingClient } from "../../state/apollotypes";
 import { useCurrentVampId } from "../../react-hooks";
+import {
+  usePause,
+  usePlay,
+  useRecord,
+  useSeek,
+  useStop
+} from "../../state/vamp-state-hooks";
 
 interface HotKeysTypes {
   children: React.ReactNode;
@@ -39,12 +30,11 @@ export const HotKeysWrapper: React.FC<HotKeysTypes> = (
     RECORD: "r",
     MUSICAL_TYPING: "cmd+k"
   };
-
-  const [play] = useMutation<PlayClient>(PLAY_CLIENT);
-  const [pause] = useMutation<PauseClient>(PAUSE_CLIENT);
-  const [stop] = useMutation<StopClient>(STOP_CLIENT);
-  const [record] = useMutation<RecordClient>(RECORD_CLIENT);
-  const [seek] = useMutation<Seek>(SEEK_CLIENT);
+  const play = usePlay();
+  const pause = usePause();
+  const stop = useStop();
+  const record = useRecord();
+  const seek = useSeek();
 
   const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
     variables: { vampId }
@@ -58,7 +48,7 @@ export const HotKeysWrapper: React.FC<HotKeysTypes> = (
       const isPlaying = data.vamp.playing;
       if (isPlaying) {
         if (recordingData.vamp.recording) {
-          seek({ variables: { time: 0 } });
+          seek(0);
         } else {
           stop();
         }

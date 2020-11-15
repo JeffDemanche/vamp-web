@@ -3,8 +3,7 @@ import * as styles from "./playhead.less";
 import { useTrueTime, useCurrentVampId } from "../../react-hooks";
 import { PLAYING_CLIENT } from "../../state/queries/vamp-queries";
 import { PlayingClient } from "../../state/apollotypes";
-import { useQuery } from "react-apollo";
-import { play } from "../../redux/actions/workspace";
+import { useQuery } from "@apollo/client";
 
 interface PlayheadProps {
   containerStart: number;

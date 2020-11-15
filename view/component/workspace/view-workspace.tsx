@@ -7,7 +7,6 @@ import { SpeechControl } from "../../speech-recognition/speech-control-wrapper";
 import UserInVampProvider from "./user-in-vamp-provider";
 import { useCurrentUserId } from "../../react-hooks";
 import VampProvider from "./vamp-provider";
-import ClipsProvider from "./clips-provider";
 import { WorkspaceContent } from "./workspace-content";
 
 interface MatchParams {
@@ -29,15 +28,13 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = (
 
   return (
     <VampProvider vampId={vampId}>
-      <ClipsProvider vampId={vampId}>
-        <UserInVampProvider vampId={vampId} userId={userId}>
-          <HotKeysWrapper>
-            <SpeechControl>
-              <WorkspaceContent />
-            </SpeechControl>
-          </HotKeysWrapper>
-        </UserInVampProvider>
-      </ClipsProvider>
+      <UserInVampProvider vampId={vampId} userId={userId}>
+        <HotKeysWrapper>
+          <SpeechControl>
+            <WorkspaceContent />
+          </SpeechControl>
+        </HotKeysWrapper>
+      </UserInVampProvider>
     </VampProvider>
   );
 };

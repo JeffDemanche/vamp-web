@@ -2,7 +2,6 @@ import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 
 import * as styles from "./setting-select.less";
-import { fontsize } from "../../../__test__/test-utils/__mocks__/file-mock";
 
 interface SettingSelectProps {
   value: string;

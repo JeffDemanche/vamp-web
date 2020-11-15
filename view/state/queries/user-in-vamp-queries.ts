@@ -1,4 +1,4 @@
-import { gql } from "apollo-boost";
+import { gql } from "@apollo/client";
 
 export const USER_IN_VAMP_CLIENT = gql`
   query UserInVampClient($vampId: ID!, $userId: ID!) {

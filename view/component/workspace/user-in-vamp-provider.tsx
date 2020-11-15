@@ -1,13 +1,32 @@
 import * as React from "react";
-import { gql } from "apollo-boost";
-import { useMutation } from "react-apollo";
-import { GetOrAddUserInVamp, UserInVampClient } from "../../state/apollotypes";
+import { gql, useApolloClient, useQuery } from "@apollo/client";
 import { useEffect } from "react";
-import { USER_IN_VAMP_CLIENT } from "../../state/queries/user-in-vamp-queries";
+import { GetUserInVamp, UserInVampSubscription } from "../../state/apollotypes";
 
-const USER_IN_VAMP_MUTATION = gql`
-  mutation GetOrAddUserInVamp($vampId: ID!, $userId: ID!) {
-    getOrAddUserInVamp(vampId: $vampId, userId: $userId) {
+const USER_IN_VAMP_QUERY = gql`
+  query GetUserInVamp($vampId: ID!, $userId: ID!) {
+    userInVamp(vampId: $vampId, userId: $userId) {
+      id
+      vamp {
+        id
+      }
+      user {
+        id
+      }
+      cab {
+        user {
+          id
+        }
+        start
+        duration
+      }
+    }
+  }
+`;
+
+const USER_IN_VAMP_SUBSCRIPTION = gql`
+  subscription UserInVampSubscription($userId: ID!, $vampId: ID!) {
+    subUserInVamp(userId: $userId, vampId: $vampId) {
       id
       vamp {
         id
@@ -42,32 +61,35 @@ const UserInVampProvider: React.FunctionComponent<UserInVampProviderProps> = ({
   userId,
   children
 }: UserInVampProviderProps) => {
-  // This server sidemutation is actaully used more like a query, but will fall
-  // back to adding a UserInVamp to the database if one can't be found.
-  const [getOrAddUserInVamp] = useMutation<GetOrAddUserInVamp>(
-    USER_IN_VAMP_MUTATION
+  const client = useApolloClient();
+
+  const { subscribeToMore, data, error, loading } = useQuery<GetUserInVamp>(
+    USER_IN_VAMP_QUERY,
+    { variables: { userId, vampId } }
   );
 
+  if (data) {
+    client.writeQuery({
+      query: USER_IN_VAMP_QUERY,
+      variables: { userId, vampId },
+      data
+    });
+  }
+
   useEffect(() => {
-    // Since getOrAddUserInVamp is a mutation as opposed to a query, it won't
-    // automatically update the cache unless an entry with the same ID and type
-    // name already exists in the cache. So we have to do the cache write
-    // manually.
-    if (vampId != null && userId != null) {
-      getOrAddUserInVamp({
-        variables: { vampId, userId },
-        update: (cache, { data: { getOrAddUserInVamp } }) => {
-          cache.writeQuery<UserInVampClient>({
-            query: USER_IN_VAMP_CLIENT,
-            variables: { vampId, userId },
-            data: {
-              userInVamp: getOrAddUserInVamp
-            }
-          });
-        }
-      });
-    }
-  }, []);
+    subscribeToMore<UserInVampSubscription>({
+      document: USER_IN_VAMP_SUBSCRIPTION,
+      variables: { userId, vampId },
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) return prev;
+        return { userInVamp: subscriptionData.data.subUserInVamp };
+      }
+    });
+  });
+
+  if (error) {
+    console.error(error);
+  }
 
   return <>{children}</>;
 };

@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 
-import { ApolloProvider } from "@apollo/react-hooks";
+import { ApolloProvider, QueryResult } from "@apollo/client";
+import { Query } from "@apollo/client/react/components";
 import { client } from "../state/apollo";
 
 import { withRouter } from "react-router";
@@ -13,7 +14,6 @@ import { ViewWorkspace } from "./workspace/view-workspace";
 import { ViewLogin } from "./login/view-login";
 import { ViewNotFound } from "./not-found/view-not-found";
 
-import { Query, QueryResult } from "react-apollo";
 import { ME_SERVER } from "../state/queries/user-queries";
 import { ViewHome } from "./home/view-home";
 

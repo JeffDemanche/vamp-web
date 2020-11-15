@@ -16,7 +16,7 @@ class Recorder {
     audioBitsPerSecond: 128000,
     mimeType: "audio/webm"
   };
-  private _currentReferenceId: string;
+  private _currentAudioStoreKey: string;
 
   constructor(context: AudioContext) {
     const gotMedia = (stream: MediaStream): void => {
@@ -38,7 +38,7 @@ class Recorder {
    */
   private handleData = (e: BlobEvent): void => {
     if (e.data.size > 0) {
-      audioStore.appendBlob(this._currentReferenceId, e.data);
+      audioStore.appendBlob(this._currentAudioStoreKey, e.data);
     }
   };
 
@@ -53,9 +53,9 @@ class Recorder {
    * Start recording from the MediaRecorder object. The calling function should
    * check mediaRecorderInitialized() beforehand.
    */
-  startRecording = (referenceId: string): void => {
+  startRecording = (audioStoreKey: string): void => {
     this._recording = true;
-    this._currentReferenceId = referenceId;
+    this._currentAudioStoreKey = audioStoreKey;
     this.mediaRecorderInitialized && this._mediaRecorder.start();
 
     const bufferTimeout = (): void => {
@@ -79,13 +79,13 @@ class Recorder {
   stopRecording = async (): Promise<Blob> => {
     this.mediaRecorderInitialized && this._mediaRecorder.stop();
     this._recording = false;
-    const refId = this._currentReferenceId;
-    this._currentReferenceId = undefined;
+    const storeKey = this._currentAudioStoreKey;
+    this._currentAudioStoreKey = undefined;
     return new Promise(resolve => {
       const interval = setInterval(() => {
         clearInterval(interval);
 
-        resolve(audioStore.getStoredAudio(refId).data);
+        resolve(audioStore.getStoredAudio(storeKey).data);
       }, 10);
     });
   };

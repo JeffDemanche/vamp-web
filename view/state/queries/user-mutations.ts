@@ -1,4 +1,4 @@
-import { gql } from "apollo-boost";
+import { gql } from "@apollo/client";
 
 /**
  * Ends the user session on the server and returns the ID of the user that did

@@ -1,7 +1,4 @@
-import { ApolloClient } from "apollo-boost";
-
-import { GET_CLIPS_CLIENT } from "../state/queries/clips-queries";
-import { GetClipsClient } from "../state/apollotypes";
+import { ApolloClient } from "@apollo/client";
 
 interface StoredAudio {
   data: Blob;
@@ -63,22 +60,17 @@ class AudioStore {
 
       const audioBuffer = await audioContext.decodeAudioData(arrBuf);
 
-      const currentClips: GetClipsClient = apolloClient.readQuery({
-        query: GET_CLIPS_CLIENT,
-        variables: { vampId }
-      });
-
-      const newClips = [...currentClips.vamp.clips];
-      newClips.forEach((c, index) => {
-        if (c.id === clip.id) {
-          newClips[index].audio.storedLocally = true;
-          newClips[index].audio.duration = audioBuffer.duration;
+      const cache = apolloClient.cache;
+      cache.modify({
+        id: cache.identify({ __typename: "Audio", id: clip.audio.id }),
+        fields: {
+          storedLocally: (): boolean => {
+            return true;
+          },
+          duration: (): number => audioBuffer.duration
         }
       });
 
-      apolloClient.writeData({
-        data: { vamp: { __typename: "Vamp", id: vampId, clips: newClips } }
-      });
       this._store[clip.audio.id] = { data: blob };
     }
   }

@@ -1,8 +1,6 @@
 import * as React from "react";
-
+import { gql, useQuery } from "@apollo/client";
 import * as styles from "./timeline.less";
-import { gql } from "apollo-boost";
-import { useQuery } from "react-apollo";
 import { Cab } from "../cab/cab";
 import TimelineClips from "./timeline-clips";
 import { GET_CLIPS_CLIENT } from "../../../state/queries/clips-queries";

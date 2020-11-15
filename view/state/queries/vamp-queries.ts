@@ -1,4 +1,4 @@
-import { gql } from "apollo-boost";
+import { gql } from "@apollo/client";
 
 export const LOCAL_VAMP_ID_CLIENT = gql`
   query LocalVampIdClient {
@@ -18,37 +18,6 @@ export const RECORDING_CLIENT = gql`
   query RecordingClient($vampId: ID!) {
     vamp(id: $vampId) @client {
       recording @client
-    }
-  }
-`;
-
-export const VIEW_STATE_CLIENT = gql`
-  query ViewStateClient($vampId: ID!) {
-    vamp(id: $vampId) @client {
-      viewState @client {
-        viewLeft @client
-        temporalZoom @client
-      }
-    }
-  }
-`;
-
-export const VIEW_LEFT_CLIENT = gql`
-  query ViewLeftClient($vampId: ID!) {
-    vamp(id: $vampId) @client {
-      viewState @client {
-        viewLeft @client
-      }
-    }
-  }
-`;
-
-export const TEMPORAL_ZOOM_CLIENT = gql`
-  query TemporalZoomClient($vampId: ID!) {
-    vamp(id: $vampId) @client {
-      viewState @client {
-        temporalZoom @client
-      }
     }
   }
 `;

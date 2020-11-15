@@ -7,17 +7,7 @@ import Playhead from "../../element/playhead";
 import TrashButton from "./trash-button";
 import MovableComponent from "../../element/movable-component";
 import { DropZone } from "../workspace-content";
-import { useApolloClient, useMutation } from "react-apollo";
-import { useCurrentVampId } from "../../../react-hooks";
-import { gql } from "apollo-boost";
-import { SetClipDraggingInfo } from "../../../state/apollotypes";
 import { useState } from "react";
-
-const SET_CLIP_DRAGGING_INFO = gql`
-  mutation SetClipDraggingInfo($clipId: ID!, $info: ClipDraggingInfo!) {
-    setClipDraggingInfo(clipId: $clipId, info: $info) @client
-  }
-`;
 
 interface ClipProps {
   index: number;
@@ -46,16 +36,8 @@ const Clip: React.FunctionComponent<ClipProps> = ({
   trackIndex,
   clip
 }: ClipProps) => {
-  const vampId = useCurrentVampId();
-
   const widthFn = useWorkspaceWidth();
   const leftFn = useWorkspaceLeft();
-
-  const client = useApolloClient();
-
-  const [setClipDraggingInfo] = useMutation<SetClipDraggingInfo>(
-    SET_CLIP_DRAGGING_INFO
-  );
 
   const synced = clip.audio.filename !== "" ? "" : "not synced";
 
@@ -89,23 +71,6 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       onLeftChanged={(newLeft): void => {}}
       onAdjust={(active, resizing): void => {
         setRaised(active);
-        // if (!resizing) {
-        //   if (active) {
-        //     setClipDraggingInfo({
-        //       variables: {
-        //         clipId: clip.id,
-        //         info: { dragging: true }
-        //       }
-        //     });
-        //   } else {
-        //     setClipDraggingInfo({
-        //       variables: {
-        //         clipId: clip.id,
-        //         info: { dragging: false }
-        //       }
-        //     });
-        //   }
-        // }
       }}
       onClick={(click): void => {}}
       style={{

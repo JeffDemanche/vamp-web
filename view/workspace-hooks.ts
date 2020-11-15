@@ -1,4 +1,4 @@
-import { useQuery } from "react-apollo";
+import { gql, useQuery } from "@apollo/client";
 import { METRONOME_INFO_CLIENT } from "./state/queries/vamp-queries";
 import {
   ViewBoundsDataClient,
@@ -8,7 +8,6 @@ import {
 } from "./state/apollotypes";
 import { useCurrentVampId, useCurrentUserId } from "./react-hooks";
 import { useState, useEffect, useContext } from "react";
-import { gql } from "apollo-boost";
 import {
   TemporalZoomContext,
   HorizontalPosContext
@@ -118,7 +117,6 @@ export const useViewBounds = (): { start: number; end: number } => {
             }
           }
           clientClips @client {
-            id @client
             start @client
             duration @client
           }

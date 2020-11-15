@@ -1,17 +1,11 @@
-import { ApolloClient } from "apollo-client";
-import { InMemoryCache } from "apollo-cache-inmemory";
-import { WebSocketLink } from "apollo-link-ws";
-import { split } from "apollo-link";
-import { ApolloLink } from "apollo-link";
+import { WebSocketLink } from "@apollo/client/link/ws";
+import { onError } from "@apollo/client/link/error";
 import { createUploadLink } from "apollo-upload-client";
-import { getMainDefinition } from "apollo-utilities";
+import { getMainDefinition } from "@apollo/client/utilities";
+import { ApolloClient, split, ApolloLink } from "@apollo/client";
+
 import { typeDefs } from "./schema";
-import { onError } from "apollo-link-error";
-import defaults from "./defaults";
-import vampResolvers from "./resolvers/vamp";
-import clipResolvers from "./resolvers/clip";
-import audioResolvers from "./resolvers/audio";
-import _ = require("underscore");
+import { cache } from "./cache";
 
 /**
  * This *replaces* the httpLink while adding support for file uploads over GQL.
@@ -39,18 +33,21 @@ const terminatingLink = split(
   uploadLink
 );
 
-const cache = new InMemoryCache();
-
 const link = ApolloLink.from([
   onError(({ graphQLErrors, networkError }) => {
     if (graphQLErrors)
       graphQLErrors.forEach(({ message, locations, path }) =>
         console.log(
           `[GraphQL error]: Message: ${message},\
-           Location: ${locations}, Path: ${path}`
+           Location: ${locations.map(
+             l => `${l.column} ${l.line}`
+           )}\n Path:\n\t${path.join("\n\t")}`
         )
       );
-    if (networkError) console.log(`[Network error]: ${networkError}`);
+    if (networkError)
+      console.log(
+        `[Network error]: ${networkError.name} ${networkError.message}`
+      );
   }),
   terminatingLink
 ]);
@@ -58,11 +55,7 @@ const link = ApolloLink.from([
 const client = new ApolloClient({
   cache,
   link,
-  typeDefs,
-  resolvers: [vampResolvers, clipResolvers, audioResolvers]
+  typeDefs
 });
-
-// Initialize cache to default values.
-client.writeData({ data: defaults });
 
 export { client };

@@ -1,20 +1,13 @@
 import * as React from "react";
 
+import { gql, useQuery, useMutation, useApolloClient } from "@apollo/client";
 import * as styles from "./cab.less";
-import { useQuery, useMutation, useApolloClient } from "react-apollo";
 import {
   useCurrentVampId,
   useCurrentUserId,
   usePrevious
 } from "../../../react-hooks";
-import { gql } from "apollo-boost";
-import {
-  CabMainQuery,
-  UpdateCab,
-  StopClient,
-  RecordClient,
-  Seek
-} from "../../../state/apollotypes";
+import { CabMainQuery, UpdateCab } from "../../../state/apollotypes";
 import {
   useWorkspaceWidth,
   useWorkspaceLeft,
@@ -24,15 +17,11 @@ import {
 import MovableComponent from "../../element/movable-component";
 import Playhead from "../../element/playhead";
 import { useState, useEffect } from "react";
-import {
-  STOP_CLIENT,
-  RECORD_CLIENT,
-  SEEK_CLIENT
-} from "../../../state/queries/vamp-mutations";
+import { useRecord, useSeek, useStop } from "../../../state/vamp-state-hooks";
 
 const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
-    userInVamp(vampId: $vampId, userId: $userId) {
+    userInVamp(vampId: $vampId, userId: $userId) @client {
       id @client
       cab @client {
         user @client {
@@ -72,7 +61,7 @@ const UPDATE_CAB = gql`
  * The cab will also mutate to the server.
  */
 const CabMain: React.FC = () => {
-  const client = useApolloClient();
+  const { cache } = useApolloClient();
 
   const vampId = useCurrentVampId();
   const userId = useCurrentUserId();
@@ -87,9 +76,9 @@ const CabMain: React.FC = () => {
 
   const [updateCab] = useMutation<UpdateCab>(UPDATE_CAB);
 
-  const [stop] = useMutation<StopClient>(STOP_CLIENT);
-  const [record] = useMutation<RecordClient>(RECORD_CLIENT);
-  const [seek] = useMutation<Seek>(SEEK_CLIENT);
+  const stop = useStop();
+  const record = useRecord();
+  const seek = useSeek();
 
   const { data, loading, error } = useQuery<CabMainQuery>(CAB_MAIN_QUERY, {
     variables: { vampId, userId }
@@ -108,7 +97,7 @@ const CabMain: React.FC = () => {
 
   useEffect(() => {
     if (prevStart !== undefined) {
-      seek({ variables: { time: start } });
+      seek(start);
     }
   }, [start]);
 
@@ -125,12 +114,11 @@ const CabMain: React.FC = () => {
     updateCab({
       variables: { userId, vampId, duration, start }
     });
-    client.writeData({
-      data: {
-        userInVamp: {
-          __typename: "UserInVamp",
-          id: userInVampId,
-          cab: { __typename: "Cab", start, duration }
+    cache.modify({
+      id: cache.identify({ __typename: "UserInVamp", id: userInVampId }),
+      fields: {
+        cab: () => {
+          return { __typename: "Cab", start, duration };
         }
       }
     });
