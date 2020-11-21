@@ -9,6 +9,7 @@ interface TimelineClipsProps {
   clips: {
     id: string;
     start: number;
+    duration: number;
     track: {
       id: string;
     };

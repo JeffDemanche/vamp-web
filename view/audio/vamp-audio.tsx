@@ -48,6 +48,7 @@ const WORKSPACE_AUDIO_CLIENT = gql`
       clips @client {
         id @client
         start @client
+        duration @client
         audio @client {
           id @client
           filename @client

@@ -47,6 +47,7 @@ export interface WorkspaceAudioClient_vamp_clips {
   __typename: "Clip";
   id: string;
   start: number;
+  duration: number;
   audio: WorkspaceAudioClient_vamp_clips_audio;
 }
 
@@ -214,6 +215,31 @@ export interface UpdateCabVariables {
   vampId: string;
   start?: number | null;
   duration?: number | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: UpdateClip
+// ====================================================
+
+export interface UpdateClip_updateClip {
+  __typename: "Clip";
+  id: string;
+}
+
+export interface UpdateClip {
+  /**
+   * Updates a clip and publishes subscriptions.
+   */
+  updateClip: UpdateClip_updateClip;
+}
+
+export interface UpdateClipVariables {
+  clipUpdate: UpdateClipInput;
 }
 
 /* tslint:disable */
@@ -424,6 +450,7 @@ export interface TimelineClient_vamp_clips {
   __typename: "Clip";
   id: string;
   start: number;
+  duration: number;
   track: TimelineClient_vamp_clips_track | null;
   audio: TimelineClient_vamp_clips_audio;
   draggingInfo: ClipDraggingInfo | null;
@@ -584,6 +611,7 @@ export interface GetVamp_vamp_clips {
   __typename: "Clip";
   id: string;
   start: number;
+  duration: number;
   track: GetVamp_vamp_clips_track | null;
   vamp: GetVamp_vamp_clips_vamp;
   user: GetVamp_vamp_clips_user;
@@ -664,6 +692,7 @@ export interface VampSubscription_subVamp_vampPayload_clips {
   __typename: "Clip";
   id: string;
   start: number;
+  duration: number;
   track: VampSubscription_subVamp_vampPayload_clips_track | null;
   vamp: VampSubscription_subVamp_vampPayload_clips_vamp;
   user: VampSubscription_subVamp_vampPayload_clips_user;
@@ -1097,128 +1126,6 @@ export interface MeClient {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL mutation operation: PlayClient
-// ====================================================
-
-export interface PlayClient {
-  play: boolean | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: PauseClient
-// ====================================================
-
-export interface PauseClient {
-  pause: boolean | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: StopClient
-// ====================================================
-
-export interface StopClient {
-  stop: boolean | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: RecordClient
-// ====================================================
-
-export interface RecordClient {
-  record: boolean | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: Seek
-// ====================================================
-
-export interface Seek {
-  seek: boolean | null;
-}
-
-export interface SeekVariables {
-  time: number;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: SetLoopClient
-// ====================================================
-
-export interface SetLoopClient {
-  setLoop: boolean | null;
-}
-
-export interface SetLoopClientVariables {
-  loop: boolean;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: SetViewLeftClient
-// ====================================================
-
-export interface SetViewLeftClient {
-  setViewLeft: boolean | null;
-}
-
-export interface SetViewLeftClientVariables {
-  viewLeft: number;
-  cumulative?: boolean | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: SetTemporalZoomClient
-// ====================================================
-
-export interface SetTemporalZoomClient {
-  setTemporalZoom: boolean | null;
-}
-
-export interface SetTemporalZoomClientVariables {
-  temporalZoom: number;
-  cumulative?: boolean | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
 // GraphQL query operation: LocalVampIdClient
 // ====================================================
 
@@ -1439,6 +1346,15 @@ export interface ClipDraggingInfo {
   track?: string | null;
   position?: number | null;
   downPosX?: number | null;
+}
+
+export interface UpdateClipInput {
+  vampId: string;
+  clipId: string;
+  start?: number | null;
+  duration?: number | null;
+  trackIndex?: number | null;
+  trackId?: string | null;
 }
 
 /**

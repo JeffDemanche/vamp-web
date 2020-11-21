@@ -25,6 +25,7 @@ const VAMP_QUERY = gql`
       clips {
         id
         start
+        duration
         track {
           id
         }
@@ -72,6 +73,7 @@ const VAMP_SUBSCRIPTION = gql`
         clips {
           id
           start
+          duration
           track {
             id
           }

@@ -2,12 +2,28 @@ import * as React from "react";
 
 import styles = require("./clip.less");
 import { Oscilloscope } from "../oscilloscope/oscilloscope";
-import { useWorkspaceWidth, useWorkspaceLeft } from "../../../workspace-hooks";
+import {
+  useWorkspaceWidth,
+  useWorkspaceLeft,
+  useWorkpaceDuration,
+  useWorkspaceTime
+} from "../../../workspace-hooks";
 import Playhead from "../../element/playhead";
 import TrashButton from "./trash-button";
 import MovableComponent from "../../element/movable-component";
 import { DropZone } from "../workspace-content";
 import { useState } from "react";
+import { gql, useMutation } from "@apollo/client";
+import { UpdateClip } from "../../../state/apollotypes";
+import { useCurrentVampId } from "../../../react-hooks";
+
+const UPDATE_CLIP = gql`
+  mutation UpdateClip($clipUpdate: UpdateClipInput!) {
+    updateClip(clipUpdate: $clipUpdate) {
+      id
+    }
+  }
+`;
 
 interface ClipProps {
   index: number;
@@ -15,6 +31,7 @@ interface ClipProps {
   clip: {
     id: string;
     start: number;
+    duration: number;
     audio: {
       id: string;
       filename: string;
@@ -36,8 +53,18 @@ const Clip: React.FunctionComponent<ClipProps> = ({
   trackIndex,
   clip
 }: ClipProps) => {
+  const vampId = useCurrentVampId();
+
   const widthFn = useWorkspaceWidth();
+  const durationFn = useWorkpaceDuration();
   const leftFn = useWorkspaceLeft();
+  const timeFn = useWorkspaceTime();
+
+  const [updateClip] = useMutation<UpdateClip>(UPDATE_CLIP);
+
+  // This is the temporary track index used while dragging.
+  const [trackIndexState, setTrackIndexState] = useState(trackIndex);
+  const [raised, setRaised] = useState(false);
 
   const synced = clip.audio.filename !== "" ? "" : "not synced";
 
@@ -49,10 +76,6 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       : leftFn(clip.start);
 
   const width = widthFn(clip.audio.duration);
-
-  // This is the temporary track index used while dragging.
-  const [trackIndexState, setTrackIndexState] = useState(trackIndex);
-  const [raised, setRaised] = useState(false);
 
   const boxShadow = raised ? "2px 2px rgba(0, 0, 0, 0.2)" : undefined;
 
@@ -66,9 +89,30 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       dropZonesFilter={(dropZone): boolean => dropZone.class === "Track"}
       onChangeZone={(zone: DropZone<{ index: number }>, time: number): void => {
         setTrackIndexState(zone.metadata.index);
+        updateClip({
+          variables: {
+            clipUpdate: { vampId, clipId: clip.id, trackIndex: index }
+          }
+        });
       }}
-      onWidthChanged={(newWidth): void => {}}
-      onLeftChanged={(newLeft): void => {}}
+      onWidthChanged={(newWidth): void => {
+        updateClip({
+          variables: {
+            clipUpdate: {
+              vampId,
+              clipId: clip.id,
+              duration: durationFn(newWidth)
+            }
+          }
+        });
+      }}
+      onLeftChanged={(newLeft): void => {
+        updateClip({
+          variables: {
+            clipUpdate: { vampId, clipId: clip.id, start: timeFn(newLeft) }
+          }
+        });
+      }}
       onAdjust={(active, resizing): void => {
         setRaised(active);
       }}

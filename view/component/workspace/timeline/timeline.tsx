@@ -23,6 +23,7 @@ const TIMELINE_CLIENT = gql`
       clips @client {
         id @client
         start @client
+        duration @client
         track @client {
           id @client
         }
