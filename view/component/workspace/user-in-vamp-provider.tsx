@@ -19,6 +19,7 @@ const USER_IN_VAMP_QUERY = gql`
         }
         start
         duration
+        loops
       }
     }
   }
@@ -40,6 +41,7 @@ const USER_IN_VAMP_SUBSCRIPTION = gql`
         }
         start
         duration
+        loops
       }
     }
   }

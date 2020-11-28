@@ -172,6 +172,7 @@ export interface CabMainQuery_userInVamp_cab {
   user: CabMainQuery_userInVamp_cab_user;
   start: number;
   duration: number;
+  loops: boolean;
 }
 
 export interface CabMainQuery_userInVamp {
@@ -215,6 +216,7 @@ export interface UpdateCabVariables {
   vampId: string;
   start?: number | null;
   duration?: number | null;
+  loops?: boolean | null;
 }
 
 /* tslint:disable */
@@ -499,6 +501,7 @@ export interface GetUserInVamp_userInVamp_cab {
   user: GetUserInVamp_userInVamp_cab_user;
   start: number;
   duration: number;
+  loops: boolean;
 }
 
 export interface GetUserInVamp_userInVamp {
@@ -550,6 +553,7 @@ export interface UserInVampSubscription_subUserInVamp_cab {
   user: UserInVampSubscription_subUserInVamp_cab_user;
   start: number;
   duration: number;
+  loops: boolean;
 }
 
 export interface UserInVampSubscription_subUserInVamp {
@@ -1042,6 +1046,7 @@ export interface CabClient_userInVamp_cab {
   __typename: "Cab";
   start: number;
   duration: number;
+  loops: boolean;
 }
 
 export interface CabClient_userInVamp {

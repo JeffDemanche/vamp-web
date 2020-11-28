@@ -1,31 +1,21 @@
 const path = require("path");
 const SRC_PATH = path.join(__dirname, '../view');
 
+const custom = require('../webpack.config.js');
+
 module.exports = {
-    stories: ['../view/**/*.stories.(jsx|tsx)'],
+    stories: ['../view/**/*.stories.@(js|mdx|tsx|ts)'],
     addons: ['@storybook/addon-actions', '@storybook/addon-links'],
-    webpack: async config => {
-        config.module.rules.push({
-            test: /\.(ts|tsx)$/,
-            use: "ts-loader"
-        });
-        config.module.rules.push({
-            test: /\.less$/i,
-            use: [
-                "style-loader",
-                {
-                    loader: "css-loader",
-                    options: {
-                        importLoaders: 1,
-                        modules: {
-                            localIdentName: "[name]__[local]___[hash:base64:5]"
-                        }
-                    }
-                },
-                "less-loader"
-            ]
-        });
-        config.resolve.extensions.push(".ts", ".tsx");
-        return config;
+    typescript: {
+        check: false,
+        checkOptions: {},
+        reactDocgen: 'react-docgen-typescript',
+        reactDocgenTypescriptOptions: {
+            shouldExtractLiteralValuesFromEnum: true,
+            propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
+        },
+    },
+    webpackFinal: (config) => {
+        return { ...config, module: { ...config.module, rules: custom.module.rules } };
     },
 };

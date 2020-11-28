@@ -4,23 +4,25 @@ import { useTrueTime, useCurrentVampId } from "../../react-hooks";
 import { PLAYING_CLIENT } from "../../state/queries/vamp-queries";
 import { PlayingClient } from "../../state/apollotypes";
 import { useQuery } from "@apollo/client";
+import { useWorkspaceWidth } from "../../workspace-hooks";
 
 interface PlayheadProps {
   containerStart: number;
-  containerDuration: number;
 }
 
 /**
  * This component is made to be put inside a larger component and will progress
- * along that container using CSS percent when the Vamp is being played,
- * according to the true time.
+ * along that container using CSS offsets according
  */
 const Playhead: React.FC<PlayheadProps> = ({
-  containerStart,
-  containerDuration
+  containerStart
 }: PlayheadProps) => {
   const vampId = useCurrentVampId();
   const trueTime = useTrueTime(100);
+
+  const widthFn = useWorkspaceWidth();
+
+  const playheadWidth = widthFn(trueTime - containerStart);
 
   const {
     data: {
@@ -28,15 +30,10 @@ const Playhead: React.FC<PlayheadProps> = ({
     }
   } = useQuery<PlayingClient>(PLAYING_CLIENT, { variables: { vampId } });
 
-  const percent = (100.0 * (trueTime - containerStart)) / containerDuration;
-  const clampedPercent = Math.min(100.0, Math.max(0.0, percent));
-  const display =
-    clampedPercent != 0.0 && clampedPercent != 100.0 && playing
-      ? "block"
-      : "none";
+  const display = trueTime >= containerStart && playing ? "block" : "none";
 
   const style = {
-    left: `${clampedPercent}%`,
+    left: `${playheadWidth}px`,
     display
   };
 

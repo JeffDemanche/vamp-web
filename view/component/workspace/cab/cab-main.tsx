@@ -18,6 +18,8 @@ import MovableComponent from "../../element/movable-component";
 import Playhead from "../../element/playhead";
 import { useState, useEffect } from "react";
 import { useRecord, useSeek, useStop } from "../../../state/vamp-state-hooks";
+import { VampToggleButton } from "../../element/toggle-button";
+import classNames = require("classnames");
 
 const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
@@ -29,6 +31,7 @@ const CAB_MAIN_QUERY = gql`
         }
         start @client
         duration @client
+        loops @client
       }
     }
   }
@@ -40,6 +43,7 @@ const UPDATE_CAB = gql`
     $vampId: ID!
     $start: Float
     $duration: Float
+    $loops: Boolean
   ) {
     updateUserInVamp(
       update: {
@@ -47,6 +51,7 @@ const UPDATE_CAB = gql`
         vampId: $vampId
         cabStart: $start
         cabDuration: $duration
+        cabLoops: $loops
       }
     ) {
       id
@@ -61,8 +66,6 @@ const UPDATE_CAB = gql`
  * The cab will also mutate to the server.
  */
 const CabMain: React.FC = () => {
-  const { cache } = useApolloClient();
-
   const vampId = useCurrentVampId();
   const userId = useCurrentUserId();
 
@@ -88,10 +91,11 @@ const CabMain: React.FC = () => {
 
   const {
     userInVamp: {
-      id: userInVampId,
-      cab: { start, duration }
+      cab: { start, duration, loops }
     }
-  } = data || { userInVamp: { id: "", cab: { start: 0, duration: 0 } } };
+  } = data || {
+    userInVamp: { id: "", cab: { start: 0, duration: 0, loops: false } }
+  };
 
   const prevStart = usePrevious(start);
 
@@ -105,43 +109,46 @@ const CabMain: React.FC = () => {
    * updateCab does not update the local cache, so we're doing it manually here.
    * There's probably a better way of doing this.
    */
-  const updateCabWithClient = (
-    userId: string,
-    vampId: string,
-    duration: number,
-    start: number
-  ): void => {
+  const updateCabWithClient = ({
+    userId,
+    vampId,
+    duration,
+    start,
+    loops
+  }: {
+    userId: string;
+    vampId: string;
+    duration?: number;
+    start?: number;
+    loops?: boolean;
+  }): void => {
     updateCab({
-      variables: { userId, vampId, duration, start }
-    });
-    cache.modify({
-      id: cache.identify({ __typename: "UserInVamp", id: userInVampId }),
-      fields: {
-        cab: () => {
-          return { __typename: "Cab", start, duration };
-        }
-      }
+      variables: { userId, vampId, duration, start, loops }
     });
   };
 
-  const playhead = adjusting ? null : (
-    <Playhead containerStart={start} containerDuration={duration} />
-  );
+  const playhead = adjusting ? null : <Playhead containerStart={start} />;
 
   if (loading || !data) {
     return null;
   } else {
     return (
       <MovableComponent
-        initialWidth={widthFn(duration)}
+        initialWidth={loops ? widthFn(duration) : undefined}
         height={"125px"}
         initialLeft={positionFn(start)}
+        style={loops ? undefined : { right: "0px" }}
         onWidthChanged={(newWidth): void => {
-          updateCabWithClient(userId, vampId, durationFn(newWidth), start);
+          updateCabWithClient({
+            userId,
+            vampId,
+            duration: durationFn(newWidth),
+            start
+          });
         }}
         onLeftChanged={(newLeft): void => {
           const start = timeFn(newLeft);
-          updateCabWithClient(userId, vampId, duration, start);
+          updateCabWithClient({ userId, vampId, duration, start });
         }}
         onAdjust={(active): void => {
           setAdjusting(active);
@@ -150,9 +157,29 @@ const CabMain: React.FC = () => {
           record();
         }}
       >
-        <div className={styles["cab-main"]}>
+        <div
+          className={classNames(
+            styles["cab-main"],
+            !loops && styles["cab-main-infinite"]
+          )}
+        >
           {playhead}
-          <img src={require("../../../img/vector/record.svg")} />
+          <div className={styles["track-bounds-controls"]}>
+            <VampToggleButton
+              on={loops}
+              style={{ width: "40px", height: "35px" }}
+              onToggle={(e, on): void => {
+                e.stopPropagation();
+                updateCabWithClient({ userId, vampId, loops: on });
+              }}
+            >
+              <i className={classNames("ri-skip-back-line", "ri-lg")}></i>
+            </VampToggleButton>
+          </div>
+          <img
+            className={styles["recordIcon"]}
+            src={require("../../../img/vector/record.svg")}
+          />
         </div>
       </MovableComponent>
     );

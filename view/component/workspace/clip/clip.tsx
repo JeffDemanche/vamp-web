@@ -87,11 +87,17 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       initialMoving={clip.draggingInfo.dragging}
       className={styles["clip-movable"]}
       dropZonesFilter={(dropZone): boolean => dropZone.class === "Track"}
-      onChangeZone={(zone: DropZone<{ index: number }>, time: number): void => {
+      onChangeZone={(zone: DropZone<{ index: number }>): void => {
         setTrackIndexState(zone.metadata.index);
+      }}
+      onDrop={(zone: DropZone<{ index: number }>): void => {
         updateClip({
           variables: {
-            clipUpdate: { vampId, clipId: clip.id, trackIndex: index }
+            clipUpdate: {
+              vampId,
+              clipId: clip.id,
+              trackIndex: zone.metadata.index
+            }
           }
         });
       }}
@@ -113,8 +119,8 @@ const Clip: React.FunctionComponent<ClipProps> = ({
           }
         });
       }}
-      onAdjust={(active, resizing): void => {
-        setRaised(active);
+      onAdjust={(moving, resizing): void => {
+        setRaised(moving);
       }}
       onClick={(click): void => {}}
       style={{
@@ -126,10 +132,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
         <div className={styles["display-on-hover"]}>
           <TrashButton clipId={clip.id}></TrashButton>
         </div>
-        <Playhead
-          containerStart={clip.start}
-          containerDuration={clip.audio.duration}
-        />
+        <Playhead containerStart={clip.start} />
         <Oscilloscope
           audio={clip.audio}
           dimensions={{

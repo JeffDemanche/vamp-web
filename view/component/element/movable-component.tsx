@@ -3,7 +3,6 @@ import * as styles from "./movable-component.less";
 import { useState, useEffect, useRef, useContext } from "react";
 import { usePrevious } from "../../react-hooks";
 import {
-  useWorkpaceDuration,
   useWorkspaceTime,
   useSnapToBeat,
   useWorkspaceLeft
@@ -14,7 +13,15 @@ import _ = require("underscore");
 interface MovableComponentProps {
   initialWidth: number;
   height: string;
+
+  /**
+   * Sets the left position state of the component via prop.
+   */
   initialLeft: number;
+
+  /**
+   * Sets the moving state of the component via prop.
+   */
   initialMoving?: boolean;
 
   className?: string;
@@ -26,14 +33,33 @@ interface MovableComponentProps {
   dropZonesFilter?: (dropZone: DropZone) => boolean;
 
   /**
+   * Called when the item is dropped, with the zone it's dropped into as a
+   * parameter.
+   */
+  onDrop?: (dropZone: DropZone<any>) => void;
+
+  /**
    * Fired when the movable component is dragged, dropped, started to be
    * resized, and finished being resized.
    */
-  onAdjust?: (active: boolean, resizing: boolean) => void;
+  onAdjust?: (moving: boolean, resizing: boolean) => void;
 
+  /**
+   * This is called when an item being dragged is moved to anopther zone that
+   * gets applied via dropZonesFilter. This will get called when the item is
+   * still being dragged.
+   */
   onChangeZone?: (zone: DropZone<any>, time: number) => void;
 
+  /**
+   * Called on mouse up when the width of the item is changed.
+   */
   onWidthChanged?: (newWidth: number) => void;
+
+  /**
+   * Called on mouse up when the left position of the item is changed. I.e. this
+   * doesn't get called while currently dragging, only when dropped.
+   */
   onLeftChanged?: (newLeft: number) => void;
   onClick?: (e: React.MouseEvent) => void;
 
@@ -63,8 +89,9 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
   initialMoving,
 
   className,
-  dropZonesFilter,
 
+  dropZonesFilter,
+  onDrop,
   onAdjust,
   onChangeZone,
   onWidthChanged,
@@ -81,14 +108,12 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
   const appliedDropZones =
     dropZonesFilter && dropZones?.filter(dropZonesFilter);
 
-  const durationFn = useWorkpaceDuration();
   const timeFn = useWorkspaceTime();
   const leftFn = useWorkspaceLeft();
   const snapToBeatsFn = useSnapToBeat();
 
   const [mousePos, setMousePos] = useState({ x: -1, y: -1 });
 
-  const [widthOnLeftDrag, setWidthOnLeftDrag] = useState(-1);
   const [leftDragging, setLeftDragging] = useState(false);
   const [rightDragging, setRightDragging] = useState(false);
   const [moving, setMoving] = useState(false);
@@ -103,6 +128,7 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
   // Stores the mouse position when the move handle was mouse down-ed.
   const [moveDown, setMoveDown] = useState(-1);
   const [left, _setLeft] = useState(initialLeft);
+  const [leftOnMouseDown, setLeftOnMouseDown] = useState(-1);
   const leftRef = useRef(left);
 
   const setLeft = (left: number): void => {
@@ -126,7 +152,9 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
   }, [initialWidth]);
 
   useEffect(() => {
-    setLeft(initialLeft);
+    if (initialLeft !== left && !moving) {
+      setLeft(initialLeft);
+    }
   }, [initialLeft]);
 
   useEffect(() => {
@@ -140,6 +168,7 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
       setMoving(initialMoving);
       if (initialMoving) {
         setMoveDown(mousePos.x);
+        setLeftOnMouseDown(left);
       }
     }
   }, [mousePos]);
@@ -151,8 +180,6 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
   useEffect(() => {
     if (prevZone && zone) {
       if (zone.id !== prevZone.id) {
-        // zone is being set properly but this hook isn't catching it properly.
-        //console.log("changing zone from ", prevZone.id, "to", zone.id);
         onChangeZone(zone, timeFn(left));
       }
     }
@@ -162,9 +189,12 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
     setMousePos({ x: e.clientX, y: e.clientY });
 
     if (leftDragging) {
-      // TODO needs to be f'd with
-      // setWidth(widthOnLeftDrag - (e.clientX - moveDown));
-      // setLeft(left + e.clientX - moveDown);
+      const timeLeft = timeFn(e.clientX);
+      const beatTime = snapToBeatsFn(timeLeft);
+      const leftPos = leftFn(beatTime);
+
+      setWidth(width + left - leftPos);
+      setLeft(leftPos);
     }
     if (rightDragging) {
       const rect = draggableRef.current.getBoundingClientRect();
@@ -185,7 +215,7 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
         }
       });
       if (moveDown === -1) return;
-      const newLeft = left + e.clientX - moveDown;
+      const newLeft = leftOnMouseDown + e.clientX - moveDown;
       const time = timeFn(newLeft);
       // Time in seconds of nearest beat to snap to.
       const beatTime = snapToBeatsFn(time);
@@ -195,11 +225,11 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
 
   const onMouseUpWindow = (): void => {
     onAdjust(false, leftDragging || rightDragging);
-    setWidthOnLeftDrag(-1);
     setLeftDragging(false);
     setRightDragging(false);
     setMoving(false);
     setMoveDown(-1);
+    setLeftOnMouseDown(-1);
     setZone(null);
 
     if (prevData) {
@@ -211,6 +241,7 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
       }
       if (prevData.left !== leftRef.current) {
         onLeftChanged && onLeftChanged(leftRef.current);
+        onDrop && onDrop(zone);
       }
     }
   };
@@ -224,7 +255,15 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
       window.removeEventListener("mousemove", debounced);
       window.removeEventListener("mouseup", onMouseUpWindow);
     };
-  }, [leftDragging, rightDragging, moving, moveDown]);
+  }, [
+    leftDragging,
+    rightDragging,
+    moving,
+    moveDown,
+    onLeftChanged,
+    onWidthChanged,
+    zone
+  ]);
 
   return (
     <div
@@ -239,9 +278,7 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
             e.preventDefault();
             setLeftDragging(true);
             setMoveDown(e.clientX);
-            setWidthOnLeftDrag(
-              draggableRef.current.getBoundingClientRect().width
-            );
+            setLeftOnMouseDown(left);
             onAdjust(true, true);
           }}
         ></div>
@@ -251,13 +288,18 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
             e.preventDefault();
             setMoving(true);
             setMoveDown(e.clientX);
+            setLeftOnMouseDown(left);
             onAdjust(true, false);
           }}
           onMouseUp={(e: React.MouseEvent): void => {
             e.preventDefault();
             // This will evaluate to true when the clip was not moved (note, not
             // that the *mouse* was not moved).
-            if (prevData.moveDown === -1) {
+            if (
+              e.button === 0 &&
+              prevData.moveDown === -1 &&
+              !(leftDragging || rightDragging)
+            ) {
               onClick(e);
             }
           }}
