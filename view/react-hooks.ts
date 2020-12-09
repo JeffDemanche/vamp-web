@@ -7,7 +7,6 @@ import * as Peer from "simple-peer";
 import { gql, useQuery } from "@apollo/client";
 import { useState, useEffect, useRef } from "react";
 
-import { LOCAL_VAMP_ID_CLIENT } from "./state/queries/vamp-queries";
 import { TrueTimeClient } from "./state/apollotypes";
 import { audioStore } from "./audio/audio-store";
 import { vampAudioContext } from "./audio/vamp-audio-context";
@@ -371,9 +370,8 @@ export const useScrollTimeout = (
   }, [dist]);
 
   return (e: React.WheelEvent): void => {
-    e.persist();
-
     setLastEvent(e);
     setDist(dist + e.deltaY);
+    e.persist();
   };
 };

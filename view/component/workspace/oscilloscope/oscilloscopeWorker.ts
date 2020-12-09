@@ -12,11 +12,12 @@ const workerCode = (): void => {
     const x = coordinates[0];
     const y = coordinates[1];
 
-    const gradient = context.createLinearGradient(0, 0, 170, 0);
-    gradient.addColorStop(0, "rgba(138, 18, 233, 1)");
-    gradient.addColorStop(0.5, "rgba(74, 18, 233, 1)");
-    gradient.addColorStop(1.0, "#56B0F2");
-    context.strokeStyle = gradient;
+    // const gradient = context.createLinearGradient(0, 0, 170, 0);
+    // gradient.addColorStop(0, "rgba(138, 18, 233, 1)");
+    // gradient.addColorStop(0.5, "rgba(74, 18, 233, 1)");
+    // gradient.addColorStop(1.0, "#56B0F2");
+    context.globalAlpha = 0.3;
+    context.strokeStyle = "#000000";
 
     context.beginPath();
     context.moveTo(x, 0);

@@ -1,9 +1,15 @@
 @import "../../../../constants/gradients.less";
+@import "../../../../constants/transitions.less";
 
 .metronome-bar {
   position: relative;
   height: 30px;
   width: 100%;
+}
+
+.measure-container, .measure-compact {
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
 }
 
 .measure-container {

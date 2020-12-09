@@ -9,6 +9,7 @@ import {
 } from "../../workspace-hooks";
 import { DropZone, DropZonesContext } from "../workspace/workspace-content";
 import _ = require("underscore");
+import classNames = require("classnames");
 
 interface MovableComponentProps {
   initialWidth: number;
@@ -267,7 +268,11 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
 
   return (
     <div
-      className={`${styles["draggable-container"]} ${className}`}
+      className={classNames(
+        styles["draggable-container"],
+        className,
+        moving && styles["draggable-container-dragging"]
+      )}
       style={{ ...style, width, height, left }}
     >
       <div className={styles["draggable"]} ref={draggableRef}>

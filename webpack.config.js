@@ -68,7 +68,7 @@ module.exports = {
         path: path.join(__dirname, "public"),
         filename: "vamp.bundle.js"
     },
-    plugins: [new CopyWebpackPlugin([{ from: "./favicon.png" }])],
+    plugins: [new CopyWebpackPlugin([{ from: "./public/favicon.ico" }])],
     node: {
         fs: "empty"
     }
