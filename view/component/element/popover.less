@@ -2,8 +2,7 @@
 @import "../../constants/fonts.less";
 
 .popover {
-    color: @popover-background;
-    background-color: @popover-background;
+    background-color: @gray-2-75 !important;
     font-family: @font-default;
     font-size: 12pt;
     font-weight: normal;
@@ -11,24 +10,19 @@
     border: 0px;
 }
 
+.popover.top .arrow::after {
+  background-color: black !important;
+}
+
 .popover-title {
     font-family: @font-default;
     font-size: 12pt;
     font-weight: normal;
-    background-color: @popover-background;
-    color: @popover-text;
+    background-color: @gray-2-75;
+    color: @gray-6-100;
     text-align:center;
 
-    border-top-style: solid;
-    border-top-width: thin;
-    border-top-left-radius: 1px;
-    border-top-right-radius: 1px;
-
-    border-left-style: solid;
-    border-left-width: thin;
-    
-    border-right-style: solid;
-    border-right-width: thin;
+    border-radius: 2px;
   }
   
 .popover-content {
@@ -36,8 +30,8 @@
     font-family: @font-default;
     font-size: 12pt;
     font-weight: normal;
-    background-color: @popover-background;
-    color: @popover-text;
+    background-color: @gray-2-75;
+    color: @gray-5-100;
     text-align: left;
     border-color: white;
     border-bottom-left-radius: 4px;

@@ -16,33 +16,30 @@
     display: block;
     margin: auto;
   }
+
+  &.toggleButtonOff {
+    background-color: @gray-3-75;
+    color: @gray-6-75;
+  }
+
+  &.toggleButtonOn {
+    background-color: @dark-red-100;
+    color: @gray-6-100;
+  }
 }
 
 .toggleButton:hover {
-  background-color: @button-active-background;
-  color: @button-active-foreground;
+  &.toggleButtonOff {
+    background-color: @gray-3-50;
+    color: @gray-6-50;
+  }
+
+  &.toggleButtonOn {
+    background-color: @dark-red-75;
+    color: @gray-6-75;
+  }
 }
 
 .toggleButton:focus {
   outline: none;
-}
-
-.toggleButtonOff {
-  background-color: @button-inactive-background;
-  color: @button-inactive-foreground;
-}
-
-.textOff {
-  color: rgba(255, 255, 255, 0.33);
-}
-
-.toggleButtonOn {
-  background: @gradient-lowkey;
-}
-
-.textOn {
-  background-image: @gradient-passion;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
 }
