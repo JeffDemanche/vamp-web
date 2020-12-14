@@ -19,6 +19,7 @@ interface TimelineClipsProps {
       storedLocally: boolean;
       localFilename: string;
       duration: number;
+      error: string | null;
     };
     draggingInfo: {
       dragging?: boolean;

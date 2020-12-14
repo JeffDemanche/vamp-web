@@ -54,24 +54,35 @@ class AudioStore {
     audioContext: AudioContext
   ): Promise<void> {
     if (!clip.audio.storedLocally) {
-      const res = await fetch(`/audio/${clip.audio.id}.webm`);
-      const blob = await res.blob();
-      const arrBuf = await blob.arrayBuffer();
-
-      const audioBuffer = await audioContext.decodeAudioData(arrBuf);
-
       const cache = apolloClient.cache;
-      cache.modify({
-        id: cache.identify({ __typename: "Audio", id: clip.audio.id }),
-        fields: {
-          storedLocally: (): boolean => {
-            return true;
-          },
-          duration: (): number => audioBuffer.duration
-        }
-      });
+      const res = await fetch(`/audio/${clip.audio.id}.webm`);
 
-      this._store[clip.audio.id] = { data: blob };
+      if (!res.ok) {
+        // Handle errors downloading audio file.
+        cache.modify({
+          id: cache.identify({ __typename: "Audio", id: clip.audio.id }),
+          fields: {
+            error: (): string => res.statusText
+          }
+        });
+      } else {
+        const blob = await res.blob();
+        const arrBuf = await blob.arrayBuffer();
+
+        const audioBuffer = await audioContext.decodeAudioData(arrBuf);
+
+        cache.modify({
+          id: cache.identify({ __typename: "Audio", id: clip.audio.id }),
+          fields: {
+            storedLocally: (): boolean => {
+              return true;
+            },
+            duration: (): number => audioBuffer.duration
+          }
+        });
+
+        this._store[clip.audio.id] = { data: blob };
+      }
     }
   }
 }

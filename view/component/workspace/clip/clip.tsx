@@ -12,10 +12,11 @@ import Playhead from "../../element/playhead";
 import TrashButton from "./trash-button";
 import MovableComponent from "../../element/movable-component";
 import { DropZone } from "../workspace-content";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { UpdateClip } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
+import { FailureOverlay } from "./failure-overlay";
 
 const UPDATE_CLIP = gql`
   mutation UpdateClip($clipUpdate: UpdateClipInput!) {
@@ -38,6 +39,7 @@ interface ClipProps {
       storedLocally: boolean;
       localFilename: string;
       duration: number;
+      error: string | null;
     };
     draggingInfo: {
       dragging?: boolean;
@@ -60,13 +62,14 @@ const Clip: React.FunctionComponent<ClipProps> = ({
   const leftFn = useWorkspaceLeft();
   const timeFn = useWorkspaceTime();
 
+  const clipRef = useRef<HTMLDivElement>();
+  const clipHeight = clipRef.current ? clipRef.current.clientHeight : 0;
+
   const [updateClip] = useMutation<UpdateClip>(UPDATE_CLIP);
 
   // This is the temporary track index used while dragging.
   const [trackIndexState, setTrackIndexState] = useState(trackIndex);
   const [raised, setRaised] = useState(false);
-
-  const synced = clip.audio.filename !== "" ? "" : "not synced";
 
   const opacity = clip.audio.storedLocally ? 1.0 : 0.7;
 
@@ -75,7 +78,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       ? leftFn(clip.draggingInfo.position)
       : leftFn(clip.start);
 
-  const width = widthFn(clip.audio.duration);
+  const width = clip.audio.storedLocally ? widthFn(clip.audio.duration) : 200;
 
   const boxShadow = raised ? "2px 2px rgba(0, 0, 0, 0.2)" : undefined;
 
@@ -91,33 +94,36 @@ const Clip: React.FunctionComponent<ClipProps> = ({
         setTrackIndexState(zone.metadata.index);
       }}
       onDrop={(zone: DropZone<{ index: number }>): void => {
-        updateClip({
-          variables: {
-            clipUpdate: {
-              vampId,
-              clipId: clip.id,
-              trackIndex: zone.metadata.index
+        if (!clip.audio.error)
+          updateClip({
+            variables: {
+              clipUpdate: {
+                vampId,
+                clipId: clip.id,
+                trackIndex: zone.metadata.index
+              }
             }
-          }
-        });
+          });
       }}
       onWidthChanged={(newWidth): void => {
-        updateClip({
-          variables: {
-            clipUpdate: {
-              vampId,
-              clipId: clip.id,
-              duration: durationFn(newWidth)
+        if (!clip.audio.error)
+          updateClip({
+            variables: {
+              clipUpdate: {
+                vampId,
+                clipId: clip.id,
+                duration: durationFn(newWidth)
+              }
             }
-          }
-        });
+          });
       }}
       onLeftChanged={(newLeft): void => {
-        updateClip({
-          variables: {
-            clipUpdate: { vampId, clipId: clip.id, start: timeFn(newLeft) }
-          }
-        });
+        if (!clip.audio.error)
+          updateClip({
+            variables: {
+              clipUpdate: { vampId, clipId: clip.id, start: timeFn(newLeft) }
+            }
+          });
       }}
       onAdjust={(moving, resizing): void => {
         setRaised(moving);
@@ -128,18 +134,26 @@ const Clip: React.FunctionComponent<ClipProps> = ({
         gridRowEnd: trackIndexState + 1
       }}
     >
-      <div className={styles["clip"]} style={{ opacity, boxShadow }}>
-        <div className={styles["display-on-hover"]}>
+      <div className={styles["clip"]} ref={clipRef} style={{ boxShadow }}>
+        <div className={styles["foreground"]}>
           <TrashButton clipId={clip.id}></TrashButton>
         </div>
-        <Playhead containerStart={clip.start} />
-        <Oscilloscope
-          audio={clip.audio}
-          dimensions={{
-            width: width
-          }}
-        ></Oscilloscope>
-        {synced}
+        <div className={styles["background"]} style={{ opacity }}>
+          <Playhead containerStart={clip.start} />
+          {clip.audio.error ? (
+            <FailureOverlay
+              error={clip.audio.error}
+              height={clipHeight}
+            ></FailureOverlay>
+          ) : (
+            <Oscilloscope
+              audio={clip.audio}
+              dimensions={{
+                width: width
+              }}
+            ></Oscilloscope>
+          )}
+        </div>
       </div>
     </MovableComponent>
   );

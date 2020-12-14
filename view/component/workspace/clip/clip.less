@@ -7,24 +7,32 @@
   width: 100%;
   overflow: hidden;
   position: absolute;
-  border-radius: 16px;
-  background: @passion-vertical;
   display: flex;
   
   transition: box-shadow 0.3s linear;
 }
 
-.display-on-hover {
+.foreground {
+  opacity: initial;
   display: none;
   position: absolute;
   width: 100%;
   height: 100%;
 }
 
-.display-on-hover > * {
+.foreground > * {
   z-index: 6;
 }
 
-.clip-movable:hover .display-on-hover {
+.clip-movable:hover .foreground {
   display: inline;
+}
+
+.background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  border-radius: 16px;
+  background: @passion-vertical;
 }
