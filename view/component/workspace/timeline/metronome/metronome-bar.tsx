@@ -10,6 +10,7 @@ import {
   useWorkspaceLeft,
   useViewBounds
 } from "../../../../workspace-hooks";
+import Playhead from "../../../element/playhead";
 
 interface MetronomeMeasureProps {
   measureNo: number;
@@ -137,7 +138,12 @@ const MetronomeBar: React.FC = () => {
     );
   });
 
-  return <div className={styles["metronome-bar"]}>{positiveMeasures}</div>;
+  return (
+    <div className={styles["metronome-bar"]}>
+      {positiveMeasures}
+      <Playhead containerStart={start} containerDuration={end} />
+    </div>
+  );
 };
 
 export default MetronomeBar;
