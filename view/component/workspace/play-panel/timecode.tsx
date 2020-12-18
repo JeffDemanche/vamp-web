@@ -18,7 +18,7 @@ const Timecode = (): JSX.Element => {
   // True time is in seconds.
   const minutes = Math.floor(absTrueTime / 60);
   const seconds = Math.floor(absTrueTime % 60);
-  const fracs = Math.round(10 * ((absTrueTime % 60) - seconds));
+  const fracs = Math.floor(10 * ((absTrueTime % 60) - seconds));
 
   return (
     <div className={styles["timecode"]}>
