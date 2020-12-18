@@ -1,9 +1,15 @@
 @import "../../../../constants/gradients.less";
+@import "../../../../constants/transitions.less";
 
 .metronome-bar {
   position: relative;
   height: 30px;
   width: 100%;
+}
+
+.measure-container, .measure-compact {
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
 }
 
 .measure-container {
@@ -20,7 +26,7 @@
   text-align: left;
 
   position: relative;
-  background: @gradient-timepiece;
+  background: @timepiece-vertical;
   border-radius: 16px;
   height: 100%;
   overflow: hidden;
@@ -31,7 +37,7 @@
   font-family: "Lato";
   font-size: 16pt;
   text-align: left;
-  background: @gradient-timepiece;
+  background: @timepiece-vertical;
 
   position: absolute;
   height: 100%;
@@ -50,4 +56,6 @@
   width: 2px;
   opacity: 0.8;
   background-color: white;
+  transition: @timeline-left-transition;
+  -webkit-transition: @timeline-left-transition;
 }

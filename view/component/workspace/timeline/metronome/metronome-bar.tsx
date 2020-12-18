@@ -126,7 +126,7 @@ const MetronomeBar: React.FC = () => {
     const hidden = measureEnd <= start || measureStart >= end;
     return (
       <MetronomeMeasure
-        key={key}
+        key={measureNo}
         measureNo={measureNo}
         beats={beatsPerBar}
         bpm={bpm}

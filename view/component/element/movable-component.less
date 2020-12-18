@@ -1,6 +1,15 @@
+@import "../../constants/transitions.less";
+
 .draggable-container {
   position: absolute;
   float: left;
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+}
+
+.draggable-container-dragging {
+  transition: none;
+  -webkit-transition: none;
 }
 
 .draggable {

@@ -8,6 +8,7 @@ import { useRemoveClientClip } from "../state/client-clip-state-hooks";
 interface Clip {
   id: string;
   start: number;
+  duration: number;
   audio: {
     id: string;
     storedLocally: boolean;
@@ -121,6 +122,9 @@ const onClipChanged = (
     if (clientClip) {
       removeClientClip(clientClip.audioStoreKey);
     }
+  }
+  if (prevClip.start !== clip.start) {
+    scheduler.updateEvent(clip.id, { start: clip.start });
   }
 };
 

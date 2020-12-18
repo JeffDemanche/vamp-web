@@ -1,6 +1,7 @@
-interface WorkspaceEvent {
-  id: string;
-  start: number;
+class WorkspaceEvent {
+  readonly id: string;
+
+  public start: number;
 
   /**
    * Called by scheduler when this event starts playing. All events that use Web
@@ -10,7 +11,7 @@ interface WorkspaceEvent {
    * module.
    * @param offset Number of seconds into the event to start playing at.
    */
-  dispatch: (
+  public dispatch: (
     context: AudioContext,
     offset?: number
   ) => Promise<void | AudioScheduledSourceNode>;
@@ -18,21 +19,21 @@ interface WorkspaceEvent {
   /**
    * Repeat the event every this many seconds.
    */
-  repeat?: number;
+  public repeat?: number;
 
   /**
    * True if this is a clip audio event, false or undefined if not.
    */
-  clip?: boolean;
+  public clip?: boolean;
 
   // TODO do this instead of hasStarted
-  playImmediately?: boolean;
+  public playImmediately?: boolean;
 
   /**
    * A flag field used by the loop() function to help with dispatching events
    * when play begins in the middle of such events.
    */
-  hasStarted?: boolean;
+  public hasStarted?: boolean;
 }
 
 /**
@@ -147,6 +148,15 @@ class Scheduler {
   addEvent = (event: WorkspaceEvent): void => {
     if (this._events[event.id]) this.removeEvent(event.id);
     this._events[event.id] = event;
+  };
+
+  updateEvent = (eventId: string, { start }: { start: number }): void => {
+    this._events[eventId].start = start;
+    if (this._dispatchedAudioNodes[eventId]) {
+      this._dispatchedAudioNodes[eventId].disconnect();
+      this._dispatchedAudioNodes[eventId].stop(0);
+      this._events[eventId].hasStarted = false;
+    }
   };
 
   removeEvent = (id: string, stopNode = true): void => {

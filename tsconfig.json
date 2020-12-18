@@ -13,5 +13,5 @@
     "baseUrl": "src"
   },
   "includes": ["./externals.d.ts", "tests"],
-  "exclude": ["node_modules", "build", "scripts", "e2e", "cypress"]
+  "exclude": ["node_modules", "build", "scripts", "e2e", "cypress", "storybook-static", "view/build"]
 }

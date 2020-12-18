@@ -22,8 +22,7 @@ const VampPopover = (props: VampPopoverProps): JSX.Element => {
   );
 
   const popover = (
-    // TODO: fix this typescript error with styled popover, still renders ok
-    <Popover id={props.id} className={styles["popover"]}>
+    <Popover id={props.id} className={styles["popover"]} bsPrefix="popover">
       {title}
       <Popover.Content className={styles["popover-content"]}>
         {props.content}

@@ -9,14 +9,7 @@
  */
 
 import { useEffect } from "react";
-import { useQuery } from "@apollo/client";
-import {
-  useTrueTime,
-  useCurrentVampId,
-  useCurrentUserId
-} from "../react-hooks";
-import { CabClient } from "../state/apollotypes";
-import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
+import { useTrueTime, useCurrentVampId } from "../react-hooks";
 import { useIsEmpty } from "../workspace-hooks";
 import { useSeek } from "../state/vamp-state-hooks";
 
@@ -24,29 +17,11 @@ interface LooperProps {
   start: number;
   end: number;
   playing: boolean;
-  playPosition: number;
-  playStartTime: number;
-  loop: boolean;
+  loops: boolean;
 }
 
-const Looper = ({
-  start,
-  end,
-  playing,
-  playPosition,
-  playStartTime,
-  loop
-}: LooperProps): JSX.Element => {
+const Looper = ({ start, end, playing, loops }: LooperProps): JSX.Element => {
   const vampId = useCurrentVampId();
-  const userId = useCurrentUserId();
-
-  const { data, loading } = useQuery<CabClient>(CAB_CLIENT, {
-    variables: { vampId, userId }
-  });
-
-  const {
-    userInVamp: { cab }
-  } = data || { userInVamp: { cab: { start, duration: end - start } } };
 
   // If empty we render in the "new Vamp" layout.
   const empty = useIsEmpty(vampId);
@@ -57,23 +32,13 @@ const Looper = ({
 
   const apolloSeek = useSeek();
 
-  // TODO We can update these to enable/disable looping in the cab.
-  const realStart = cab.start;
-  const realEnd = cab.start + cab.duration;
-
   useEffect(() => {
     // Triggers the Apollo mutation that seeks to the beginning of the Vamp when
     // looping is enabled. Once that mutation happens, the next state update
     // should trigger the actual seeking behavior that's defined in
     // vamp-audio.tsx
-    if (
-      playing &&
-      loop &&
-      realEnd > realStart &&
-      trueTime >= realEnd &&
-      !empty
-    ) {
-      apolloSeek(realStart);
+    if (playing && loops && end > start && trueTime >= end && !empty) {
+      apolloSeek(start);
     }
   }, [trueTime]);
 

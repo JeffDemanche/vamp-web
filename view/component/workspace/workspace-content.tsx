@@ -69,26 +69,47 @@ const WorkspaceContent: React.FC = () => {
     setDropZones(dropZones);
   };
 
-  const onWheel = useScrollTimeout(
-    (dist: number, lastEvent: React.WheelEvent) => {
-      if (lastEvent.altKey) {
-        // Temporal zoom.
-        const dist: number = lastEvent.deltaY > 0 ? 0.9 : 1.1;
-        setTemporalZoom(temporalZoom * dist);
-      } else if (lastEvent.shiftKey) {
-        const dist: number = lastEvent.deltaY > 0 ? 40 : -40;
-        setHorizontalPos(horizontalPos + dist);
-        //offsetRef.current.style.left = `${horizontalPos}px`;
+  const onWheel = (e: React.WheelEvent): void => {
+    if (e.altKey) {
+      const mouseX = e.clientX;
+      const mouseOffset = mouseX - (horizontalPos + horizontalPosOffset);
+      // Temporal zoom.
+      const zoomMultiplier = 1 - 0.001 * e.deltaY;
+      setTemporalZoom(temporalZoom * zoomMultiplier);
+      if (e.deltaY < 0) {
+        setHorizontalPos(horizontalPos - mouseOffset * 0.1);
       } else {
-        // Pretty sure e.deltaY returns different values for different browsers.
-        // TODO The 100.0 here controls sensitivity and needs to be changed for
-        // different input devices.
-        const dist: number = lastEvent.deltaY / 100.0;
-        setVerticalPos(verticalPos + dist);
+        setHorizontalPos(horizontalPos + mouseOffset * 0.1);
       }
-    },
-    100
-  );
+    } else if (e.shiftKey) {
+      setHorizontalPos(horizontalPos + e.deltaY * 0.75);
+    } else {
+      // Pretty sure e.deltaY returns different values for different browsers.
+      // TODO The 100.0 here controls sensitivity and needs to be changed for
+      // different input devices.
+      const dist: number = e.deltaY / 100.0;
+      setVerticalPos(verticalPos + dist);
+    }
+  };
+
+  // const onWheel = useScrollTimeout(
+  //   (dist: number, lastEvent: React.WheelEvent) => {
+  //     if (lastEvent.altKey) {
+  //       // Temporal zoom.
+  //       setTemporalZoom(temporalZoom * (1 - 0.001 * dist));
+  //     } else if (lastEvent.shiftKey) {
+  //       console.log(dist);
+  //       setHorizontalPos(horizontalPos + dist * 0.75);
+  //     } else {
+  //       // Pretty sure e.deltaY returns different values for different browsers.
+  //       // TODO The 100.0 here controls sensitivity and needs to be changed for
+  //       // different input devices.
+  //       const dist: number = lastEvent.deltaY / 100.0;
+  //       setVerticalPos(verticalPos + dist);
+  //     }
+  //   },
+  //   100
+  // );
 
   /**
    * The point here is to listen to changes to tracks and then trigger the
@@ -167,7 +188,7 @@ const WorkspaceContent: React.FC = () => {
         value={horizontalPos + horizontalPosOffset}
       >
         <DropZonesContext.Provider value={{ dropZones, registerDropZone }}>
-          <div className={styles["workspace"]} onWheelCapture={onWheel}>
+          <div className={styles["workspace"]} onWheel={onWheel}>
             <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
             <div className={styles["play-and-tracks"]}>
               <div className={styles["play-panel"]}>

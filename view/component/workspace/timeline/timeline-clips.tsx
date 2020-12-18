@@ -9,6 +9,7 @@ interface TimelineClipsProps {
   clips: {
     id: string;
     start: number;
+    duration: number;
     track: {
       id: string;
     };
@@ -18,6 +19,7 @@ interface TimelineClipsProps {
       storedLocally: boolean;
       localFilename: string;
       duration: number;
+      error: string | null;
     };
     draggingInfo: {
       dragging?: boolean;
@@ -33,6 +35,9 @@ const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({
   clips,
   tracksRef
 }: TimelineClipsProps) => {
+  console.log(tracks);
+  console.log(clips);
+
   const tracksMarkup = tracks.map((track, trackIndex) => {
     return (
       <Track index={trackIndex} key={trackIndex} track={track}>

@@ -11,9 +11,9 @@ import { Scheduler } from "./scheduler";
 import Metronome from "./metronome";
 import Recorder from "./recorder";
 import * as React from "react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
-import { useCurrentUserId } from "../react-hooks";
+import { useCurrentUserId, usePrevious } from "../react-hooks";
 import { audioStore } from "./audio-store";
 import { vampAudioContext } from "./vamp-audio-context";
 import ObjectID from "bson-objectid";
@@ -22,7 +22,7 @@ import Looper from "./looper";
 import { WorkspaceAudioClient, AddClip, CabClient } from "../state/apollotypes";
 import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
 import { vampAudioStream } from "./vamp-audio-stream";
-import { useSetLoop, usePlay, useStop } from "../state/vamp-state-hooks";
+import { useSetLoop, useStop } from "../state/vamp-state-hooks";
 import {
   useEndClientClip,
   useBeginClientClip
@@ -48,6 +48,7 @@ const WORKSPACE_AUDIO_CLIENT = gql`
       clips @client {
         id @client
         start @client
+        duration @client
         audio @client {
           id @client
           filename @client
@@ -115,10 +116,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         clips,
         clientClips,
         playPosition,
-        playStartTime,
-        start,
-        end,
-        loop
+        playStartTime
       }
     }
   } = useQuery<WorkspaceAudioClient>(WORKSPACE_AUDIO_CLIENT, {
@@ -131,15 +129,14 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   });
   const {
     userInVamp: {
-      cab: { start: cabStart, duration: cabDuration }
+      cab: { start: cabStart, duration: cabDuration, loops: cabLoops }
     }
   } = userInVampData || {
-    userInVamp: { cab: { cabStart: 0, cabDuration: 0 } }
+    userInVamp: { cab: { cabStart: 0, cabDuration: 0, cabLoops: false } }
   };
 
   const [addClipServer] = useMutation<AddClip>(ADD_CLIP_SERVER);
 
-  const apolloPlay = usePlay();
   const apolloStop = useStop();
   const setLoop = useSetLoop();
   const beginClientClip = useBeginClientClip();
@@ -187,20 +184,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
 
   const stop = (): void => {
     scheduler.stop();
-  };
-
-  // TODO If we end up needing to reuse this functionality it should be put in a
-  // scripts file somewhere.
-  /**
-   * Basically "what the component state was before the last component state
-   * change."
-   */
-  const usePrevious = <T,>(value: T): T => {
-    const ref = useRef<T>();
-    useEffect(() => {
-      ref.current = value;
-    });
-    return ref.current;
   };
 
   /**
@@ -276,9 +259,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         }
       }
     });
-    // apolloClient.writeData({
-    //   data: { vamp: { __typename: "Vamp", id: vampId, start, end } }
-    // });
   };
 
   // Run on every state update. So whenever the props fed to this component from
@@ -350,12 +330,10 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         scheduler={scheduler}
       ></ClipPlayer>
       <Looper
-        start={start}
-        end={end}
-        loop={loop}
+        start={cabStart}
+        end={cabDuration + cabStart}
+        loops={cabLoops}
         playing={playing}
-        playPosition={playPosition}
-        playStartTime={playStartTime}
       ></Looper>
     </>
   );

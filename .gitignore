@@ -3,3 +3,4 @@ view/build/
 public/vamp.bundle.js
 cypress/videos/
 cypress/screenshots/
+storybook-static/

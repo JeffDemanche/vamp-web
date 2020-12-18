@@ -2,8 +2,8 @@
 @import "../../constants/fonts.less";
 
 .btn {
-  background-color: @button-inactive-background;
-  color: @button-inactive-foreground;
+  background-color: @gray-3-50;
+  color: @gray-6-75;
   font-family: @font-default;
   font-size: 16pt;
   font-weight: normal;
@@ -16,29 +16,18 @@
 }
 
 .btn:hover {
-  background-color: @button-active-background;
-  color: @button-active-foreground;
+  background-color: @gray-3-25;
+  color: @gray-6-75;
 }
 
 .btn:active .btn:focus {
-  background-color: @button-active-background;
-  color: @button-active-foreground;
+  background-color: @gray-3-100;
 }
 
 .btn-primary {
-  background-color: @button-primary-inactive-background !important;
+  background-color: @gray-3-75 !important;
 }
 
 .btn-primary:hover {
-  background-color: @button-primary-active-background !important;
-}
-
-.btn-secondary {
-  color: @button-secondary-inactive-foreground !important;
-  background-color: @button-secondary-inactive-background !important;
-}
-
-.btn-primary:hover {
-  color: @button-secondary-active-foreground !important;
-  background-color: @button-secondary-active-background !important;
+  background-color: @gray-3-50 !important;
 }

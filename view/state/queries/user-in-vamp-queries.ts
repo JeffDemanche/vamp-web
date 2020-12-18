@@ -28,6 +28,7 @@ export const CAB_CLIENT = gql`
       cab @client {
         start @client
         duration @client
+        loops @client
       }
     }
   }
