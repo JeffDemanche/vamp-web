@@ -35,9 +35,6 @@ const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({
   clips,
   tracksRef
 }: TimelineClipsProps) => {
-  console.log(tracks);
-  console.log(clips);
-
   const tracksMarkup = tracks.map((track, trackIndex) => {
     return (
       <Track index={trackIndex} key={trackIndex} track={track}>
