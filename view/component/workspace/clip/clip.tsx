@@ -12,7 +12,7 @@ import Playhead from "../../element/playhead";
 import TrashButton from "./trash-button";
 import MovableComponent from "../../element/movable-component";
 import { DropZone } from "../workspace-content";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { UpdateClip } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
@@ -69,6 +69,12 @@ const Clip: React.FunctionComponent<ClipProps> = ({
 
   // This is the temporary track index used while dragging.
   const [trackIndexState, setTrackIndexState] = useState(trackIndex);
+
+  // If the props change, make sure the state changes accordingly.
+  useEffect(() => {
+    setTrackIndexState(trackIndex);
+  }, [trackIndex]);
+
   const [raised, setRaised] = useState(false);
 
   const opacity = clip.audio.storedLocally ? 1.0 : 0.7;
