@@ -63,7 +63,13 @@ export const cache = new InMemoryCache({
     Audio: {
       fields: {
         localFilename: (localFilename = ""): string => localFilename,
-        storedLocally: (storedLocally = false): boolean => storedLocally,
+        storedLocally: {
+          read: (storedLocally = false): boolean => storedLocally,
+          merge: (existing, incoming) => {
+            console.log("stored locally");
+            return incoming;
+          }
+        },
         duration: (duration = -1): number => duration,
         error: (error: string = null): string => error
       }

@@ -8,6 +8,7 @@ import UserInVampProvider from "./user-in-vamp-provider";
 import { useCurrentUserId } from "../../react-hooks";
 import VampProvider from "./vamp-provider";
 import { WorkspaceContent } from "./workspace-content";
+import { ClipsProvider } from "./clip-provider";
 
 interface MatchParams {
   vampid: string;
@@ -28,13 +29,15 @@ const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = (
 
   return (
     <VampProvider vampId={vampId}>
-      <UserInVampProvider vampId={vampId} userId={userId}>
-        <HotKeysWrapper>
-          <SpeechControl>
-            <WorkspaceContent />
-          </SpeechControl>
-        </HotKeysWrapper>
-      </UserInVampProvider>
+      <ClipsProvider vampId={vampId}>
+        <UserInVampProvider vampId={vampId} userId={userId}>
+          <HotKeysWrapper>
+            <SpeechControl>
+              <WorkspaceContent />
+            </SpeechControl>
+          </HotKeysWrapper>
+        </UserInVampProvider>
+      </ClipsProvider>
     </VampProvider>
   );
 };

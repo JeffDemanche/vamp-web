@@ -1,11 +1,19 @@
 import * as React from "react";
-import { useEffect } from "react";
-import { gql, useApolloClient, useQuery } from "@apollo/client";
-import { GetVamp, VampSubscription } from "../../state/apollotypes";
+import {
+  gql,
+  useApolloClient,
+  useQuery,
+  useSubscription
+} from "@apollo/client";
+import {
+  GetVamp,
+  VampSubscription,
+  VampSubscription_subVamp_vampPayload
+} from "../../state/apollotypes";
 import { ViewNotFound } from "../not-found/view-not-found";
 import { ViewLoading } from "../loading/view-loading";
 import { loadedVampIdVar } from "../../state/cache";
-import { useHandOffClientClip } from "../../state/client-clip-state-hooks";
+import { Modifier, Modifiers } from "@apollo/client/cache/core/types/common";
 
 /**
  * This encompasses all the data that should be in the cache *when the page
@@ -72,39 +80,8 @@ const VAMP_SUBSCRIPTION = gql`
         }
         clips {
           id
-          start
-          duration
-          track {
-            id
-          }
-          vamp {
-            id
-          }
-          user {
-            id
-          }
-          audio {
-            id
-            filename
-            storedLocally @client
-            localFilename @client
-            duration @client
-            error @client
-          }
-        }
-        playing @client
-        playPosition @client
-        playStartTime @client
-        start @client
-        end @client
-        loop @client
-        recording @client
-        clientClips @client {
-          audioStoreKey
         }
       }
-      addedClipId
-      addedClipRefId
     }
   }
 `;
@@ -118,54 +95,58 @@ interface VampProviderProps {
  * Wraps around the ViewWorkspace component and handles subscription receptions
  * for general Vamp states. I.e. if the BPM get's changed it'll be handled here.
  */
-// eslint-disable-next-line max-len
 const VampProvider: React.FunctionComponent<VampProviderProps> = ({
   vampId,
   children
 }: VampProviderProps) => {
   const client = useApolloClient();
+  const cache = client.cache;
   loadedVampIdVar(vampId);
 
-  const handOffClientClip = useHandOffClientClip();
-
-  const {
-    subscribeToMore: vampSubscribeToMore,
-    data: vampData,
-    error: vampError,
-    loading: vampLoading
-  } = useQuery<GetVamp>(VAMP_QUERY, {
-    variables: { id: vampId }
+  const { data: vampData, error: vampError, loading: vampLoading } = useQuery<
+    GetVamp
+  >(VAMP_QUERY, {
+    variables: { id: vampId },
+    onCompleted: (data: GetVamp) => {
+      // This is necessary (for some reason) to load default local state data
+      // into the cache when the workspace loads.
+      client.writeQuery({
+        query: VAMP_QUERY,
+        variables: { id: vampId },
+        data
+      });
+    }
   });
 
-  if (vampData) {
-    client.writeQuery({
-      query: VAMP_QUERY,
-      variables: { id: vampId },
-      data: vampData
-    });
-  }
-
-  useEffect(() => {
-    vampSubscribeToMore<VampSubscription>({
-      document: VAMP_SUBSCRIPTION,
-      variables: { vampId },
-      updateQuery: (prev, { subscriptionData }) => {
-        if (!subscriptionData.data) return prev;
-
+  useSubscription<VampSubscription>(VAMP_SUBSCRIPTION, {
+    variables: { vampId },
+    shouldResubscribe: true,
+    onSubscriptionData: ({ client, subscriptionData }) => {
+      if (subscriptionData.error) {
+        //
+      }
+      if (subscriptionData.data) {
         const subVamp = subscriptionData.data.subVamp;
 
-        if (subVamp.addedClipId && subVamp.addedClipRefId) {
-          handOffClientClip(subVamp.addedClipRefId, subVamp.addedClipId);
-        }
+        const payload: VampSubscription_subVamp_vampPayload =
+          subVamp.vampPayload;
 
-        const newVamp = subVamp.vampPayload;
+        const updateFields: Modifiers | Modifier<unknown> = {};
 
-        return {
-          vamp: newVamp
-        };
+        Object.entries(payload).forEach(([key, value]) => {
+          if (key === "clips") return;
+          if (value !== null && value !== undefined) {
+            updateFields[key] = (): unknown => value;
+          }
+        });
+
+        client.cache.modify({
+          id: cache.identify({ __typename: "Vamp", id: vampId }),
+          fields: updateFields
+        });
       }
-    });
-  }, []);
+    }
+  });
 
   if (vampError) {
     console.error(vampError);

@@ -18,6 +18,7 @@ export const useBeginClientClip = (): ((
   const loadedVampId = loadedVampIdVar();
 
   return (start: number, audioStoreKey: string): void => {
+    console.log("beginClientClip");
     const data: ClientClip = {
       __typename: "ClientClip",
       audioStoreKey: audioStoreKey,
@@ -60,6 +61,7 @@ export const useEndClientClip = (): ((audioStoreKey: string) => void) => {
   const loadedVampId = loadedVampIdVar();
 
   return (audioStoreKey: string): void => {
+    console.log("endClientClip");
     const data: Partial<ClientClip> = {
       __typename: "ClientClip",
       audioStoreKey,
@@ -105,6 +107,7 @@ export const useHandOffClientClip = (): ((
   const loadedVampId = loadedVampIdVar();
 
   return (audioStoreKey: string, realClipId: string): void => {
+    console.log("handOffClientClip");
     const data: Partial<ClientClip> = {
       __typename: "ClientClip",
       audioStoreKey,
@@ -145,6 +148,7 @@ export const useRemoveClientClip = (): ((audioStoreKey: string) => boolean) => {
   const loadedVampId = loadedVampIdVar();
 
   return (audioStoreKey: string): boolean => {
+    console.log("removeClientClip");
     let removed = false;
     cache.modify({
       id: cache.identify({ __typename: "Vamp", id: loadedVampId }),

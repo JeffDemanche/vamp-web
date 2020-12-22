@@ -19,8 +19,7 @@ import { vampAudioContext } from "./vamp-audio-context";
 import ObjectID from "bson-objectid";
 import ClipPlayer from "./clip-player";
 import Looper from "./looper";
-import { WorkspaceAudioClient, AddClip, CabClient } from "../state/apollotypes";
-import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
+import { WorkspaceAudioClient, AddClip } from "../state/apollotypes";
 import { vampAudioStream } from "./vamp-audio-stream";
 import { useSetLoop, useStop } from "../state/vamp-state-hooks";
 import {
@@ -29,41 +28,47 @@ import {
 } from "../state/client-clip-state-hooks";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
-  query WorkspaceAudioClient($vampId: ID!) {
+  query WorkspaceAudioClient($vampId: ID!, $userId: ID!) {
     vamp(id: $vampId) @client {
-      id @client
+      bpm
+      beatsPerBar
+      playing
+      recording
+      metronomeSound
+      playPosition
+      playStartTime
 
-      bpm @client
-      beatsPerBar @client
-      playing @client
-      recording @client
-      metronomeSound @client
-      playPosition @client
-      playStartTime @client
+      start
+      end
+      loop
 
-      start @client
-      end @client
-      loop @client
-
-      clips @client {
-        id @client
-        start @client
-        duration @client
-        audio @client {
-          id @client
-          filename @client
-          localFilename @client
-          storedLocally @client
-          duration @client
+      clips {
+        id
+        start
+        duration
+        audio {
+          id
+          filename
+          localFilename
+          storedLocally
+          duration
         }
       }
 
-      clientClips @client {
-        start @client
-        audioStoreKey @client
-        realClipId @client
-        inProgress @client
-        duration @client
+      clientClips {
+        start
+        audioStoreKey
+        realClipId
+        inProgress
+        duration
+      }
+    }
+    userInVamp(vampId: $vampId, userId: $userId) @client {
+      id
+      cab {
+        start
+        duration
+        loops
       }
     }
   }
@@ -108,32 +113,26 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const userId = useCurrentUserId();
 
   // State query for clientside Vamp playback info.
-  const {
-    data: {
-      vamp: {
-        playing,
-        recording,
-        clips,
-        clientClips,
-        playPosition,
-        playStartTime
-      }
+  const { data, loading, error } = useQuery<WorkspaceAudioClient>(
+    WORKSPACE_AUDIO_CLIENT,
+    {
+      variables: { vampId, userId }
     }
-  } = useQuery<WorkspaceAudioClient>(WORKSPACE_AUDIO_CLIENT, {
-    variables: { vampId }
-  });
+  );
 
-  // State query for cab info.
-  const { data: userInVampData } = useQuery<CabClient>(CAB_CLIENT, {
-    variables: { vampId, userId }
-  });
   const {
+    vamp: {
+      playing,
+      recording,
+      clips,
+      clientClips,
+      playPosition,
+      playStartTime
+    },
     userInVamp: {
       cab: { start: cabStart, duration: cabDuration, loops: cabLoops }
     }
-  } = userInVampData || {
-    userInVamp: { cab: { cabStart: 0, cabDuration: 0, cabLoops: false } }
-  };
+  } = data;
 
   const [addClipServer] = useMutation<AddClip>(ADD_CLIP_SERVER);
 

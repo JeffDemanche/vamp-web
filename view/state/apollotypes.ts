@@ -62,7 +62,6 @@ export interface WorkspaceAudioClient_vamp_clientClips {
 
 export interface WorkspaceAudioClient_vamp {
   __typename: "Vamp";
-  id: string;
   bpm: number;
   beatsPerBar: number;
   playing: boolean | null;
@@ -77,12 +76,30 @@ export interface WorkspaceAudioClient_vamp {
   clientClips: (WorkspaceAudioClient_vamp_clientClips | null)[] | null;
 }
 
+export interface WorkspaceAudioClient_userInVamp_cab {
+  __typename: "Cab";
+  start: number;
+  duration: number;
+  loops: boolean;
+}
+
+export interface WorkspaceAudioClient_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  cab: WorkspaceAudioClient_userInVamp_cab;
+}
+
 export interface WorkspaceAudioClient {
   vamp: WorkspaceAudioClient_vamp | null;
+  /**
+   * Tries to find a UserInVamp, or adds one if not found.
+   */
+  userInVamp: WorkspaceAudioClient_userInVamp;
 }
 
 export interface WorkspaceAudioClientVariables {
   vampId: string;
+  userId: string;
 }
 
 /* tslint:disable */
@@ -217,6 +234,107 @@ export interface UpdateCabVariables {
   start?: number | null;
   duration?: number | null;
   loops?: boolean | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL subscription operation: ClipSubscription
+// ====================================================
+
+export interface ClipSubscription_subClips_clipAdded_track {
+  __typename: "Track";
+  id: string;
+}
+
+export interface ClipSubscription_subClips_clipAdded_vamp {
+  __typename: "Vamp";
+  id: string;
+}
+
+export interface ClipSubscription_subClips_clipAdded_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface ClipSubscription_subClips_clipAdded_audio {
+  __typename: "Audio";
+  id: string;
+  filename: string;
+  storedLocally: boolean;
+  localFilename: string;
+  duration: number;
+  error: string | null;
+}
+
+export interface ClipSubscription_subClips_clipAdded {
+  __typename: "Clip";
+  id: string;
+  start: number;
+  duration: number;
+  track: ClipSubscription_subClips_clipAdded_track | null;
+  vamp: ClipSubscription_subClips_clipAdded_vamp;
+  user: ClipSubscription_subClips_clipAdded_user;
+  audio: ClipSubscription_subClips_clipAdded_audio;
+}
+
+export interface ClipSubscription_subClips_clipUpdated_track {
+  __typename: "Track";
+  id: string;
+}
+
+export interface ClipSubscription_subClips_clipUpdated_vamp {
+  __typename: "Vamp";
+  id: string;
+}
+
+export interface ClipSubscription_subClips_clipUpdated_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface ClipSubscription_subClips_clipUpdated_audio {
+  __typename: "Audio";
+  id: string;
+  filename: string;
+}
+
+export interface ClipSubscription_subClips_clipUpdated {
+  __typename: "ClipSubscriptionPayload";
+  start: number | null;
+  duration: number | null;
+  track: ClipSubscription_subClips_clipUpdated_track | null;
+  vamp: ClipSubscription_subClips_clipUpdated_vamp | null;
+  user: ClipSubscription_subClips_clipUpdated_user | null;
+  audio: ClipSubscription_subClips_clipUpdated_audio | null;
+}
+
+export interface ClipSubscription_subClips {
+  __typename: "ClipSubscriptionOutput";
+  vampId: string;
+  operation: string;
+  clipAdded: ClipSubscription_subClips_clipAdded | null;
+  clipUpdated: ClipSubscription_subClips_clipUpdated | null;
+  clipRemoved: string | null;
+  /**
+   * When we add a clip in the client we specify an ID that gets assigned to
+   * the temporary client clip which plays while we wait for the actual clip
+   * to make the round trip to and from the server. This value and addedClipId
+   * tell us which client clip to replace with the real clip once it's
+   * returned.
+   */
+  addedClipRefId: string | null;
+}
+
+export interface ClipSubscription {
+  subClips: ClipSubscription_subClips;
+}
+
+export interface ClipSubscriptionVariables {
+  vampId: string;
 }
 
 /* tslint:disable */
@@ -610,6 +728,7 @@ export interface GetVamp_vamp_clips_audio {
   storedLocally: boolean;
   localFilename: string;
   duration: number;
+  error: string | null;
 }
 
 export interface GetVamp_vamp_clips {
@@ -669,77 +788,25 @@ export interface VampSubscription_subVamp_vampPayload_tracks {
   id: string;
 }
 
-export interface VampSubscription_subVamp_vampPayload_clips_track {
-  __typename: "Track";
-  id: string;
-}
-
-export interface VampSubscription_subVamp_vampPayload_clips_vamp {
-  __typename: "Vamp";
-  id: string;
-}
-
-export interface VampSubscription_subVamp_vampPayload_clips_user {
-  __typename: "User";
-  id: string;
-}
-
-export interface VampSubscription_subVamp_vampPayload_clips_audio {
-  __typename: "Audio";
-  id: string;
-  filename: string;
-  storedLocally: boolean;
-  localFilename: string;
-  duration: number;
-}
-
 export interface VampSubscription_subVamp_vampPayload_clips {
   __typename: "Clip";
   id: string;
-  start: number;
-  duration: number;
-  track: VampSubscription_subVamp_vampPayload_clips_track | null;
-  vamp: VampSubscription_subVamp_vampPayload_clips_vamp;
-  user: VampSubscription_subVamp_vampPayload_clips_user;
-  audio: VampSubscription_subVamp_vampPayload_clips_audio;
-}
-
-export interface VampSubscription_subVamp_vampPayload_clientClips {
-  __typename: "ClientClip";
-  audioStoreKey: string;
 }
 
 export interface VampSubscription_subVamp_vampPayload {
-  __typename: "Vamp";
+  __typename: "VampSubscriptionPayload";
   id: string;
-  name: string;
-  bpm: number;
-  beatsPerBar: number;
-  metronomeSound: string;
-  tracks: VampSubscription_subVamp_vampPayload_tracks[];
-  clips: VampSubscription_subVamp_vampPayload_clips[];
-  playing: boolean | null;
-  playPosition: number | null;
-  playStartTime: number | null;
-  start: number | null;
-  end: number | null;
-  loop: boolean | null;
-  recording: boolean | null;
-  clientClips: (VampSubscription_subVamp_vampPayload_clientClips | null)[] | null;
+  name: string | null;
+  bpm: number | null;
+  beatsPerBar: number | null;
+  metronomeSound: string | null;
+  tracks: VampSubscription_subVamp_vampPayload_tracks[] | null;
+  clips: VampSubscription_subVamp_vampPayload_clips[] | null;
 }
 
 export interface VampSubscription_subVamp {
   __typename: "VampSubscriptionOutput";
   vampPayload: VampSubscription_subVamp_vampPayload;
-  addedClipId: string | null;
-  /**
-   * When we add a clip in the client we specify an ID that gets assigned to
-   * the temporary client clip which plays while we wait for the actual clip
-   * to make the round trip to and from the server. This value and addedClipId
-   * tell us which client clip to replace with the real clip once it's
-   * returned.
-   */
-  addedClipRefId: string | null;
 }
 
 export interface VampSubscription {
@@ -1296,6 +1363,51 @@ export interface ViewBoundsDataClientVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL fragment: NewClip
+// ====================================================
+
+export interface NewClip_track {
+  __typename: "Track";
+  id: string;
+}
+
+export interface NewClip_vamp {
+  __typename: "Vamp";
+  id: string;
+}
+
+export interface NewClip_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface NewClip_audio {
+  __typename: "Audio";
+  id: string;
+  filename: string;
+  storedLocally: boolean;
+  localFilename: string;
+  duration: number;
+  error: string | null;
+}
+
+export interface NewClip {
+  __typename: "Clip";
+  id: string;
+  start: number;
+  duration: number;
+  track: NewClip_track | null;
+  vamp: NewClip_vamp;
+  user: NewClip_user;
+  audio: NewClip_audio;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL fragment: NewClientClip
 // ====================================================
 
@@ -1364,7 +1476,8 @@ export interface UpdateClipInput {
 }
 
 /**
- * Vamp update input
+ * Vamp update input. Includes id to specify which Vamp and
+ *     nullable fields which are allowed to be updated.
  */
 export interface VampUpdateInput {
   id: string;
