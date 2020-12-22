@@ -138,7 +138,6 @@ const onClientClipChanged = (
   scheduler: Scheduler
 ): void => {
   if (prevClientClip.inProgress && !clientClip.inProgress) {
-    console.log("adding client clip event");
     scheduler.addEvent(
       createClipEvent(
         clientClip.audioStoreKey,

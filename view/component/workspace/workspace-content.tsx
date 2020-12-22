@@ -147,7 +147,7 @@ const WorkspaceContent: React.FC = () => {
         if (verticalPos < 0) {
           setVerticalPos(0);
         } else if (verticalPos >= numTracks) {
-          setVerticalPos(numTracks - 1);
+          setVerticalPos(Math.max(numTracks - 1, 0));
         }
 
         const focusedTrack = Math.round(verticalPos);

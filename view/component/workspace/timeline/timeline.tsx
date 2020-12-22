@@ -3,42 +3,37 @@ import { gql, useQuery } from "@apollo/client";
 import * as styles from "./timeline.less";
 import { Cab } from "../cab/cab";
 import TimelineClips from "./timeline-clips";
-import { GET_CLIPS_CLIENT } from "../../../state/queries/clips-queries";
 import { RECORDING_CLIENT } from "../../../state/queries/vamp-queries";
-import {
-  RecordingClient,
-  GetClipsClient,
-  TimelineClient
-} from "../../../state/apollotypes";
+import { RecordingClient, TimelineClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../react-hooks";
 import MetronomeBar from "./metronome/metronome-bar";
-import { MutableRefObject } from "react";
+import { MutableRefObject, useCallback, useEffect } from "react";
 
 const TIMELINE_CLIENT = gql`
   query TimelineClient($vampId: ID!) {
     vamp(id: $vampId) @client {
-      tracks @client {
-        id @client
+      tracks {
+        id
       }
-      clips @client {
-        id @client
-        start @client
-        duration @client
-        track @client {
-          id @client
+      clips {
+        id
+        start
+        duration
+        track {
+          id
         }
-        audio @client {
-          id @client
-          filename @client
-          localFilename @client
-          storedLocally @client
-          duration @client
-          error @client
+        audio {
+          id
+          filename
+          localFilename
+          storedLocally
+          duration
+          error
         }
-        draggingInfo @client {
-          dragging @client
-          track @client
-          position @client
+        draggingInfo {
+          dragging
+          track
+          position
         }
       }
     }
@@ -69,19 +64,18 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
     variables: { vampId }
   });
 
-  const { data: clipsData } = useQuery<GetClipsClient>(GET_CLIPS_CLIENT, {
-    variables: { vampId }
-  });
-
   // If empty we render in the "new Vamp" layout.
-  const empty = clipsData ? clipsData.vamp.clips.length == 0 : true;
+  const isEmpty = useCallback(
+    () => (data ? data.vamp.clips.length == 0 : true),
+    [data]
+  );
 
   if (!data || loading) {
     return <div>Loading</div>;
   }
 
-  const timelineContent = empty ? (
-    <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
+  const timelineContent = isEmpty() ? (
+    <Cab empty={isEmpty()} recording={recordingData.vamp.recording}></Cab>
   ) : (
     <>
       <div className={styles["top-cell"]}>
@@ -95,7 +89,7 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
         ></TimelineClips>
       </div>
       <div className={styles["bottom-cell"]}>
-        <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
+        <Cab empty={isEmpty()} recording={recordingData.vamp.recording}></Cab>
       </div>
     </>
   );

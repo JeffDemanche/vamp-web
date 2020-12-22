@@ -610,6 +610,7 @@ export interface GetVamp_vamp_clips_audio {
   storedLocally: boolean;
   localFilename: string;
   duration: number;
+  error: string | null;
 }
 
 export interface GetVamp_vamp_clips {
@@ -691,6 +692,7 @@ export interface VampSubscription_subVamp_vampPayload_clips_audio {
   storedLocally: boolean;
   localFilename: string;
   duration: number;
+  error: string | null;
 }
 
 export interface VampSubscription_subVamp_vampPayload_clips {
