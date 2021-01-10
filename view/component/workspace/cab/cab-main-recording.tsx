@@ -5,9 +5,12 @@ import {
   useCurrentVampId,
   useTrueTime,
   useCurrentUserId
-} from "../../../react-hooks";
+} from "../../../util/react-hooks";
 import { CabMainRecording } from "../../../state/apollotypes";
-import { useWorkspaceLeft, useWorkspaceWidth } from "../../../workspace-hooks";
+import {
+  useWorkspaceLeft,
+  useWorkspaceWidth
+} from "../../../util/workspace-hooks";
 import { Oscilloscope } from "../oscilloscope/oscilloscope";
 
 const CAB_MAIN_RECORDING_QUERY = gql`

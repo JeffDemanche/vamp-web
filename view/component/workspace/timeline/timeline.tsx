@@ -5,9 +5,9 @@ import { Cab } from "../cab/cab";
 import TimelineClips from "./timeline-clips";
 import { RECORDING_CLIENT } from "../../../state/queries/vamp-queries";
 import { RecordingClient, TimelineClient } from "../../../state/apollotypes";
-import { useCurrentVampId } from "../../../react-hooks";
-import MetronomeBar from "./metronome/metronome-bar";
+import { useCurrentVampId } from "../../../util/react-hooks";
 import { MutableRefObject, useCallback, useEffect } from "react";
+import { Metronome } from "./metronome/metronome";
 
 const TIMELINE_CLIENT = gql`
   query TimelineClient($vampId: ID!) {
@@ -79,7 +79,8 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
   ) : (
     <>
       <div className={styles["top-cell"]}>
-        <MetronomeBar></MetronomeBar>
+        <Metronome></Metronome>
+        {/* <MetronomeBar></MetronomeBar> */}
       </div>
       <div className={styles["middle-cell"]}>
         <TimelineClips

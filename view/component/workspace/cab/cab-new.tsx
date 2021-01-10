@@ -5,7 +5,7 @@ import * as styles from "./cab.less";
 import { useQuery } from "@apollo/client";
 import { PLAYING_CLIENT } from "../../../state/queries/vamp-queries";
 import { PlayingClient } from "../../../state/apollotypes";
-import { useCurrentVampId } from "../../../react-hooks";
+import { useCurrentVampId } from "../../../util/react-hooks";
 import {
   usePlay,
   usePause,

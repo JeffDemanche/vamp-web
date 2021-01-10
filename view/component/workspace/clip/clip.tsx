@@ -5,9 +5,9 @@ import { Oscilloscope } from "../oscilloscope/oscilloscope";
 import {
   useWorkspaceWidth,
   useWorkspaceLeft,
-  useWorkpaceDuration,
+  useWorkspaceDuration,
   useWorkspaceTime
-} from "../../../workspace-hooks";
+} from "../../../util/workspace-hooks";
 import Playhead from "../../element/playhead";
 import TrashButton from "./trash-button";
 import MovableComponent from "../../element/movable-component";
@@ -15,7 +15,7 @@ import { DropZone } from "../workspace-content";
 import { useEffect, useRef, useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { UpdateClip } from "../../../state/apollotypes";
-import { useCurrentVampId } from "../../../react-hooks";
+import { useCurrentVampId } from "../../../util/react-hooks";
 import { FailureOverlay } from "./failure-overlay";
 
 const UPDATE_CLIP = gql`
@@ -58,7 +58,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
   const vampId = useCurrentVampId();
 
   const widthFn = useWorkspaceWidth();
-  const durationFn = useWorkpaceDuration();
+  const durationFn = useWorkspaceDuration();
   const leftFn = useWorkspaceLeft();
   const timeFn = useWorkspaceTime();
 

@@ -7,7 +7,7 @@ import {
   RECORDING_CLIENT
 } from "../../../state/queries/vamp-queries";
 import { RecordingClient, PlayingClient } from "../../../state/apollotypes";
-import { useCurrentVampId } from "../../../react-hooks";
+import { useCurrentVampId } from "../../../util/react-hooks";
 import {
   usePlay,
   usePause,

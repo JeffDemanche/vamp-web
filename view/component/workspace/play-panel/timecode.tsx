@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import * as styles from "./timecode.less";
-import { useTrueTime } from "../../../react-hooks";
+import { useTrueTime } from "../../../util/react-hooks";
 
 /**
  * The counter that displays the time.

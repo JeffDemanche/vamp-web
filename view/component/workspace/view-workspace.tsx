@@ -5,7 +5,7 @@ import { RouteComponentProps } from "react-router";
 import { HotKeysWrapper } from "../wrapper/hotkeys-wrapper";
 import { SpeechControl } from "../../speech-recognition/speech-control-wrapper";
 import UserInVampProvider from "./user-in-vamp-provider";
-import { useCurrentUserId } from "../../react-hooks";
+import { useCurrentUserId } from "../../util/react-hooks";
 import VampProvider from "./vamp-provider";
 import { WorkspaceContent } from "./workspace-content";
 

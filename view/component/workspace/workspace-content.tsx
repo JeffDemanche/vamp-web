@@ -1,13 +1,13 @@
 import * as React from "react";
 import { gql, useQuery } from "@apollo/client";
 import * as styles from "./workspace-content.less";
-import { useCurrentVampId, useScrollTimeout } from "../../react-hooks";
+import { useCurrentVampId } from "../../util/react-hooks";
 import { WorkspaceAudio } from "../../audio/vamp-audio";
 import { PlayPanel } from "./play-panel/play-panel";
 import Timeline from "./timeline/timeline";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { WorkspaceContentClient } from "../../state/apollotypes";
-import { useWindowDimensions } from "../../workspace-hooks";
+import { useWindowDimensions } from "../../util/workspace-hooks";
 
 const TemporalZoomContext = React.createContext(100);
 const HorizontalPosContext = React.createContext(0);

@@ -7,11 +7,11 @@ import * as Peer from "simple-peer";
 import { gql, useQuery } from "@apollo/client";
 import { useState, useEffect, useRef } from "react";
 
-import { TrueTimeClient } from "./state/apollotypes";
-import { audioStore } from "./audio/audio-store";
-import { vampAudioContext } from "./audio/vamp-audio-context";
-import { vampAudioStream } from "./audio/vamp-audio-stream";
-import { loadedVampIdVar } from "./state/cache";
+import { TrueTimeClient } from "../state/apollotypes";
+import { audioStore } from "../audio/audio-store";
+import { vampAudioContext } from "../audio/vamp-audio-context";
+import { vampAudioStream } from "../audio/vamp-audio-stream";
+import { loadedVampIdVar } from "../state/cache";
 
 export const useCurrentVampId = (): string => {
   return loadedVampIdVar();

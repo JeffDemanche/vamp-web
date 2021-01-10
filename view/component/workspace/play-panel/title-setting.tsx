@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { gql, useQuery, useMutation } from "@apollo/client";
-import { useCurrentVampId } from "../../../react-hooks";
+import { useCurrentVampId } from "../../../util/react-hooks";
 import { VampUpdateInput } from "../../../state/apollotypes";
 import { SettingText } from "../../element/setting-text";
 

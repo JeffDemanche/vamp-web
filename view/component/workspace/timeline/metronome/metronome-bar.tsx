@@ -3,13 +3,13 @@ import * as styles from "./metronome-bar.less";
 import { useQuery } from "@apollo/client";
 import { METRONOME_INFO_CLIENT } from "../../../../state/queries/vamp-queries";
 import { MetronomeInfoClient } from "../../../../state/apollotypes";
-import { useCurrentVampId } from "../../../../react-hooks";
+import { useCurrentVampId } from "../../../../util/react-hooks";
 import {
   useWorkspaceWidth,
   useWindowDimensions,
   useWorkspaceLeft,
   useViewBounds
-} from "../../../../workspace-hooks";
+} from "../../../../util/workspace-hooks";
 
 interface MetronomeMeasureProps {
   measureNo: number;

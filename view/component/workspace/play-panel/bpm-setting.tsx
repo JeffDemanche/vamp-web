@@ -1,7 +1,7 @@
 import * as React from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { SettingNumeric } from "../../element/setting-numeric";
-import { useCurrentVampId } from "../../../react-hooks";
+import { useCurrentVampId } from "../../../util/react-hooks";
 import { BPMClient, UpdateBPM } from "../../../state/apollotypes";
 
 const BPM_CLIENT = gql`

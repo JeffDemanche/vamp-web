@@ -8,7 +8,7 @@ import { MetronomeSetting } from "./metronome-setting";
 
 import * as styles from "./play-panel.less";
 import Timecode from "./timecode";
-import { useHover } from "../../../react-hooks";
+import { useHover } from "../../../util/react-hooks";
 import { useEffect, useState } from "react";
 import { TitleSetting } from "./title-setting";
 

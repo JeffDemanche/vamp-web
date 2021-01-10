@@ -624,6 +624,44 @@ export interface GetVamp_vamp_clips {
   audio: GetVamp_vamp_clips_audio;
 }
 
+export interface GetVamp_vamp_sections_subSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface GetVamp_vamp_sections {
+  __typename: "Section";
+  id: string;
+  bpm: number;
+  beatsPerBar: number;
+  metronomeSound: string;
+  startMeasure: number;
+  repetitions: number | null;
+  subSections: GetVamp_vamp_sections_subSections[] | null;
+}
+
+export interface GetVamp_vamp_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface GetVamp_vamp_forms_insertedSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface GetVamp_vamp_forms_postSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface GetVamp_vamp_forms {
+  __typename: "Form";
+  preSection: GetVamp_vamp_forms_preSection;
+  insertedSections: GetVamp_vamp_forms_insertedSections[];
+  postSection: GetVamp_vamp_forms_postSection | null;
+}
+
 export interface GetVamp_vamp_clientClips {
   __typename: "ClientClip";
   audioStoreKey: string;
@@ -638,6 +676,8 @@ export interface GetVamp_vamp {
   metronomeSound: string;
   tracks: GetVamp_vamp_tracks[];
   clips: GetVamp_vamp_clips[];
+  sections: GetVamp_vamp_sections[];
+  forms: GetVamp_vamp_forms[];
   playing: boolean | null;
   playPosition: number | null;
   playStartTime: number | null;
@@ -799,50 +839,6 @@ export interface AddVamp {
 
 export interface AddVampVariables {
   creatorId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL query operation: GetCurrentUserId
-// ====================================================
-
-export interface GetCurrentUserId_me {
-  __typename: "User";
-  id: string;
-}
-
-export interface GetCurrentUserId {
-  me: GetCurrentUserId_me | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL query operation: TrueTimeClient
-// ====================================================
-
-export interface TrueTimeClient_vamp {
-  __typename: "Vamp";
-  playing: boolean | null;
-  playPosition: number | null;
-  playStartTime: number | null;
-  start: number | null;
-  end: number | null;
-}
-
-export interface TrueTimeClient {
-  vamp: TrueTimeClient_vamp | null;
-}
-
-export interface TrueTimeClientVariables {
-  vampId: string;
 }
 
 /* tslint:disable */
@@ -1229,6 +1225,112 @@ export interface MetronomeInfoClient {
 }
 
 export interface MetronomeInfoClientVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: MetronomeQuery
+// ====================================================
+
+export interface MetronomeQuery_vamp_sections_subSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_sections {
+  __typename: "Section";
+  id: string;
+  bpm: number;
+  beatsPerBar: number;
+  metronomeSound: string;
+  startMeasure: number;
+  repetitions: number | null;
+  subSections: MetronomeQuery_vamp_sections_subSections[] | null;
+}
+
+export interface MetronomeQuery_vamp_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_forms_insertedSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_forms_postSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_forms {
+  __typename: "Form";
+  id: string;
+  preSection: MetronomeQuery_vamp_forms_preSection;
+  insertedSections: MetronomeQuery_vamp_forms_insertedSections[];
+  postSection: MetronomeQuery_vamp_forms_postSection | null;
+}
+
+export interface MetronomeQuery_vamp {
+  __typename: "Vamp";
+  sections: MetronomeQuery_vamp_sections[];
+  forms: MetronomeQuery_vamp_forms[];
+}
+
+export interface MetronomeQuery {
+  vamp: MetronomeQuery_vamp | null;
+}
+
+export interface MetronomeQueryVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: GetCurrentUserId
+// ====================================================
+
+export interface GetCurrentUserId_me {
+  __typename: "User";
+  id: string;
+}
+
+export interface GetCurrentUserId {
+  me: GetCurrentUserId_me | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: TrueTimeClient
+// ====================================================
+
+export interface TrueTimeClient_vamp {
+  __typename: "Vamp";
+  playing: boolean | null;
+  playPosition: number | null;
+  playStartTime: number | null;
+  start: number | null;
+  end: number | null;
+}
+
+export interface TrueTimeClient {
+  vamp: TrueTimeClient_vamp | null;
+}
+
+export interface TrueTimeClientVariables {
   vampId: string;
 }
 

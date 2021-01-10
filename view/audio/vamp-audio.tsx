@@ -13,7 +13,7 @@ import Recorder from "./recorder";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
-import { useCurrentUserId, usePrevious } from "../react-hooks";
+import { useCurrentUserId, usePrevious } from "../util/react-hooks";
 import { audioStore } from "./audio-store";
 import { vampAudioContext } from "./vamp-audio-context";
 import ObjectID from "bson-objectid";

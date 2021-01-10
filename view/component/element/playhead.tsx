@@ -1,10 +1,10 @@
 import * as React from "react";
 import * as styles from "./playhead.less";
-import { useTrueTime, useCurrentVampId } from "../../react-hooks";
+import { useTrueTime, useCurrentVampId } from "../../util/react-hooks";
 import { PLAYING_CLIENT } from "../../state/queries/vamp-queries";
 import { PlayingClient } from "../../state/apollotypes";
 import { useQuery } from "@apollo/client";
-import { useWorkspaceWidth } from "../../workspace-hooks";
+import { useWorkspaceWidth } from "../../util/workspace-hooks";
 
 interface PlayheadProps {
   containerStart: number;

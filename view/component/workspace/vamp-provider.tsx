@@ -44,6 +44,28 @@ const VAMP_QUERY = gql`
           error @client
         }
       }
+      sections {
+        id
+        bpm
+        beatsPerBar
+        metronomeSound
+        startMeasure
+        repetitions
+        subSections {
+          id
+        }
+      }
+      forms {
+        preSection {
+          id
+        }
+        insertedSections {
+          id
+        }
+        postSection {
+          id
+        }
+      }
       playing @client
       playPosition @client
       playStartTime @client

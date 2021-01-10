@@ -1,19 +1,19 @@
 import * as React from "react";
 
-import { gql, useQuery, useMutation, useApolloClient } from "@apollo/client";
+import { gql, useQuery, useMutation } from "@apollo/client";
 import * as styles from "./cab.less";
 import {
   useCurrentVampId,
   useCurrentUserId,
   usePrevious
-} from "../../../react-hooks";
+} from "../../../util/react-hooks";
 import { CabMainQuery, UpdateCab } from "../../../state/apollotypes";
 import {
   useWorkspaceWidth,
   useWorkspaceLeft,
-  useWorkpaceDuration,
+  useWorkspaceDuration,
   useWorkspaceTime
-} from "../../../workspace-hooks";
+} from "../../../util/workspace-hooks";
 import MovableComponent from "../../element/movable-component";
 import Playhead from "../../element/playhead";
 import { useState, useEffect } from "react";
@@ -72,7 +72,7 @@ const CabMain: React.FC = () => {
   const widthFn = useWorkspaceWidth();
   const positionFn = useWorkspaceLeft();
 
-  const durationFn = useWorkpaceDuration();
+  const durationFn = useWorkspaceDuration();
   const timeFn = useWorkspaceTime();
 
   const [adjusting, setAdjusting] = useState(false);

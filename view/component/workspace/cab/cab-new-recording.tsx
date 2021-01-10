@@ -1,9 +1,9 @@
 import * as React from "react";
 
 import * as styles from "./cab.less";
-import { useTrueTime } from "../../../react-hooks";
+import { useTrueTime } from "../../../util/react-hooks";
 import { Oscilloscope } from "../oscilloscope/oscilloscope";
-import { useWorkspaceWidth } from "../../../workspace-hooks";
+import { useWorkspaceWidth } from "../../../util/workspace-hooks";
 
 /*
  * CabNew becomes CabNewRecording when it starts recording.

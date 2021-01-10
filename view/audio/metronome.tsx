@@ -2,7 +2,7 @@ import { Scheduler } from "./scheduler";
 import { useEffect, useRef } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { MetronomeClient } from "../state/apollotypes";
-import { useCurrentVampId } from "../react-hooks";
+import { useCurrentVampId } from "../util/react-hooks";
 
 interface MetronomeProps {
   audioContext: AudioContext;

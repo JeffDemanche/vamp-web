@@ -1,0 +1,40 @@
+@import "../../../../constants/colors.less";
+@import "../../../../constants/transitions.less";
+
+.metronome {
+  color: white;
+  font-weight: 300;
+  position: relative;
+  height: 30px;
+  width: 100%;
+
+  .label {
+    float: left;
+    padding-left: 9px;
+    font-size: 14pt;
+    height: 19px;
+    line-height: 100%;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
+
+.bar {
+  display: flex;
+  position: absolute;
+  border-radius: 6px;
+  height: 30px;
+  width: 200px;
+  background-color: @purple-100;
+  overflow: hidden;
+
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+}
+
+.beat-marker {
+  position: absolute;
+  width: 2px;
+  bottom: 0px;
+  background-color: white;
+}

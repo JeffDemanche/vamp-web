@@ -1,10 +1,10 @@
 import * as React from "react";
 
 import { useRef, useEffect } from "react";
-import { useStoredAudio, useStreamedAudio } from "../../../react-hooks";
+import { useStoredAudio, useStreamedAudio } from "../../../util/react-hooks";
 import { workerScript } from "./oscilloscopeWorker";
 import * as styles from "./oscilloscope.less";
-import { useWindowDimensions } from "../../../workspace-hooks";
+import { useWindowDimensions } from "../../../util/workspace-hooks";
 import { draw } from "./oscilloscopeScripts";
 
 interface OscilloscopeProps {

@@ -1,21 +1,21 @@
 import { gql, useQuery } from "@apollo/client";
-import { METRONOME_INFO_CLIENT } from "./state/queries/vamp-queries";
+import { METRONOME_INFO_CLIENT } from "../state/queries/vamp-queries";
 import {
   ViewBoundsDataClient,
   MetronomeClient,
   GetClientClipsClient,
   GetClipsClient
-} from "./state/apollotypes";
+} from "../state/apollotypes";
 import { useCurrentVampId, useCurrentUserId } from "./react-hooks";
 import { useState, useEffect, useContext } from "react";
 import {
   TemporalZoomContext,
   HorizontalPosContext
-} from "./component/workspace/workspace-content";
+} from "../component/workspace/workspace-content";
 import {
   GET_CLIENT_CLIPS_CLIENT,
   GET_CLIPS_CLIENT
-} from "./state/queries/clips-queries";
+} from "../state/queries/clips-queries";
 
 /**
  * Returns a function that will determine width for a duration, which should be
@@ -33,7 +33,7 @@ export const useWorkspaceWidth = (): ((duration: number) => number) => {
  * Like the opposite of useWorkspaceWidth. Returns a function that, given the
  * pixel-width of a workspace object, gives the duration in seconds.
  */
-export const useWorkpaceDuration = (): ((width: number) => number) => {
+export const useWorkspaceDuration = (): ((width: number) => number) => {
   const temporalZoom = useContext(TemporalZoomContext);
 
   const duration = (width: number): number => width / (100 * temporalZoom);

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { audioStore } from "./audio-store";
 import { Scheduler, WorkspaceEvent } from "./scheduler";
-import { usePrevious } from "../react-hooks";
+import { usePrevious } from "../util/react-hooks";
 import _ = require("underscore");
 import { useRemoveClientClip } from "../state/client-clip-state-hooks";
 

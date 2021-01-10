@@ -1,12 +1,12 @@
 import * as React from "react";
 import * as styles from "./movable-component.less";
 import { useState, useEffect, useRef, useContext } from "react";
-import { usePrevious } from "../../react-hooks";
+import { usePrevious } from "../../util/react-hooks";
 import {
   useWorkspaceTime,
   useSnapToBeat,
   useWorkspaceLeft
-} from "../../workspace-hooks";
+} from "../../util/workspace-hooks";
 import { DropZone, DropZonesContext } from "../workspace/workspace-content";
 import _ = require("underscore");
 import classNames = require("classnames");

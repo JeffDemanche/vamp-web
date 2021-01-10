@@ -7,6 +7,7 @@ module.exports = {
   extends: [
     "prettier",
     "eslint:recommended",
+    "plugin:react-hooks/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended"
@@ -23,7 +24,7 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: "module"
   },
-  plugins: ["react", "@typescript-eslint", "prettier"],
+  plugins: ["react", "@typescript-eslint", "prettier", "react-hooks"],
   settings: {
     "import/parsers": {
       "@typescript-eslint/parser": [".ts", ".tsx"]
@@ -33,6 +34,8 @@ module.exports = {
     }
   },
   rules: {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
     "prettier/prettier": ["error"],
     "react/jsx-uses-react": 1,
     "max-len": [2, { code: 80, comments: 120, tabWidth: 2 }],
