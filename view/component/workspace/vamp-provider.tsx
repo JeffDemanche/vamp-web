@@ -46,6 +46,7 @@ const VAMP_QUERY = gql`
       }
       sections {
         id
+        name
         bpm
         beatsPerBar
         metronomeSound
@@ -112,6 +113,29 @@ const VAMP_SUBSCRIPTION = gql`
             localFilename @client
             duration @client
             error @client
+          }
+        }
+        sections {
+          id
+          name
+          bpm
+          beatsPerBar
+          metronomeSound
+          startMeasure
+          repetitions
+          subSections {
+            id
+          }
+        }
+        forms {
+          preSection {
+            id
+          }
+          insertedSections {
+            id
+          }
+          postSection {
+            id
           }
         }
         playing @client

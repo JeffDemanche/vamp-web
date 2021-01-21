@@ -11,7 +11,6 @@ import {
 import { METRONOME_QUERY } from "../../../../../util/metronome-hooks";
 import { mount } from "enzyme";
 import { Bar } from "../bar";
-import { act } from "react-dom/test-utils";
 import wait from "waait";
 
 const MockedProvider = MockedProviderBroken as React.ComponentClass<
@@ -30,7 +29,7 @@ describe("Metronome", () => {
   it("renders with default metronome settings", async () => {
     mockUseCurrentVampId.mockReturnValue("vamp_id");
 
-    const mocks: MockedResponse[] = [
+    const mocks: ReadonlyArray<MockedResponse> = [
       {
         request: {
           query: METRONOME_QUERY,
@@ -45,18 +44,21 @@ describe("Metronome", () => {
                   bpm: 120,
                   beatsPerBar: 4,
                   metronomeSound: "Hi-hat",
-                  startMeasure: null,
-                  repetitions: null,
-                  subSections: null
+                  startMeasure: 0,
+                  repetitions: 2,
+                  subSections: [],
+                  __typename: "Section"
                 }
               ],
               forms: [
                 {
                   preSection: { id: "pre_section_id" },
                   insertedSections: [],
-                  postSection: null
+                  postSection: { id: "post_section_id" },
+                  __typename: "Form"
                 }
-              ]
+              ],
+              __typename: "Vamp"
             }
           }
         }
@@ -64,14 +66,12 @@ describe("Metronome", () => {
     ];
 
     const component = mount(
-      <MockedProvider mocks={mocks} addTypename={false}>
+      <MockedProvider mocks={mocks} addTypename={true}>
         <Metronome></Metronome>
       </MockedProvider>
     );
 
-    await act(async () => {
-      await wait(0);
-    });
+    await wait(0);
 
     expect(component.find(Bar).exists()).toBe(true);
   });

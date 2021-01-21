@@ -32,9 +32,28 @@
   -webkit-transition: @timeline-left-transition, @timeline-width-transition;
 }
 
+.variant {
+  background-color: @blue-purple-100;
+}
+
 .beat-marker {
   position: absolute;
   width: 2px;
   bottom: 0px;
   background-color: white;
+}
+
+.section-handle-container {
+  position: absolute;
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+
+  .section-handle {
+    background-color: @purple-100;
+    border-radius: 5px;
+  }
+
+  .variant {
+    background-color: @blue-purple-100;
+  }
 }

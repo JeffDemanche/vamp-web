@@ -8,9 +8,10 @@ import { useCurrentVampId } from "./react-hooks";
 
 export const METRONOME_QUERY = gql`
   query MetronomeQuery($vampId: ID!) {
-    vamp(id: $vampId) @client {
+    vamp(id: $vampId) {
       sections {
         id
+        name
         bpm
         beatsPerBar
         metronomeSound
@@ -35,44 +36,29 @@ export const METRONOME_QUERY = gql`
   }
 `;
 
-interface MeasureSection {
+export interface MeasureSection {
   id: string;
   bpm: number;
   beatsPerBar: number;
+  startMeasure: number;
+  repetitions: number;
   metronomeSound: string;
-  label?: string;
+  name?: string;
+  insertedSection?: boolean;
 }
 
-export class Measure {
-  private _num: number;
-  private _timeStart: number;
-  private _section: MeasureSection;
+export interface Measure {
+  num: number;
+  timeStart: number;
+  section: MeasureSection;
+}
 
-  constructor({
-    num,
-    timeStart,
-    section
-  }: {
-    num: number;
-    timeStart: number;
-    section: MeasureSection;
-  }) {
-    this._num = num;
-    this._timeStart = timeStart;
-    this._section = section;
-  }
-
-  get num(): number {
-    return this._num;
-  }
-
-  get timeStart(): number {
-    return this._timeStart;
-  }
-
-  get section(): MeasureSection {
-    return this._section;
-  }
+interface SectionMap {
+  sectionId: string;
+  measures: Set<number>;
+  parent: string;
+  section: MeasureSection;
+  subSections: SectionMap[];
 }
 
 /**
@@ -93,7 +79,15 @@ export const useMeasures = ({
   start: number;
   end: number;
   formIndex?: number;
-}): { [no: number]: Measure } => {
+}): {
+  measureMap: { [no: number]: Measure };
+  sectionMap: {
+    [sectionId: string]: SectionMap;
+  };
+  preSectionId: string;
+  insertedSectionIds: string[];
+  postSectionId?: string;
+} => {
   const vampId = useCurrentVampId();
 
   const { data, loading, error } = useQuery<MetronomeQuery>(METRONOME_QUERY, {
@@ -126,32 +120,55 @@ export const useMeasures = ({
     const addSectionRecursive = (
       section: typeof data.vamp.sections[0],
       relativeStartMeasure: number
-    ): void => {
-      if (section.subSections) {
-        section.subSections.forEach(subSection => {
-          addSectionRecursive(
-            sections[subSection.id],
-            relativeStartMeasure + sections[subSection.id].startMeasure
+    ): number => {
+      if (section.subSections && section.subSections.length > 0) {
+        let mutableMeasureCounter = relativeStartMeasure;
+        // We don't directly know how long the section is so we have to count.
+        let measureCount = 0;
+        for (let rep = 0; rep < section.repetitions; rep++) {
+          mutableMeasureCounter = relativeStartMeasure + measureCount;
+
+          const subStart = section.subSections.reduce<number>(
+            (acc, cur) =>
+              sections[cur.id].startMeasure > acc
+                ? sections[cur.id].startMeasure
+                : acc,
+            0
           );
-        });
+          for (let leading = 0; leading < subStart; leading++) {
+            measureNos.set(mutableMeasureCounter + leading, section.id);
+          }
+          measureCount += subStart;
+          section.subSections.forEach(subSection => {
+            const subLength = addSectionRecursive(
+              sections[subSection.id],
+              mutableMeasureCounter + sections[subSection.id].startMeasure
+            );
+            measureCount += subLength;
+          });
+        }
+        return measureCount;
       } else {
         for (let rep = 0; rep < section.repetitions; rep++) {
-          measureNos.set(
-            relativeStartMeasure + section.startMeasure + rep,
-            section.id
-          );
+          measureNos.set(relativeStartMeasure + rep, section.id);
         }
+        return section.repetitions;
       }
     };
 
     if (form.insertedSections) {
       form.insertedSections.forEach(section => {
-        addSectionRecursive(sections[section.id], 0);
+        addSectionRecursive(
+          sections[section.id],
+          sections[section.id].startMeasure
+        );
       });
     }
 
     return measureNos;
   }, [data, form.insertedSections, sections]);
+
+  console.log(data);
 
   const measureMap = useMemo(() => {
     const measureMap: { [no: number]: Measure } = {};
@@ -167,11 +184,11 @@ export const useMeasures = ({
         const measureDuration = (60.0 / section.bpm) * section.beatsPerBar;
         // Only actually add the measure if it's after the start bound.
         if (timeCounter + measureDuration >= start) {
-          measureMap[measureCounter] = new Measure({
+          measureMap[measureCounter] = {
             num: measureCounter,
             timeStart: timeCounter,
-            section: sections[section.id]
-          });
+            section: { ...sections[section.id], insertedSection: true }
+          };
         }
         timeCounter += measureDuration;
         measureCounter++;
@@ -184,11 +201,11 @@ export const useMeasures = ({
         const section = sections[sectionId];
         const measureDuration = (60.0 / section.bpm) * section.beatsPerBar;
         if (timeCounter + measureDuration >= start) {
-          measureMap[measureCounter] = new Measure({
+          measureMap[measureCounter] = {
             num: measureCounter,
             timeStart: timeCounter,
-            section: sections[section.id]
-          });
+            section: { ...sections[section.id], insertedSection: false }
+          };
         }
         timeCounter += measureDuration;
         measureCounter++;
@@ -203,11 +220,11 @@ export const useMeasures = ({
         const section = sections[measureNos.get(measureCounter - 1)];
         const measureDuration = (60.0 / section.bpm) * section.beatsPerBar;
         if (timeCounter - measureDuration <= end) {
-          measureMap[measureCounter - 1] = new Measure({
+          measureMap[measureCounter - 1] = {
             num: measureCounter - 1,
             timeStart: timeCounter - measureDuration,
-            section: sections[section.id]
-          });
+            section: { ...sections[section.id], insertedSection: true }
+          };
         }
         measureCounter--;
         timeCounter -= measureDuration;
@@ -220,17 +237,16 @@ export const useMeasures = ({
         const section = sections[sectionId];
         const measureDuration = (60.0 / section.bpm) * section.beatsPerBar;
         if (timeCounter - measureDuration <= end) {
-          measureMap[measureCounter - 1] = new Measure({
+          measureMap[measureCounter - 1] = {
             num: measureCounter - 1,
             timeStart: timeCounter - measureDuration,
-            section: sections[section.id]
-          });
+            section: { ...sections[section.id], insertedSection: false }
+          };
         }
         measureCounter--;
         timeCounter -= measureDuration;
       }
     }
-
     return measureMap;
   }, [
     end,
@@ -242,5 +258,109 @@ export const useMeasures = ({
     form.postSection
   ]);
 
-  return measureMap;
+  // Maps section IDs to their parents. No entries for root sections.
+  const sectionParents = useMemo(() => {
+    const map: { [sectionId: string]: string } = {};
+    Object.keys(sections).forEach(sectionId => {
+      if (
+        sections[sectionId].subSections &&
+        sections[sectionId].subSections.length > 0
+      ) {
+        sections[sectionId].subSections.forEach(ss => {
+          map[ss.id] = sectionId;
+        });
+      }
+    });
+    return map;
+  }, [sections]);
+
+  // Gets the "ancestors" of a given section to the root as a string array.
+  const getAllSections = useCallback(
+    (sectionId: string) => {
+      const sections: string[] = [];
+      let currentSection = sectionId;
+
+      while (currentSection) {
+        sections.push(currentSection);
+        currentSection = sectionParents[currentSection];
+      }
+      return sections;
+    },
+    [sectionParents]
+  );
+
+  const sectionsToMeasures = useMemo(() => {
+    const rev: { [sectionId: string]: Set<number> } = {};
+    Object.keys(measureMap).forEach(measure => {
+      // Array of all sections this measure belongs to.
+      const measureSections = getAllSections(
+        measureMap[parseInt(measure)].section.id
+      );
+      measureSections.forEach(ms => {
+        if (rev[ms]) {
+          rev[ms].add(parseInt(measure));
+        } else {
+          rev[ms] = new Set([parseInt(measure)]);
+        }
+      });
+    });
+    return rev;
+  }, [measureMap, getAllSections]);
+
+  const sectionMap = useMemo(() => {
+    const map: { [sectionId: string]: SectionMap } = {};
+    const allSections = Object.keys(sections);
+    const treeRecur = (sectionId: string): SectionMap => {
+      const section = sections[sectionId];
+      if (!section.subSections || section.subSections.length === 0) {
+        return {
+          sectionId: section.id,
+          measures: sectionsToMeasures[section.id] || new Set<number>(),
+          parent: sectionParents[section.id],
+          section: { ...sections[section.id] },
+          subSections: []
+        };
+      } else {
+        return {
+          sectionId: section.id,
+          measures: sectionsToMeasures[section.id] || new Set<number>(),
+          parent: sectionParents[section.id],
+          section: { ...sections[section.id] },
+          subSections: section.subSections.map(ss => treeRecur(ss.id))
+        };
+      }
+    };
+    allSections.forEach(s => (map[s] = treeRecur(s)));
+    return map;
+  }, [sections, sectionsToMeasures, sectionParents]);
+
+  const postSection = data.vamp.forms[formIndex || 0].postSection;
+
+  return {
+    measureMap,
+    sectionMap,
+    preSectionId: data.vamp.forms[formIndex || 0].preSection.id,
+    insertedSectionIds: data.vamp.forms[formIndex || 0].insertedSections.map(
+      s => s.id
+    ),
+    postSectionId: postSection && postSection.id
+  };
+};
+
+export const useMetronomeDimensions = (): {
+  barHeight: number;
+  sectionHandleHeight: number;
+  sectionHandleMargin: number;
+  expandedSectionHandleHeight: number;
+  expandedSectionHandleMargin: number;
+} => {
+  const vals = {
+    barHeight: 30,
+    sectionHandleHeight: 0,
+    sectionHandleMargin: 0,
+    expandedSectionHandleHeight: 8,
+    expandedSectionHandleMargin: 2
+  };
+
+  return vals;
 };

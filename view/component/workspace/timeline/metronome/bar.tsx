@@ -1,10 +1,14 @@
+import classNames = require("classnames");
 import * as React from "react";
 import { useMemo, useRef } from "react";
+import { useMetronomeDimensions } from "../../../../util/metronome-hooks";
 import * as styles from "./metronome.less";
 
 interface BarProps {
   num: number;
+  depth: number;
   left: number;
+  top: number;
   width: number;
   label?: string;
   bpm: number;
@@ -14,13 +18,17 @@ interface BarProps {
 
 export const Bar: React.FC<BarProps> = ({
   num,
+  depth,
   left,
+  top,
   width,
   label,
   bpm,
   beats,
   gapWidth
 }: BarProps) => {
+  const { barHeight } = useMetronomeDimensions();
+
   const text = label || `${num}`;
 
   const labelRef = useRef<HTMLDivElement>();
@@ -54,8 +62,13 @@ export const Bar: React.FC<BarProps> = ({
 
   return (
     <div
-      style={{ left, width: `${width - gapWidth}px` }}
-      className={styles["bar"]}
+      style={{
+        left,
+        height: `${barHeight}px`,
+        width: `${width - gapWidth}px`,
+        top: `${top}px`
+      }}
+      className={classNames(styles["bar"], depth !== 0 && styles["variant"])}
     >
       <div className={styles["label"]} ref={labelRef}>
         {text}.

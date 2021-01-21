@@ -21,7 +21,7 @@ import { useRecord, useSeek, useStop } from "../../../state/vamp-state-hooks";
 import { VampToggleButton } from "../../element/toggle-button";
 import classNames = require("classnames");
 
-const CAB_MAIN_QUERY = gql`
+export const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
     userInVamp(vampId: $vampId, userId: $userId) @client {
       id @client

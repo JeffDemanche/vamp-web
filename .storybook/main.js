@@ -5,7 +5,7 @@ const custom = require('../webpack.config.js');
 
 module.exports = {
     stories: ['../view/**/*.stories.@(js|mdx|tsx|ts)'],
-    addons: ['@storybook/addon-actions', '@storybook/addon-links'],
+    addons: ['@storybook/addon-actions', '@storybook/addon-links', 'storybook-addon-apollo-client'],
     typescript: {
         check: false,
         checkOptions: {},

@@ -632,6 +632,7 @@ export interface GetVamp_vamp_sections_subSections {
 export interface GetVamp_vamp_sections {
   __typename: "Section";
   id: string;
+  name: string | null;
   bpm: number;
   beatsPerBar: number;
   metronomeSound: string;
@@ -746,6 +747,45 @@ export interface VampSubscription_subVamp_vampPayload_clips {
   audio: VampSubscription_subVamp_vampPayload_clips_audio;
 }
 
+export interface VampSubscription_subVamp_vampPayload_sections_subSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface VampSubscription_subVamp_vampPayload_sections {
+  __typename: "Section";
+  id: string;
+  name: string | null;
+  bpm: number;
+  beatsPerBar: number;
+  metronomeSound: string;
+  startMeasure: number;
+  repetitions: number | null;
+  subSections: VampSubscription_subVamp_vampPayload_sections_subSections[] | null;
+}
+
+export interface VampSubscription_subVamp_vampPayload_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface VampSubscription_subVamp_vampPayload_forms_insertedSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface VampSubscription_subVamp_vampPayload_forms_postSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface VampSubscription_subVamp_vampPayload_forms {
+  __typename: "Form";
+  preSection: VampSubscription_subVamp_vampPayload_forms_preSection;
+  insertedSections: VampSubscription_subVamp_vampPayload_forms_insertedSections[];
+  postSection: VampSubscription_subVamp_vampPayload_forms_postSection | null;
+}
+
 export interface VampSubscription_subVamp_vampPayload_clientClips {
   __typename: "ClientClip";
   audioStoreKey: string;
@@ -760,6 +800,8 @@ export interface VampSubscription_subVamp_vampPayload {
   metronomeSound: string;
   tracks: VampSubscription_subVamp_vampPayload_tracks[];
   clips: VampSubscription_subVamp_vampPayload_clips[];
+  sections: VampSubscription_subVamp_vampPayload_sections[];
+  forms: VampSubscription_subVamp_vampPayload_forms[];
   playing: boolean | null;
   playPosition: number | null;
   playStartTime: number | null;
@@ -1245,6 +1287,7 @@ export interface MetronomeQuery_vamp_sections_subSections {
 export interface MetronomeQuery_vamp_sections {
   __typename: "Section";
   id: string;
+  name: string | null;
   bpm: number;
   beatsPerBar: number;
   metronomeSound: string;
@@ -1270,7 +1313,6 @@ export interface MetronomeQuery_vamp_forms_postSection {
 
 export interface MetronomeQuery_vamp_forms {
   __typename: "Form";
-  id: string;
   preSection: MetronomeQuery_vamp_forms_preSection;
   insertedSections: MetronomeQuery_vamp_forms_insertedSections[];
   postSection: MetronomeQuery_vamp_forms_postSection | null;
