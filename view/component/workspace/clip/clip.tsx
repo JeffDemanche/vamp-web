@@ -11,12 +11,12 @@ import {
 import Playhead from "../../element/playhead";
 import TrashButton from "./trash-button";
 import MovableComponent from "../../element/movable-component";
-import { DropZone } from "../workspace-content";
 import { useEffect, useRef, useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { UpdateClip } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../util/react-hooks";
 import { FailureOverlay } from "./failure-overlay";
+import { DropZone } from "../workspace-drop-zones";
 
 const UPDATE_CLIP = gql`
   mutation UpdateClip($clipUpdate: UpdateClipInput!) {

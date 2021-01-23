@@ -7,9 +7,9 @@ import {
   useSnapToBeat,
   useWorkspaceLeft
 } from "../../util/workspace-hooks";
-import { DropZone, DropZonesContext } from "../workspace/workspace-content";
 import _ = require("underscore");
 import classNames = require("classnames");
+import { DropZone, DropZonesContext } from "../workspace/workspace-drop-zones";
 
 interface MovableComponentProps {
   initialWidth: number;

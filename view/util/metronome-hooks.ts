@@ -168,8 +168,6 @@ export const useMeasures = ({
     return measureNos;
   }, [data, form.insertedSections, sections]);
 
-  console.log(data);
-
   const measureMap = useMemo(() => {
     const measureMap: { [no: number]: Measure } = {};
 

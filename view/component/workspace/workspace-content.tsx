@@ -8,21 +8,10 @@ import Timeline from "./timeline/timeline";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { WorkspaceContentClient } from "../../state/apollotypes";
 import { useWindowDimensions } from "../../util/workspace-hooks";
+import { DropZonesProvider } from "./workspace-drop-zones";
 
 const TemporalZoomContext = React.createContext(100);
 const HorizontalPosContext = React.createContext(0);
-
-interface DropZone<Metadata = void> {
-  id: string;
-  class: "Track" | "Cab";
-  ref: React.MutableRefObject<HTMLDivElement>;
-  metadata?: Metadata;
-}
-
-const DropZonesContext = React.createContext<{
-  dropZones: DropZone[];
-  registerDropZone: <T>(dropZone: DropZone<T>) => void;
-}>(null);
 
 const WORKSPACE_CONTENT_CLIENT = gql`
   query WorkspaceContentClient($vampId: ID!) {
@@ -55,7 +44,6 @@ const WorkspaceContent: React.FC = () => {
   const [trackRefTrigger, setTrackRefTrigger] = useState<boolean>(false);
 
   const [temporalZoom, setTemporalZoom] = useState<number>(1.0);
-  const [dropZones, setDropZones] = useState<DropZone<any>[]>([]);
 
   const [verticalPos, setVerticalPos] = useState<number>(0.0);
   const [horizontalPos, setHorizontalPos] = useState<number>(0.0);
@@ -63,11 +51,6 @@ const WorkspaceContent: React.FC = () => {
   const [horizontalPosOffset, setHoriztontalPosOffset] = useState<number>(
     windowWidth * OFFSET_DEC
   );
-
-  const registerDropZone = <T,>(dropZone: DropZone<T>): void => {
-    dropZones.push(dropZone);
-    setDropZones(dropZones);
-  };
 
   const onWheel = (e: React.WheelEvent): void => {
     if (e.altKey) {
@@ -187,7 +170,7 @@ const WorkspaceContent: React.FC = () => {
       <HorizontalPosContext.Provider
         value={horizontalPos + horizontalPosOffset}
       >
-        <DropZonesContext.Provider value={{ dropZones, registerDropZone }}>
+        <DropZonesProvider>
           <div className={styles["workspace"]} onWheel={onWheel}>
             <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
             <div className={styles["play-and-tracks"]}>
@@ -200,16 +183,10 @@ const WorkspaceContent: React.FC = () => {
               ></Timeline>
             </div>
           </div>
-        </DropZonesContext.Provider>
+        </DropZonesProvider>
       </HorizontalPosContext.Provider>
     </TemporalZoomContext.Provider>
   );
 };
 
-export {
-  WorkspaceContent,
-  TemporalZoomContext,
-  HorizontalPosContext,
-  DropZonesContext,
-  DropZone
-};
+export { WorkspaceContent, TemporalZoomContext, HorizontalPosContext };

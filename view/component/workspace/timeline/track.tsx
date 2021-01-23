@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as styles from "./track.less";
-import { DropZonesContext, DropZone } from "../workspace-content";
 import { useRef, useEffect, useContext } from "react";
+import { DropZone, DropZonesContext } from "../workspace-drop-zones";
 
 interface TrackProps {
   track: { id: string };
@@ -14,7 +14,7 @@ const Track: React.FC<TrackProps> = ({
   index,
   children
 }: TrackProps) => {
-  const { registerDropZone } = useContext(DropZonesContext);
+  const { registerOrUpdateDropZone } = useContext(DropZonesContext);
   const trackDropRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
@@ -24,10 +24,10 @@ const Track: React.FC<TrackProps> = ({
       ref: trackDropRef,
       metadata: { index }
     };
-    registerDropZone(dropZone);
+    registerOrUpdateDropZone(dropZone);
 
     return (): void => {};
-  }, []);
+  }, [index, registerOrUpdateDropZone, track.id]);
 
   return (
     <div
