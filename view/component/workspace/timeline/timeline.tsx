@@ -6,7 +6,7 @@ import TimelineClips from "./timeline-clips";
 import { RECORDING_CLIENT } from "../../../state/queries/vamp-queries";
 import { RecordingClient, TimelineClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../util/react-hooks";
-import { MutableRefObject, useCallback, useEffect } from "react";
+import { MutableRefObject, useCallback } from "react";
 import { Metronome } from "./metronome/metronome";
 
 const TIMELINE_CLIENT = gql`
@@ -80,7 +80,6 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
     <>
       <div className={styles["top-cell"]}>
         <Metronome></Metronome>
-        {/* <MetronomeBar></MetronomeBar> */}
       </div>
       <div className={styles["middle-cell"]}>
         <TimelineClips

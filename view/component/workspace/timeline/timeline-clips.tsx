@@ -3,9 +3,8 @@ import * as React from "react";
 import styles = require("./timeline.less");
 import Clip from "../clip/clip";
 import Track from "./track";
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { DropZone, DropZonesContext } from "../workspace-drop-zones";
-import { usePrevious } from "../../../util/react-hooks";
 
 interface TimelineClipsProps {
   tracks: { id: string }[];
@@ -38,28 +37,47 @@ const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({
   clips,
   tracksRef
 }: TimelineClipsProps) => {
-  const { removeDropZone, dropZones } = useContext(DropZonesContext);
-  const prevTracks = usePrevious(tracks);
+  const { setTrackDropZones } = useContext(DropZonesContext);
+  const [tracksMarkup, setTracksMarkup] = useState<JSX.Element[]>([]);
 
+  // This listens to changes to the tracks data and then 1. updates the markup
+  // and 2. handles registering the dropzones that get used for dragging clips
+  // around the workspace.
+  //
+  // NOTE: this component doesn't get rendered when the timeline is empty, so as
+  // of this commit there could be an unused drop zone on the empty state until
+  // this component gets rerendered.
   useEffect(() => {
-    const trackIds = new Set(tracks.map(t => t.id));
-    if (prevTracks) {
-      prevTracks.forEach(prevTrack => {
-        if (!trackIds.has(prevTrack.id)) {
-          removeDropZone(prevTrack.id);
-        }
+    const markup: JSX.Element[] = [];
+
+    const dzs: DropZone<{ index: number }>[] = [];
+
+    if (tracks) {
+      tracks.forEach((track, trackIndex) => {
+        const ref = React.createRef<HTMLDivElement>();
+        dzs.push({
+          class: "Track",
+          id: track.id,
+          ref,
+          metadata: { index: trackIndex }
+        });
+
+        markup.push(
+          <Track
+            index={trackIndex}
+            key={track.id}
+            track={track}
+            refForDropZone={ref}
+          >
+            <div></div>
+          </Track>
+        );
       });
     }
-  }, [tracks, prevTracks, removeDropZone]);
 
-  const tracksMarkup = useMemo(() => {
-    return tracks.map((track, trackIndex) => {
-      return (
-        <Track index={trackIndex} key={trackIndex} track={track}>
-          <div></div>
-        </Track>
-      );
-    });
+    setTracksMarkup(markup);
+    setTrackDropZones(dzs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracks]);
 
   const clipsMarkup = useMemo(

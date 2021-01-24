@@ -10,7 +10,8 @@ export interface DropZone<Metadata = void> {
 
 export const DropZonesContext = React.createContext<{
   dropZones: DropZone[];
-  registerOrUpdateDropZone: <T>(dropZone: DropZone<T>) => void;
+  registerDropZone: <T>(dropZone: DropZone<T>) => void;
+  setTrackDropZones: (dropZones: DropZone<{ index: number }>[]) => void;
   removeDropZone: (id: string) => void;
 }>(null);
 
@@ -30,31 +31,29 @@ export const DropZonesProvider: React.FC<DropZonesProviderProps> = ({
 }: DropZonesProviderProps) => {
   const [dropZones, setDropZones] = useState<DropZone<any>[]>([]);
 
-  const registerOrUpdateDropZone = useCallback(
+  const registerDropZone = useCallback(
     <T,>(dropZone: DropZone<T>): void => {
-      const dropZoneIds = new Set(dropZones.map(zone => zone.id));
-      if (dropZoneIds.has(dropZone.id)) {
-        const foundIndex = dropZones.findIndex(zone => zone.id === dropZone.id);
-        dropZones[foundIndex] = dropZone;
-        setDropZones(dropZones);
-      } else {
-        dropZones.push(dropZone);
-        setDropZones(dropZones);
-      }
+      const newDropZones = [...dropZones, dropZone];
+      setDropZones(newDropZones);
     },
     [dropZones]
   );
 
-  const removeDropZone = useCallback(
-    (id: string) => {
-      setDropZones(dropZones.filter(zone => zone.id !== id));
-    },
-    [dropZones]
-  );
+  const setTrackDropZones = (
+    dropZones: DropZone<{ index: number }>[]
+  ): void => {
+    const newDropZones = dropZones.filter(zone => zone.class !== "Track");
+    setDropZones(newDropZones.concat(dropZones));
+  };
+
+  const removeDropZone = (id: string): void => {
+    const newDropZones = dropZones.filter(zone => zone.id !== id);
+    setDropZones(newDropZones);
+  };
 
   return (
     <DropZonesContext.Provider
-      value={{ dropZones, registerOrUpdateDropZone, removeDropZone }}
+      value={{ dropZones, registerDropZone, setTrackDropZones, removeDropZone }}
     >
       {children}
     </DropZonesContext.Provider>
