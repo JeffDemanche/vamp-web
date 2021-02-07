@@ -31,23 +31,48 @@ interface LoadedTick {
   level: number;
 }
 
+/**
+ * This is encapsulated within the `Scheduler` instance. There are a number of
+ * tricky things involved with playing the metronome that this class tries to
+ * solve in one place:
+ *
+ *  - Generating sheduled ticks based on the form model data.
+ *  - Automatically loading ticks so that metronome can be played indefinitely.
+ *  - Updating the form data when it gets changed in Apollo.
+ *  - Seeking, playing, stopping, etc.
+ */
 class MetronomeScheduler {
+  /**
+   * Roughly how many seconds out to preload metronome ticks into
+   * `loadedTicks`.
+   */
   private _measureBatchDuration = 10;
 
   private _context: AudioContext;
+
+  /**
+   * For concurrency reasons, we push values to here to ensure that every
+   * dispatch can be stopped.
+   */
   private _isPlaying: boolean[];
+
+  /** The latest index of `_isPlaying` we use to stop the latest dispatch. */
   private _latestPlaying: number;
 
+  /** We pass this into `processMetronome` which does most of the hard work. */
   private _vampFormData: VampFormData;
 
   private _activeTickNode: AudioScheduledSourceNode;
 
+  /** TODO Allow disable. */
   public enabled: boolean;
 
   private _firstLoadedTickCode: string;
   private _lastLoadedTickCode: string;
 
-  /** `code` for the second tick of the measure 4 would be "4.1" */
+  /**
+   * As an example, `code` for the second tick of the measure 4 would be "4.1"
+   */
   public loadedTicks: {
     [code: string]: LoadedTick;
   };
@@ -110,14 +135,16 @@ class MetronomeScheduler {
   };
 
   /**
-   * "Paginate" a batch of measures.
+   * "Paginate" a batch of measures. This will load all measures in the given
+   * time range into the `loadedTicks` map, preserving any ticks that are
+   * already there.
    */
   private loadMeasures = (start: number, end: number): void => {
     start = Math.floor(start);
     if (!this._vampFormData) throw new Error("No form data in metronome.");
 
     // Ensures we load measures between the current range and where we're
-    // seeking to.
+    // seeking to (to avoid gaps).
     if (this.lastLoadedTick() && start > this.lastLoadedTick().time) {
       start = this.lastLoadedTick().time;
     }
@@ -179,6 +206,9 @@ class MetronomeScheduler {
     this.seek(seekTo);
   };
 
+  /**
+   * Resets the tick map to be empty.
+   */
   public clear = (): void => {
     this.loadedTicks = {};
     this._firstLoadedTickCode = undefined;
@@ -192,7 +222,7 @@ class MetronomeScheduler {
 
     let tickCode = this._firstLoadedTickCode;
 
-    // Skips over ticks before starting tick.
+    // Skips over ticks that come before the starting tick.
     while (this.loadedTicks && this.loadedTicks[tickCode].time < idleTime) {
       tickCode = this.loadedTicks[tickCode].nextTickCode;
     }
@@ -236,9 +266,17 @@ class MetronomeScheduler {
   };
 }
 
+/**
+ * The scheduler tracks `SchedulerEvents`, which are any kind of dispatchable
+ * audio, and handles playing those events through the Web Audio API. This
+ * should *follow* updates made in the Apollo state (for instance, when
+ * `playing` goes from false to true, we want `play` in this class to get
+ * called).
+ */
 class Scheduler {
   private _context: AudioContext;
 
+  /** Dictionary of events that should be played. */
   private _events: { [id: string]: SchedulerEvent };
 
   /**
@@ -257,12 +295,14 @@ class Scheduler {
   /** The time code in seconds if paused or before play began. */
   private _idleTime: number;
 
+  /** Is the scheduler currently playing. */
   private _isPlaying: boolean;
 
   /**
-   * The AudioContext runs an internal timer that it handles dispatch relative
-   * to. This stores that value when play begins so all events are perfectly
-   * synced.
+   * This stores the AudioContext.currentTime at the instant when the scheduler
+   * was most recently played. This gives us the ability to compare with the
+   * AudioContext.currentTime at the point when events are actually dispatched
+   * and account for unwanted offset.
    */
   private _audioContextPlayStart: number;
 
@@ -274,11 +314,34 @@ class Scheduler {
     this._audioContextPlayStart = 0;
   }
 
+  /**
+   * Since this class gets initialized in this module, we can't pass through
+   * constructor args. Instead, this gets called from React state in
+   * WorkspaceAudio as soon as this class instance gets loaded.
+   */
   giveContext = (context: AudioContext): void => {
     this._context = context;
     this._metronomeScheduler = new MetronomeScheduler(context);
   };
 
+  /**
+   * Dispatches the event in the `_events` map for the given ID, then adds the
+   * resulting node to `_dispatchedAudioNodes` if it exists.
+   */
+  private playEvent = async (eventId: string): Promise<void> => {
+    const event = this._events[eventId];
+    if (!event) throw new Error("Tried to play event that wasn't registered.");
+    const node = await event.dispatch(
+      this._context,
+      this._audioContextPlayStart,
+      this._idleTime - event.start
+    );
+    if (node) this._dispatchedAudioNodes[eventId] = node;
+  };
+
+  /**
+   * Plays all scheduled events, starting at `_idleTime`.
+   */
   play = async (): Promise<void> => {
     this._isPlaying = true;
     this._context.suspend();
@@ -287,13 +350,7 @@ class Scheduler {
     const eventIds = Object.keys(this._events);
     for (let i = 0; i < eventIds.length; i++) {
       const eventId = eventIds[i];
-      const event = this._events[eventId];
-      const node = await event.dispatch(
-        this._context,
-        this._audioContextPlayStart,
-        this._idleTime - event.start
-      );
-      if (node) this._dispatchedAudioNodes[eventId] = node;
+      await this.playEvent(eventId);
     }
 
     this._metronomeScheduler.dispatch(
@@ -303,6 +360,11 @@ class Scheduler {
     this._context.resume();
   };
 
+  /**
+   * Seeks the scheduler. This can happen whether the scheduler is playing or
+   * not. This will stop all events, seek the metronome scheduler, set the new
+   * idle time, and then play.
+   */
   seek = (time: number): void => {
     const playing = this._isPlaying;
     if (playing) this.stop();
@@ -311,6 +373,9 @@ class Scheduler {
     if (playing) this.play();
   };
 
+  /**
+   * Stops all events from playing.
+   */
   stop = (): void => {
     this._isPlaying = false;
     this.cancelDispatch();
@@ -328,19 +393,36 @@ class Scheduler {
     });
   };
 
+  /**
+   * Adds an event to the scheduler. If the scheduler is already playing, plays
+   * that event.
+   */
   addEvent = (event: SchedulerEvent): void => {
     if (this._events[event.id]) this.removeEvent(event.id);
     this._events[event.id] = event;
+    if (this._isPlaying) {
+      this.playEvent(event.id);
+    }
   };
 
+  /**
+   * Updates properties on a scheduled event. To do this we stop that event's
+   * audio node and then restart it after updating the event.
+   */
   updateEvent = (eventId: string, { start }: { start: number }): void => {
     this._events[eventId].start = start;
     if (this._dispatchedAudioNodes[eventId]) {
       this._dispatchedAudioNodes[eventId]?.disconnect();
       this._dispatchedAudioNodes[eventId]?.stop(0);
     }
+    if (this._isPlaying) {
+      this.playEvent(eventId);
+    }
   };
 
+  /**
+   * Stops and removes an event.
+   */
   removeEvent = (id: string, stopNode = true): void => {
     if (stopNode && this._dispatchedAudioNodes[id]) {
       this._dispatchedAudioNodes[id]?.disconnect();
@@ -350,6 +432,10 @@ class Scheduler {
     delete this._events[id];
   };
 
+  /**
+   * When the form model changes, this provides that information to
+   * `_metronomeScheduler`.
+   */
   updateMetronome = (vampFormData: VampFormData, seekTo: number): void => {
     this._metronomeScheduler.updateFormData(vampFormData, seekTo);
   };

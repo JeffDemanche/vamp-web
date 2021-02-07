@@ -42,7 +42,7 @@ const createClipEvent = (
     type: "Clip",
     dispatch: async (
       context: AudioContext,
-      timeStart: number,
+      ctxStart: number,
       offset: number
     ): Promise<AudioScheduledSourceNode> => {
       const fileBuffer = await audioStore
@@ -55,13 +55,15 @@ const createClipEvent = (
       source.buffer = decodedData;
       source.connect(context.destination);
 
+      const contextDiff = context.currentTime - ctxStart;
+
       // The WAA start function takes different params for delaying the
       // start of a node (when) and playing the node from a point other
       // than the start (offset).
       const when = offset < 0 ? -offset : 0;
       const offsetVal = offset > 0 ? offset : 0;
 
-      source.start(timeStart + when, offsetVal);
+      source.start(ctxStart + when, offsetVal + contextDiff);
 
       return source;
     }
