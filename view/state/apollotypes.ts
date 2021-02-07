@@ -7,14 +7,50 @@
 // GraphQL query operation: MetronomeClient
 // ====================================================
 
-export interface MetronomeClient_vamp {
-  __typename: "Vamp";
+export interface MetronomeClient_vamp_sections_subSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeClient_vamp_sections {
+  __typename: "Section";
+  id: string;
+  name: string | null;
   bpm: number;
   beatsPerBar: number;
-  playing: boolean | null;
   metronomeSound: string;
-  playPosition: number | null;
-  playStartTime: number | null;
+  startMeasure: number;
+  repetitions: number | null;
+  subSections: MetronomeClient_vamp_sections_subSections[] | null;
+}
+
+export interface MetronomeClient_vamp_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeClient_vamp_forms_insertedSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeClient_vamp_forms_postSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeClient_vamp_forms {
+  __typename: "Form";
+  preSection: MetronomeClient_vamp_forms_preSection;
+  insertedSections: MetronomeClient_vamp_forms_insertedSections[];
+  postSection: MetronomeClient_vamp_forms_postSection | null;
+}
+
+export interface MetronomeClient_vamp {
+  __typename: "Vamp";
+  playing: boolean | null;
+  sections: MetronomeClient_vamp_sections[];
+  forms: MetronomeClient_vamp_forms[];
 }
 
 export interface MetronomeClient {
@@ -60,6 +96,45 @@ export interface WorkspaceAudioClient_vamp_clientClips {
   duration: number;
 }
 
+export interface WorkspaceAudioClient_vamp_sections_subSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface WorkspaceAudioClient_vamp_sections {
+  __typename: "Section";
+  id: string;
+  name: string | null;
+  bpm: number;
+  beatsPerBar: number;
+  metronomeSound: string;
+  startMeasure: number;
+  repetitions: number | null;
+  subSections: WorkspaceAudioClient_vamp_sections_subSections[] | null;
+}
+
+export interface WorkspaceAudioClient_vamp_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface WorkspaceAudioClient_vamp_forms_insertedSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface WorkspaceAudioClient_vamp_forms_postSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface WorkspaceAudioClient_vamp_forms {
+  __typename: "Form";
+  preSection: WorkspaceAudioClient_vamp_forms_preSection;
+  insertedSections: WorkspaceAudioClient_vamp_forms_insertedSections[];
+  postSection: WorkspaceAudioClient_vamp_forms_postSection | null;
+}
+
 export interface WorkspaceAudioClient_vamp {
   __typename: "Vamp";
   id: string;
@@ -75,6 +150,8 @@ export interface WorkspaceAudioClient_vamp {
   loop: boolean | null;
   clips: WorkspaceAudioClient_vamp_clips[];
   clientClips: (WorkspaceAudioClient_vamp_clientClips | null)[] | null;
+  sections: WorkspaceAudioClient_vamp_sections[];
+  forms: WorkspaceAudioClient_vamp_forms[];
 }
 
 export interface WorkspaceAudioClient {

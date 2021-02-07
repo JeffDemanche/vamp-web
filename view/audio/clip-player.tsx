@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { audioStore } from "./audio-store";
-import { Scheduler, WorkspaceEvent } from "./scheduler";
+import { SchedulerInstance, SchedulerEvent } from "./scheduler";
 import { usePrevious } from "../util/react-hooks";
 import _ = require("underscore");
 import { useRemoveClientClip } from "../state/client-clip-state-hooks";
+
+type Scheduler = typeof SchedulerInstance;
 
 interface Clip {
   id: string;
@@ -33,13 +35,14 @@ const createClipEvent = (
   id: string,
   start: number,
   storeKey: string
-): WorkspaceEvent => {
+): SchedulerEvent => {
   return {
     id,
     start,
-    clip: true,
+    type: "Clip",
     dispatch: async (
       context: AudioContext,
+      timeStart: number,
       offset: number
     ): Promise<AudioScheduledSourceNode> => {
       const fileBuffer = await audioStore
@@ -58,7 +61,7 @@ const createClipEvent = (
       const when = offset < 0 ? -offset : 0;
       const offsetVal = offset > 0 ? offset : 0;
 
-      source.start(when, offsetVal);
+      source.start(timeStart + when, offsetVal);
 
       return source;
     }

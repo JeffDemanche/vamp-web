@@ -23,7 +23,6 @@ export const SectionHandle: React.FC<SectionHandleProps> = ({
   gapWidth,
   children
 }: SectionHandleProps) => {
-  console.log(height);
   return (
     <div
       className={styles["section-handle-container"]}

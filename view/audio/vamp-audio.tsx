@@ -7,11 +7,10 @@
  * pause the audio accordingly.
  */
 
-import { Scheduler } from "./scheduler";
-import Metronome from "./metronome";
+import { SchedulerInstance } from "./scheduler";
 import Recorder from "./recorder";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { useCurrentUserId, usePrevious } from "../util/react-hooks";
 import { audioStore } from "./audio-store";
@@ -31,39 +30,64 @@ import {
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!) {
     vamp(id: $vampId) @client {
-      id @client
+      id
 
-      bpm @client
-      beatsPerBar @client
-      playing @client
-      recording @client
-      metronomeSound @client
-      playPosition @client
-      playStartTime @client
+      bpm
+      beatsPerBar
+      playing
+      recording
+      metronomeSound
+      playPosition
+      playStartTime
 
-      start @client
-      end @client
-      loop @client
+      start
+      end
+      loop
 
-      clips @client {
-        id @client
-        start @client
-        duration @client
-        audio @client {
-          id @client
-          filename @client
-          localFilename @client
-          storedLocally @client
-          duration @client
+      clips {
+        id
+        start
+        duration
+        audio {
+          id
+          filename
+          localFilename
+          storedLocally
+          duration
         }
       }
 
-      clientClips @client {
-        start @client
-        audioStoreKey @client
-        realClipId @client
-        inProgress @client
-        duration @client
+      clientClips {
+        start
+        audioStoreKey
+        realClipId
+        inProgress
+        duration
+      }
+
+      sections {
+        id
+        name
+        bpm
+        beatsPerBar
+        metronomeSound
+        startMeasure
+        repetitions
+        subSections {
+          id
+        }
+      }
+
+      forms {
+        preSection {
+          id
+        }
+        insertedSections {
+          id
+        }
+        postSection {
+          id
+        }
       }
     }
   }
@@ -116,7 +140,9 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         clips,
         clientClips,
         playPosition,
-        playStartTime
+        playStartTime,
+        sections,
+        forms
       }
     }
   } = useQuery<WorkspaceAudioClient>(WORKSPACE_AUDIO_CLIENT, {
@@ -148,9 +174,14 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
 
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
-  const [scheduler] = useState(new Scheduler(context));
+  const [scheduler] = useState(SchedulerInstance);
   const [recorder] = useState(new Recorder(context));
   const [store] = useState(audioStore);
+
+  // Passes the audio context into the scheduler instance.
+  useEffect(() => {
+    scheduler.giveContext(context);
+  }, [context, scheduler]);
 
   const play = (): void => {
     scheduler.play();
@@ -174,13 +205,12 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     }
   };
 
-  const seek = (time: number): void => {
-    scheduler.seek(time);
-  };
-
-  const setPlayPosition = (time: number): void => {
-    scheduler.setTime(time);
-  };
+  const seek = useCallback(
+    (time: number): void => {
+      scheduler.seek(time);
+    },
+    [scheduler]
+  );
 
   const stop = (): void => {
     scheduler.stop();
@@ -261,6 +291,12 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     });
   };
 
+  // Runs when the form model gets updated to tell the metronome to recalculate.
+  useEffect(() => {
+    const vampFormData = { sections, forms };
+    scheduler.updateMetronome(vampFormData, playStartTime);
+  }, [sections, forms, scheduler]);
+
   // Run on every state update. So whenever the props fed to this component from
   // Apollo are updated, we handle those changes here. Think of this as the
   // interface between the Apollo state and the behavior of the audio module.
@@ -295,10 +331,8 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
 
       // Signalled when when a seek occured while not playing.
       if (!playing && playPosition != prevData.playPosition) {
-        setPlayPosition(playPosition);
+        seek(playPosition);
       }
-
-      scheduler.setIdleTime(cabStart);
     }
   });
 
@@ -322,7 +356,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
 
   return (
     <>
-      <Metronome audioContext={context} scheduler={scheduler}></Metronome>
       <ClipPlayer
         clips={clips}
         clientClips={clientClips}

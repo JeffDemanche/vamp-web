@@ -1,7 +1,11 @@
-class WorkspaceEvent {
+import { processMetronome, VampFormData } from "../util/metronome-hooks";
+
+class SchedulerEvent {
   readonly id: string;
 
   public start: number;
+
+  public type: "Clip";
 
   /**
    * Called by scheduler when this event starts playing. All events that use Web
@@ -9,52 +13,238 @@ class WorkspaceEvent {
    *
    * @param context An AudioContext, in case it's not present in the dispatching
    * module.
+   * @param startTime The value of context.currentTime when play was started. If
+   * we get this directly from `context` we risk having variance in when things
+   * are dispatched.
    * @param offset Number of seconds into the event to start playing at.
    */
   public dispatch: (
     context: AudioContext,
+    startTime: number,
     offset?: number
   ) => Promise<void | AudioScheduledSourceNode>;
-
-  /**
-   * Repeat the event every this many seconds.
-   */
-  public repeat?: number;
-
-  /**
-   * True if this is a clip audio event, false or undefined if not.
-   */
-  public clip?: boolean;
-
-  // TODO do this instead of hasStarted
-  public playImmediately?: boolean;
-
-  /**
-   * A flag field used by the loop() function to help with dispatching events
-   * when play begins in the middle of such events.
-   */
-  public hasStarted?: boolean;
 }
 
-/**
- * Handles audio timing, accumulates events that need to take place at some
- * point in the workspace timeline.
- *
- * Important to note that this is NOT a component, meaning fields within here
- * need to be manually updated with the state (usually this updating occurs in
- * WorkspaceAudio).
- */
-class Scheduler {
+interface LoadedTick {
+  time: number;
+  nextTickCode: string;
+  level: number;
+}
+
+class MetronomeScheduler {
+  private _measureBatchDuration = 10;
+
   private _context: AudioContext;
-  private _isPlaying: boolean;
-  private _seconds: number;
+  private _isPlaying: boolean[];
+  private _latestPlaying: number;
+
+  private _vampFormData: VampFormData;
+
+  private _activeTickNode: AudioScheduledSourceNode;
+
+  public enabled: boolean;
+
+  private _firstLoadedTickCode: string;
+  private _lastLoadedTickCode: string;
+
+  /** `code` for the second tick of the measure 4 would be "4.1" */
+  public loadedTicks: {
+    [code: string]: LoadedTick;
+  };
+
+  constructor(context: AudioContext) {
+    this._context = context;
+    this.loadedTicks = {};
+    this.enabled = true;
+    this._isPlaying = [];
+    this.clear();
+  }
+
+  private firstLoadedTick = (): LoadedTick =>
+    this.loadedTicks[this._firstLoadedTickCode];
+
+  private lastLoadedTick = (): LoadedTick =>
+    this.loadedTicks[this._lastLoadedTickCode];
+
+  private tick = (
+    type: "Beep",
+    level: number,
+    nodeStartTime: number,
+    onEnded: () => void
+  ): void => {
+    switch (type) {
+      case "Beep": {
+        const osc = this._context.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(level === 0 ? 880 : 440, nodeStartTime);
+        osc.connect(this._context.destination);
+        osc.onended = onEnded;
+        osc.start(nodeStartTime);
+        osc.stop(nodeStartTime + 0.05);
+        this._activeTickNode = osc;
+      }
+    }
+  };
 
   /**
-   * A value that needs to be updated from WorkspaceAudio, the place where the
-   * playhead should be in an idle state (i.e. might be the position of the
-   * cab). Basically, when we press stop, where does the Vamp seek to?
+   * 1 if code1 comes after code2, 0 if they're equal, -1 if code1 comes before
+   * code2.
    */
-  private _idleTime: number;
+  private compareCodes = (code1: string, code2: string): number => {
+    const code1Nums = code1.split(".");
+    const code2Nums = code2.split(".");
+
+    const measure1 = parseInt(code1Nums[0]);
+    const measure2 = parseInt(code2Nums[0]);
+
+    if (measure1 > measure2) return 1;
+    else if (measure1 < measure2) return -1;
+    else {
+      const tick1 = parseInt(code1Nums[1]);
+      const tick2 = parseInt(code2Nums[1]);
+
+      if (tick1 > tick2) return 1;
+      else if (tick1 < tick2) return -1;
+      else return 0;
+    }
+  };
+
+  /**
+   * "Paginate" a batch of measures.
+   */
+  private loadMeasures = (start: number, end: number): void => {
+    start = Math.floor(start);
+    if (!this._vampFormData) throw new Error("No form data in metronome.");
+
+    // Ensures we load measures between the current range and where we're
+    // seeking to.
+    if (this.lastLoadedTick() && start > this.lastLoadedTick().time) {
+      start = this.lastLoadedTick().time;
+    }
+    if (this.firstLoadedTick() && end < this.firstLoadedTick().time) {
+      end = this.firstLoadedTick().time;
+    }
+
+    const { measureMap } = processMetronome({
+      vampFormData: this._vampFormData,
+      start,
+      end
+    });
+
+    const keys = Object.keys(measureMap).map(Number);
+    keys.forEach(key => {
+      const measure = measureMap[key];
+      const measureBeatDuration = 1.0 / (measure.section.bpm / 60);
+      for (let tick = 0; tick < measure.section.beatsPerBar; tick++) {
+        const code = `${measure.num}.${tick}`;
+        const nextCode =
+          tick === measure.section.beatsPerBar - 1
+            ? `${measure.num + 1}.${0}`
+            : `${measure.num}.${tick + 1}`;
+        this.loadedTicks[code] = {
+          level: tick === 0 ? 0 : 1,
+          time: measure.timeStart + measureBeatDuration * tick,
+          nextTickCode: nextCode
+        };
+
+        if (
+          !this._firstLoadedTickCode ||
+          this.compareCodes(this._firstLoadedTickCode, code) === 1
+        ) {
+          this._firstLoadedTickCode = code;
+        }
+        if (
+          !this._lastLoadedTickCode ||
+          this.compareCodes(this._lastLoadedTickCode, code) === -1
+        ) {
+          this._lastLoadedTickCode = code;
+        }
+      }
+    });
+  };
+
+  public seek = (time: number): void => {
+    this.loadMeasures(time, time + this._measureBatchDuration);
+  };
+
+  /**
+   * Provides new form data from the server for the metronome to use.
+   */
+  public updateFormData = (
+    vampFormData: VampFormData,
+    seekTo: number
+  ): void => {
+    this.clear();
+    this._vampFormData = vampFormData;
+    this.seek(seekTo);
+  };
+
+  public clear = (): void => {
+    this.loadedTicks = {};
+    this._firstLoadedTickCode = undefined;
+    this._lastLoadedTickCode = undefined;
+  };
+
+  public dispatch = (ctxStart: number, idleTime: number): void => {
+    this._isPlaying.push(true);
+    this._latestPlaying = this._isPlaying.length - 1;
+    const playingIndex = this._latestPlaying;
+
+    let tickCode = this._firstLoadedTickCode;
+
+    // Skips over ticks before starting tick.
+    while (this.loadedTicks && this.loadedTicks[tickCode].time < idleTime) {
+      tickCode = this.loadedTicks[tickCode].nextTickCode;
+    }
+
+    const playNextTick = (): void => {
+      if (!this._isPlaying[playingIndex]) {
+        return;
+      }
+
+      const nextTick = this.loadedTicks[tickCode];
+      if (!nextTick) throw new Error("Next tick wasn't loaded.");
+
+      if (
+        this.lastLoadedTick().time - nextTick.time <
+        this._measureBatchDuration
+      ) {
+        this.loadMeasures(
+          this.lastLoadedTick().time,
+          this.lastLoadedTick().time + this._measureBatchDuration
+        );
+      }
+
+      this.tick(
+        "Beep",
+        nextTick.level,
+        ctxStart + nextTick.time - idleTime,
+        () => {
+          playNextTick();
+        }
+      );
+
+      tickCode = nextTick.nextTickCode;
+    };
+    playNextTick();
+  };
+
+  public stop = (): void => {
+    this._isPlaying[this._latestPlaying] = false;
+    this._activeTickNode?.disconnect();
+    this._activeTickNode?.stop(0);
+  };
+}
+
+class Scheduler {
+  private _context: AudioContext;
+
+  private _events: { [id: string]: SchedulerEvent };
+
+  /**
+   * An object that handles dispatching metronome events.
+   */
+  private _metronomeScheduler: MetronomeScheduler;
 
   /**
    * If an event's dispatch function returns an AudioScheduledSourceNode, that
@@ -64,88 +254,81 @@ class Scheduler {
    */
   private _dispatchedAudioNodes: { [id: string]: AudioScheduledSourceNode };
 
-  private _loopTimeout: NodeJS.Timeout;
+  /** The time code in seconds if paused or before play began. */
+  private _idleTime: number;
+
+  private _isPlaying: boolean;
 
   /**
-   * The number of milliseconds passed to the setTimeout function which
-   * regulates looping.
+   * The AudioContext runs an internal timer that it handles dispatch relative
+   * to. This stores that value when play begins so all events are perfectly
+   * synced.
    */
-  private _loopDuration: number;
+  private _audioContextPlayStart: number;
 
-  private _events: { [id: string]: WorkspaceEvent };
-
-  constructor(context: AudioContext) {
-    this._context = context;
-    this._isPlaying = false;
-    this._seconds = 0;
-
-    this._loopTimeout = null;
-    this._loopDuration = 1;
+  constructor() {
     this._events = {};
-
     this._dispatchedAudioNodes = {};
+    this._idleTime = 0;
+    this._isPlaying = false;
+    this._audioContextPlayStart = 0;
   }
 
-  /**
-   * Plays audio beginning at the scheduler _seconds field.
-   */
+  giveContext = (context: AudioContext): void => {
+    this._context = context;
+    this._metronomeScheduler = new MetronomeScheduler(context);
+  };
+
   play = async (): Promise<void> => {
     this._isPlaying = true;
-    this.loop();
+    this._context.suspend();
+    this._audioContextPlayStart = this._context.currentTime;
+
+    const eventIds = Object.keys(this._events);
+    for (let i = 0; i < eventIds.length; i++) {
+      const eventId = eventIds[i];
+      const event = this._events[eventId];
+      const node = await event.dispatch(
+        this._context,
+        this._audioContextPlayStart,
+        this._idleTime - event.start
+      );
+      if (node) this._dispatchedAudioNodes[eventId] = node;
+    }
+
+    this._metronomeScheduler.dispatch(
+      this._audioContextPlayStart,
+      this._idleTime
+    );
+    this._context.resume();
   };
 
-  setTime = (time: number): void => {
-    this._seconds = time;
+  seek = (time: number): void => {
+    const playing = this._isPlaying;
+    if (playing) this.stop();
+    this._metronomeScheduler.seek(time);
+    this._idleTime = time;
+    if (playing) this.play();
   };
 
-  /**
-   * Sets the time in seconds that the scheduler will return to after being
-   * stopped.
-   */
-  setIdleTime = (idleTime: number): void => {
-    this._idleTime = idleTime;
-  };
-
-  /**
-   * Seek the scheduler to a time in seconds while playing.
-   */
-  seek = async (time: number): Promise<void> => {
-    await this.stop();
-    await this.cancelDispatch();
-    clearTimeout(this._loopTimeout);
-    this._seconds = time;
-    this.play();
-  };
-
-  /**
-   * Stops looping and stops all dispatched nodes from playing audio.
-   */
-  stop = async (): Promise<void> => {
+  stop = (): void => {
     this._isPlaying = false;
+    this.cancelDispatch();
+    this._metronomeScheduler.stop();
   };
 
   /**
    * Stops all started audio nodes.
    */
-  private cancelDispatch = async (): Promise<void> => {
+  private cancelDispatch = (): void => {
     Object.keys(this._dispatchedAudioNodes).forEach(nodeKey => {
-      this._dispatchedAudioNodes[nodeKey].disconnect();
-      this._dispatchedAudioNodes[nodeKey].stop(0);
+      this._dispatchedAudioNodes[nodeKey]?.disconnect();
+      this._dispatchedAudioNodes[nodeKey]?.stop(0);
+      delete this._dispatchedAudioNodes[nodeKey];
     });
-    this._dispatchedAudioNodes = {};
   };
 
-  /**
-   * Called from loop(). Resets the scheduler _seconds field to the idle time.
-   */
-  private postStop = (): void => {
-    this._seconds = this._idleTime;
-    this.cancelDispatch();
-  };
-
-  time = (): number => this._seconds;
-
-  addEvent = (event: WorkspaceEvent): void => {
+  addEvent = (event: SchedulerEvent): void => {
     if (this._events[event.id]) this.removeEvent(event.id);
     this._events[event.id] = event;
   };
@@ -153,124 +336,25 @@ class Scheduler {
   updateEvent = (eventId: string, { start }: { start: number }): void => {
     this._events[eventId].start = start;
     if (this._dispatchedAudioNodes[eventId]) {
-      this._dispatchedAudioNodes[eventId].disconnect();
-      this._dispatchedAudioNodes[eventId].stop(0);
-      this._events[eventId].hasStarted = false;
+      this._dispatchedAudioNodes[eventId]?.disconnect();
+      this._dispatchedAudioNodes[eventId]?.stop(0);
     }
   };
 
   removeEvent = (id: string, stopNode = true): void => {
     if (stopNode && this._dispatchedAudioNodes[id]) {
-      this._dispatchedAudioNodes[id].disconnect();
-      this._dispatchedAudioNodes[id].stop(0);
+      this._dispatchedAudioNodes[id]?.disconnect();
+      this._dispatchedAudioNodes[id]?.stop(0);
       delete this._dispatchedAudioNodes[id];
     }
     delete this._events[id];
   };
 
-  removeAllClipEvents = (): void => {
-    Object.keys(this._events).forEach(id => {
-      if (this._events[id].clip) {
-        this.removeEvent(id);
-      }
-    });
+  updateMetronome = (vampFormData: VampFormData, seekTo: number): void => {
+    this._metronomeScheduler.updateFormData(vampFormData, seekTo);
   };
-
-  /**
-   * This is a shot in the dark for now. Runs an asynchronous timer with a given
-   * granularity and dispatches audio events from there. Some things that
-   * immediately pop out to take note of:
-   *
-   * - The actual amount of time between loops will be greater than the timeout
-   *   millisecond delay, because the loop takes some time to run.
-   * - This will introduce a small amount of error into when audio events are
-   *   actually dispatched. That error is bounded by how long the loop takes,
-   *   and can be reduced by adjusting the granularity.
-   */
-  private async loop(): Promise<void> {
-    const loopBeginWorkspace: number = this._seconds;
-    const loopBeginUnix: number = Date.now();
-
-    for (const eventId in this._events) {
-      this._events[eventId].hasStarted = false;
-    }
-
-    let firstTick = true;
-
-    const runTimeout = (): void => {
-      if (this._isPlaying) {
-        this._loopTimeout = global.setTimeout(async () => {
-          const elapsedUnix = Date.now() - loopBeginUnix;
-          // Time marker at beginning of tick.
-          const preTime = this._seconds;
-          this._seconds = 0.001 * elapsedUnix + loopBeginWorkspace;
-
-          // Do all scheduled audio tasks.
-          for (const eventId in this._events) {
-            const repeat = this._events[eventId].repeat;
-            const start = this._events[eventId].start;
-            const dispatch = this._events[eventId].dispatch;
-            const hasStarted = this._events[eventId].hasStarted;
-
-            // Might just be the metronome that requires this functionality.
-            if (repeat) {
-              // Play repeating events if this is negative.
-              let timeDiff =
-                ((this._seconds + start) % repeat) -
-                ((preTime + start) % repeat);
-
-              // Modulo breaks down on the loop tick when we pass the 0-second
-              // mark. This fixes that case.
-              if (this._seconds > 0 && preTime < 0) {
-                timeDiff =
-                  ((this._seconds + start) % repeat) -
-                  ((preTime + start + repeat) % repeat);
-              }
-
-              // True if this tick began exactly on a repeating event repeat.
-              const startingOnEvent = (preTime + start) % repeat == 0;
-
-              // Generally, we'll dispatch the event if it starts between the
-              // tick preTime and the current time (i.e. when timeDiff < 0).
-              // However if there's an event that's dispatched on the first tick
-              // we need to handle that as a separate case.
-              if (timeDiff < 0 || (firstTick && startingOnEvent)) {
-                dispatch(this._context).then(sourceNode => {
-                  if (sourceNode)
-                    this._dispatchedAudioNodes[eventId] = sourceNode;
-                });
-              }
-            } else {
-              // Distance between the beginning of this tick and when this event
-              // is scheduled. If negative then the event begins some time after
-              // this tick. If positive, the clip is either already playing or
-              // was just added, in which case we should play it with the
-              // correct offset.
-              const beforeStart = preTime - start;
-
-              // True if the clip starts after the previous tick, or if it
-              // starts before but was just added.
-              const preStart = beforeStart <= 0 || !hasStarted;
-
-              if (preStart && start < this._seconds) {
-                const sourceNode = await dispatch(this._context, beforeStart);
-                if (sourceNode)
-                  this._dispatchedAudioNodes[eventId] = sourceNode;
-                this._events[eventId].hasStarted = true;
-              }
-            }
-          }
-
-          firstTick = false;
-
-          runTimeout();
-        }, this._loopDuration);
-      } else {
-        this.postStop();
-      }
-    };
-    runTimeout();
-  }
 }
 
-export { WorkspaceEvent, Scheduler };
+const SchedulerInstance = new Scheduler();
+
+export { SchedulerEvent, SchedulerInstance };

@@ -2,9 +2,9 @@ import { gql, useQuery } from "@apollo/client";
 import { METRONOME_INFO_CLIENT } from "../state/queries/vamp-queries";
 import {
   ViewBoundsDataClient,
-  MetronomeClient,
   GetClientClipsClient,
-  GetClipsClient
+  GetClipsClient,
+  MetronomeInfoClient
 } from "../state/apollotypes";
 import { useCurrentVampId, useCurrentUserId } from "./react-hooks";
 import { useState, useEffect, useContext } from "react";
@@ -184,7 +184,7 @@ export const useSnapToBeat = (): ((time: number) => number) => {
     data: {
       vamp: { bpm }
     }
-  } = useQuery<MetronomeClient>(METRONOME_INFO_CLIENT, {
+  } = useQuery<MetronomeInfoClient>(METRONOME_INFO_CLIENT, {
     variables: { vampId }
   });
 
