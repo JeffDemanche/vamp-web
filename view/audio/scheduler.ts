@@ -1,4 +1,6 @@
+import ObjectID from "bson-objectid";
 import { processMetronome, VampFormData } from "../util/metronome-hooks";
+import Recorder from "./recorder";
 
 class SchedulerEvent {
   readonly id: string;
@@ -279,6 +281,13 @@ class Scheduler {
   /** Dictionary of events that should be played. */
   private _events: { [id: string]: SchedulerEvent };
 
+  private _recorder: Recorder;
+
+  private _recorderPrimed: boolean;
+  private _recorderStartTime: number;
+  private _recordingId: string;
+  private _onEndRecording: (file: Blob) => void;
+
   /**
    * An object that handles dispatching metronome events.
    */
@@ -308,6 +317,7 @@ class Scheduler {
 
   constructor() {
     this._events = {};
+    this._recorderPrimed = false;
     this._dispatchedAudioNodes = {};
     this._idleTime = 0;
     this._isPlaying = false;
@@ -321,6 +331,7 @@ class Scheduler {
    */
   giveContext = (context: AudioContext): void => {
     this._context = context;
+    this._recorder = new Recorder(context);
     this._metronomeScheduler = new MetronomeScheduler(context);
   };
 
@@ -339,12 +350,40 @@ class Scheduler {
     if (node) this._dispatchedAudioNodes[eventId] = node;
   };
 
+  primeRecorder = (
+    start: number,
+    onEndRecording?: (file: Blob) => void
+  ): string => {
+    this._recorderPrimed = true;
+    this._recorderStartTime = start;
+    this._onEndRecording = onEndRecording;
+    const recordingId = ObjectID.generate();
+    this._recordingId = recordingId;
+    return recordingId;
+  };
+
+  private record = (): void => {
+    this._recorder.startRecording(this._recordingId);
+  };
+
+  private stopRecording = (): void => {
+    this._recorderPrimed = false;
+    this._recorder.stopRecording().then(blob => {
+      this._onEndRecording(blob);
+    });
+  };
+
   /**
    * Plays all scheduled events, starting at `_idleTime`.
    */
   play = async (): Promise<void> => {
     this._isPlaying = true;
     this._context.suspend();
+
+    if (this._recorderPrimed) {
+      this.record();
+    }
+
     this._audioContextPlayStart = this._context.currentTime;
 
     const eventIds = Object.keys(this._events);
@@ -357,6 +396,7 @@ class Scheduler {
       this._audioContextPlayStart,
       this._idleTime
     );
+
     this._context.resume();
   };
 
@@ -380,6 +420,9 @@ class Scheduler {
     this._isPlaying = false;
     this.cancelDispatch();
     this._metronomeScheduler.stop();
+    if (this._recorderPrimed) {
+      this.stopRecording();
+    }
   };
 
   /**
@@ -439,6 +482,10 @@ class Scheduler {
   updateMetronome = (vampFormData: VampFormData, seekTo: number): void => {
     this._metronomeScheduler.updateFormData(vampFormData, seekTo);
   };
+
+  get recorder(): Recorder {
+    return this._recorder;
+  }
 }
 
 const SchedulerInstance = new Scheduler();

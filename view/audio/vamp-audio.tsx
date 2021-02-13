@@ -8,19 +8,16 @@
  */
 
 import { SchedulerInstance } from "./scheduler";
-import Recorder from "./recorder";
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { useCurrentUserId, usePrevious } from "../util/react-hooks";
 import { audioStore } from "./audio-store";
 import { vampAudioContext } from "./vamp-audio-context";
-import ObjectID from "bson-objectid";
 import ClipPlayer from "./clip-player";
 import Looper from "./looper";
 import { WorkspaceAudioClient, AddClip, CabClient } from "../state/apollotypes";
 import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
-import { vampAudioStream } from "./vamp-audio-stream";
 import { useSetLoop, useStop } from "../state/vamp-state-hooks";
 import {
   useEndClientClip,
@@ -168,14 +165,10 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const beginClientClip = useBeginClientClip();
   const endClientClip = useEndClientClip();
 
-  const [clientClipAudioStoreKey, setClientClipAudioStoreKey] = useState<
-    string
-  >(null);
-
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
   const [scheduler] = useState(SchedulerInstance);
-  const [recorder] = useState(new Recorder(context));
+  // const [recorder] = useState(new Recorder(context));
   const [store] = useState(audioStore);
 
   // Passes the audio context into the scheduler instance.
@@ -183,27 +176,9 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     scheduler.giveContext(context);
   }, [context, scheduler]);
 
-  const play = (): void => {
+  const play = useCallback((): void => {
     scheduler.play();
-  };
-
-  const startRecording = async (start: number): Promise<void> => {
-    if (recorder.mediaRecorderInitialized()) {
-      if (!playing) {
-        console.info("Note: Started recording while not playing.");
-      }
-
-      const clientClipAudioStoreKey = ObjectID.generate();
-      setClientClipAudioStoreKey(clientClipAudioStoreKey);
-      recorder.startRecording(clientClipAudioStoreKey);
-
-      beginClientClip(start, clientClipAudioStoreKey);
-    } else {
-      // TODO Give a user-facing warning about microphone access.
-      console.error("No microhpone access granted.");
-      apolloStop();
-    }
-  };
+  }, [scheduler]);
 
   const seek = useCallback(
     (time: number): void => {
@@ -212,9 +187,9 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     [scheduler]
   );
 
-  const stop = (): void => {
+  const stop = useCallback((): void => {
     scheduler.stop();
-  };
+  }, [scheduler]);
 
   /**
    * The values passed here will be tracked between state changes.
@@ -227,33 +202,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     playPosition,
     playStartTime
   });
-
-  /**
-   * Gets fired when the state of `recording` goes from true to false.
-   */
-  const endRecordingAndAddClip = async (start: number): Promise<void> => {
-    if (recorder.mediaRecorderInitialized()) {
-      // We send a "reference ID" to the server so that we can immediately add
-      // this clip client-side and then updated it later when we get the
-      // subscription back from the server.
-      const file = await recorder.stopRecording();
-      if (clientClipAudioStoreKey) {
-        addClipServer({
-          variables: {
-            start,
-            vampId,
-            userId,
-            file,
-            referenceId: clientClipAudioStoreKey
-          }
-        });
-        endClientClip(clientClipAudioStoreKey);
-      }
-    } else {
-      vampAudioStream.sendAlert();
-      console.error("Stopped audio because of no microphone access.");
-    }
-  };
 
   /**
    * Called on every clips update (see the useEffect hook). After the audio for
@@ -291,25 +239,50 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     });
   };
 
-  // Runs when the form model gets updated to tell the metronome to recalculate.
+  /**
+   * FORM DATA
+   *
+   * Handles changes to form.
+   */
   useEffect(() => {
     const vampFormData = { sections, forms };
     scheduler.updateMetronome(vampFormData, playStartTime);
   }, [sections, forms, scheduler]);
 
-  // Run on every state update. So whenever the props fed to this component from
-  // Apollo are updated, we handle those changes here. Think of this as the
-  // interface between the Apollo state and the behavior of the audio module.
+  /**
+   * PLAY DATA
+   *
+   * Handles changes to playing and recording.
+   */
   useEffect(() => {
     if (prevData) {
-      // NOTE record() and endRecordingAndAddClip() don't deal with playback. If
-      // the play control mutations are properly set up in resolvers.ts, play()
-      // and stop() should be appropriately called.
       if (recording && !prevData.recording) {
-        startRecording(prevData.playPosition);
+        if (scheduler.recorder.mediaRecorderInitialized()) {
+          const recordingId = scheduler.primeRecorder(
+            prevData.playPosition,
+            file => {
+              addClipServer({
+                variables: {
+                  start: prevData.playPosition,
+                  vampId,
+                  userId,
+                  file,
+                  referenceId: recordingId
+                }
+              });
+              endClientClip(recordingId);
+            }
+          );
+          beginClientClip(prevData.playPosition, recordingId);
+        } else {
+          // TODO Give a user-facing warning about microphone access.
+          console.error("No microhpone access granted.");
+          apolloStop();
+        }
+        //startRecording(prevData.playPosition);
       }
       if (!recording && prevData.recording) {
-        endRecordingAndAddClip(cabStart);
+        //endRecordingAndAddClip(cabStart);
       }
       if (playing && !prevData.playing) {
         play();
@@ -317,7 +290,27 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       if (!playing && prevData.playing) {
         stop();
       }
+    }
+  }, [
+    addClipServer,
+    apolloStop,
+    beginClientClip,
+    endClientClip,
+    play,
+    playing,
+    prevData,
+    recording,
+    scheduler,
+    stop,
+    userId,
+    vampId
+  ]);
 
+  // Run on every state update. So whenever the props fed to this component from
+  // Apollo are updated, we handle those changes here. Think of this as the
+  // interface between the Apollo state and the behavior of the audio module.
+  useEffect(() => {
+    if (prevData) {
       // Signals that some seek has occured while playing, such as restarting at
       // the beginning during a loop.
       if (
@@ -336,7 +329,11 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     }
   });
 
-  // UseEffect for clips and clientClips.
+  /**
+   * CLIPS DATA
+   *
+   * Handles changes to clips (and client clips).
+   */
   useEffect(() => {
     const empty =
       (clips === undefined || clips.length == 0) &&

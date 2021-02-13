@@ -9,6 +9,7 @@ import { vampAudioStream } from "./vamp-audio-stream";
 import { audioStore } from "../audio/audio-store";
 
 class Recorder {
+  private _context: AudioContext;
   private _source: MediaStreamAudioSourceNode;
   private _recording: boolean;
   private _mediaRecorder: MediaRecorder;
@@ -19,6 +20,7 @@ class Recorder {
   private _currentAudioStoreKey: string;
 
   constructor(context: AudioContext) {
+    this._context = context;
     const gotMedia = (stream: MediaStream): void => {
       this._source = context.createMediaStreamSource(stream);
       this._mediaRecorder = new MediaRecorder(
@@ -56,17 +58,8 @@ class Recorder {
   startRecording = (audioStoreKey: string): void => {
     this._recording = true;
     this._currentAudioStoreKey = audioStoreKey;
-    this.mediaRecorderInitialized && this._mediaRecorder.start();
 
-    const bufferTimeout = (): void => {
-      setTimeout(() => {
-        if (this._recording) {
-          this._mediaRecorder.requestData();
-          bufferTimeout();
-        }
-      }, 100);
-    };
-    bufferTimeout();
+    this.mediaRecorderInitialized && this._mediaRecorder.start(100);
   };
 
   /**
