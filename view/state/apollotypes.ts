@@ -4,69 +4,6 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: MetronomeClient
-// ====================================================
-
-export interface MetronomeClient_vamp_sections_subSections {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeClient_vamp_sections {
-  __typename: "Section";
-  id: string;
-  name: string | null;
-  bpm: number;
-  beatsPerBar: number;
-  metronomeSound: string;
-  startMeasure: number;
-  repetitions: number | null;
-  subSections: MetronomeClient_vamp_sections_subSections[] | null;
-}
-
-export interface MetronomeClient_vamp_forms_preSection {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeClient_vamp_forms_insertedSections {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeClient_vamp_forms_postSection {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeClient_vamp_forms {
-  __typename: "Form";
-  preSection: MetronomeClient_vamp_forms_preSection;
-  insertedSections: MetronomeClient_vamp_forms_insertedSections[];
-  postSection: MetronomeClient_vamp_forms_postSection | null;
-}
-
-export interface MetronomeClient_vamp {
-  __typename: "Vamp";
-  playing: boolean | null;
-  sections: MetronomeClient_vamp_sections[];
-  forms: MetronomeClient_vamp_forms[];
-}
-
-export interface MetronomeClient {
-  vamp: MetronomeClient_vamp | null;
-}
-
-export interface MetronomeClientVariables {
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
 // GraphQL query operation: WorkspaceAudioClient
 // ====================================================
 
@@ -319,6 +256,28 @@ export interface UpdateClip {
 
 export interface UpdateClipVariables {
   clipUpdate: UpdateClipInput;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: FloorOverlayWrapper
+// ====================================================
+
+export interface FloorOverlayWrapper_vamp {
+  __typename: "Vamp";
+  floorOpen: boolean | null;
+}
+
+export interface FloorOverlayWrapper {
+  vamp: FloorOverlayWrapper_vamp | null;
+}
+
+export interface FloorOverlayWrapperVariables {
+  vampId: string;
 }
 
 /* tslint:disable */
@@ -763,6 +722,7 @@ export interface GetVamp_vamp {
   end: number | null;
   loop: boolean | null;
   recording: boolean | null;
+  floorOpen: boolean | null;
   clientClips: (GetVamp_vamp_clientClips | null)[] | null;
 }
 
@@ -886,6 +846,7 @@ export interface VampSubscription_subVamp_vampPayload {
   end: number | null;
   loop: boolean | null;
   recording: boolean | null;
+  floorOpen: boolean | null;
   clientClips: (VampSubscription_subVamp_vampPayload_clientClips | null)[] | null;
 }
 

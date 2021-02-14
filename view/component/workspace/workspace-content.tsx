@@ -9,6 +9,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { WorkspaceContentClient } from "../../state/apollotypes";
 import { useWindowDimensions } from "../../util/workspace-hooks";
 import { DropZonesProvider } from "./workspace-drop-zones";
+import { FloorOverlay } from "./floor/floor-overlay";
 
 const TemporalZoomContext = React.createContext(100);
 const HorizontalPosContext = React.createContext(0);
@@ -171,6 +172,7 @@ const WorkspaceContent: React.FC = () => {
         value={horizontalPos + horizontalPosOffset}
       >
         <DropZonesProvider>
+          <FloorOverlay></FloorOverlay>
           <div className={styles["workspace"]} onWheel={onWheel}>
             <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
             <div className={styles["play-and-tracks"]}>

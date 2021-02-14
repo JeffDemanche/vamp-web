@@ -12,6 +12,7 @@ import {
   usePlay,
   useRecord,
   useSeek,
+  useSetFloorOpen,
   useStop
 } from "../../state/vamp-state-hooks";
 
@@ -28,13 +29,16 @@ export const HotKeysWrapper: React.FC<HotKeysTypes> = (
     PLAY_STOP: "space",
     PAUSE: "shift+space",
     RECORD: "r",
-    MUSICAL_TYPING: "cmd+k"
+    MUSICAL_TYPING: "cmd+k",
+    TOGGLE_FLOOR: "shift+f"
   };
+
   const play = usePlay();
   const pause = usePause();
   const stop = useStop();
   const record = useRecord();
   const seek = useSeek();
+  const setFloorOpen = useSetFloorOpen();
 
   const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
     variables: { vampId }
@@ -70,6 +74,10 @@ export const HotKeysWrapper: React.FC<HotKeysTypes> = (
     MUSICAL_TYPING: (): void => {
       // TODO: we haven't implemented this yet, but I use it a lot in logic
       console.log("musical typing!");
+    },
+    TOGGLE_FLOOR: (): void => {
+      console.log("toggling floor");
+      setFloorOpen();
     }
   };
   return (

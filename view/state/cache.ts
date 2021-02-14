@@ -31,6 +31,7 @@ export const cache = new InMemoryCache({
         end: (end = 0): number => end,
         loop: (loop = true): boolean => loop,
         recording: (recording = false): boolean => recording,
+        floorOpen: (floorOpen = false): boolean => floorOpen,
         clientClips: {
           read: (clientClips = []) => clientClips,
           merge: (existing, incoming) => incoming

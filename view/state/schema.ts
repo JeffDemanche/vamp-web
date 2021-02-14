@@ -45,6 +45,7 @@ export const typeDefs = gql`
     end: Float
     loop: Boolean
     recording: Boolean
+    floorOpen: Boolean
     clientClips: [ClientClip]
   }
   input ClipDraggingInfo {
