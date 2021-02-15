@@ -56,29 +56,46 @@ class Recorder {
    * check mediaRecorderInitialized() beforehand.
    */
   startRecording = (audioStoreKey: string): void => {
+    if (this._recording) throw new Error("Recorder already recording.");
+    // This'll happen if we start recording before the last recording finished
+    // appending to the audio store.
+    else if (this._currentAudioStoreKey)
+      throw new Error("Last recording wasn't completed.");
+
     this._recording = true;
     this._currentAudioStoreKey = audioStoreKey;
 
-    this.mediaRecorderInitialized && this._mediaRecorder.start(100);
+    console.time("record");
+    this.mediaRecorderInitialized && this._mediaRecorder.start(500);
   };
 
   /**
    * Stop recording from the MediaRecorder object. The calling function should
    * check mediaRecorderInitialized() beforehand.
    *
+   * @param after Waits this many milliseconds after the function is called to
+   * actually stop recording. This is useful for recording buffer space after a
+   * recording.
+   *
    * @returns A promise of Blob data. You can access it using a .then() callback
    * or in an async function as `const blob = await stopRecording();`
    */
-  stopRecording = async (): Promise<Blob> => {
+  stopRecording = async (after: number): Promise<Blob> => {
+    await new Promise(resolve => {
+      setTimeout(() => {
+        resolve(true);
+      }, after);
+    });
+    console.timeEnd("record");
     this.mediaRecorderInitialized && this._mediaRecorder.stop();
     this._recording = false;
     const storeKey = this._currentAudioStoreKey;
-    this._currentAudioStoreKey = undefined;
     return new Promise(resolve => {
       const interval = setInterval(() => {
         clearInterval(interval);
 
         resolve(audioStore.getStoredAudio(storeKey).data);
+        this._currentAudioStoreKey = undefined;
       }, 10);
     });
   };

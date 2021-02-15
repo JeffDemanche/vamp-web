@@ -280,10 +280,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
           console.error("No microhpone access granted.");
           apolloStop();
         }
-        //startRecording(prevData.playPosition);
-      }
-      if (!recording && prevData.recording) {
-        //endRecordingAndAddClip(cabStart);
       }
       if (playing && !prevData.playing) {
         play();

@@ -368,7 +368,7 @@ class Scheduler {
 
   private stopRecording = (): void => {
     this._recorderPrimed = false;
-    this._recorder.stopRecording().then(blob => {
+    this._recorder.stopRecording(100).then(blob => {
       this._onEndRecording(blob);
     });
   };
