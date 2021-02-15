@@ -23,6 +23,7 @@ import {
   useEndClientClip,
   useBeginClientClip
 } from "../state/client-clip-state-hooks";
+import { FloorAdapter } from "./floor/floor-adapter";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!) {
@@ -365,6 +366,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         loops={cabLoops}
         playing={playing}
       ></Looper>
+      <FloorAdapter></FloorAdapter>
     </>
   );
 };

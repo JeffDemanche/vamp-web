@@ -1,4 +1,4 @@
-import { GlobalHotKeys } from "react-hotkeys";
+import { configure, GlobalHotKeys } from "react-hotkeys";
 import * as React from "react";
 import { useQuery } from "@apollo/client";
 import {
@@ -15,6 +15,7 @@ import {
   useSetFloorOpen,
   useStop
 } from "../../state/vamp-state-hooks";
+import { useEffect } from "react";
 
 interface HotKeysTypes {
   children: React.ReactNode;
@@ -24,6 +25,10 @@ export const HotKeysWrapper: React.FC<HotKeysTypes> = (
   props: HotKeysTypes
 ): JSX.Element => {
   const vampId = useCurrentVampId();
+
+  useEffect(() => {
+    configure({ allowCombinationSubmatches: true });
+  }, []);
 
   const keyMap = {
     PLAY_STOP: "space",
@@ -76,7 +81,6 @@ export const HotKeysWrapper: React.FC<HotKeysTypes> = (
       console.log("musical typing!");
     },
     TOGGLE_FLOOR: (): void => {
-      console.log("toggling floor");
       setFloorOpen();
     }
   };
