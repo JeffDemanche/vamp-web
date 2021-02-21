@@ -338,14 +338,37 @@ class Scheduler {
   /**
    * Dispatches the event in the `_events` map for the given ID, then adds the
    * resulting node to `_dispatchedAudioNodes` if it exists.
+   *
+   * @param startWhilePlaying If we press the play button, all scheduled events
+   * are dispatched with proper offsets relative to the idle time and
+   * AudioContext.currentTime *at the time when play was pressed*. Setting this
+   * param as true will calculate those offsets *at the time this method is
+   * called*, which is useful when events are updated during play.
    */
-  private playEvent = async (eventId: string): Promise<void> => {
+  private playEvent = async (
+    eventId: string,
+    startWhilePlaying = false
+  ): Promise<void> => {
     const event = this._events[eventId];
     if (!event) throw new Error("Tried to play event that wasn't registered.");
+
+    const contextTime = this._context.currentTime;
+
+    // The idle time plus how far has already been played.
+    const currentVampTime =
+      this._idleTime + (contextTime - this._audioContextPlayStart);
+
+    // We use idleTime if all events are being dispatched at the same time, and
+    // we use the current calculated Vamp time if this method is being called by
+    // an event update while playing.
+    const eventOffset = startWhilePlaying
+      ? currentVampTime - event.start
+      : this._idleTime - event.start;
+
     const node = await event.dispatch(
       this._context,
-      this._audioContextPlayStart,
-      this._idleTime - event.start
+      startWhilePlaying ? contextTime : this._audioContextPlayStart,
+      eventOffset
     );
     if (node) this._dispatchedAudioNodes[eventId] = node;
   };
@@ -457,9 +480,10 @@ class Scheduler {
     if (this._dispatchedAudioNodes[eventId]) {
       this._dispatchedAudioNodes[eventId]?.disconnect();
       this._dispatchedAudioNodes[eventId]?.stop(0);
+      delete this._dispatchedAudioNodes[eventId];
     }
     if (this._isPlaying) {
-      this.playEvent(eventId);
+      this.playEvent(eventId, true);
     }
   };
 
