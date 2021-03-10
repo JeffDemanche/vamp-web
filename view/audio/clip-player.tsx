@@ -13,6 +13,7 @@ interface Clip {
   duration: number;
   audio: {
     id: string;
+    latencyCompensation: number;
     storedLocally: boolean;
   };
 }
@@ -22,6 +23,7 @@ interface ClientClip {
   audioStoreKey: string;
   realClipId: string;
   inProgress: boolean;
+  latencyCompensation: number;
 }
 
 interface ClipPlayerProps {
@@ -119,7 +121,13 @@ const onClipChanged = (
 ): void => {
   if (!prevClip.audio.storedLocally && clip.audio.storedLocally) {
     // Clip audio was just downloaded.
-    scheduler.addEvent(createClipEvent(clip.id, clip.start, clip.audio.id));
+    scheduler.addEvent(
+      createClipEvent(
+        clip.id,
+        clip.start - clip.audio.latencyCompensation,
+        clip.audio.id
+      )
+    );
 
     // The following deals with the case when this clip takes over from a client
     // clip.
@@ -146,7 +154,7 @@ const onClientClipChanged = (
     scheduler.addEvent(
       createClipEvent(
         clientClip.audioStoreKey,
-        clientClip.start,
+        clientClip.start - clientClip.latencyCompensation,
         clientClip.audioStoreKey
       )
     );

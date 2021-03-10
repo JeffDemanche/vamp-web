@@ -27,6 +27,7 @@ const TIMELINE_CLIENT = gql`
           filename
           localFilename
           storedLocally
+          latencyCompensation
           duration
           error
         }

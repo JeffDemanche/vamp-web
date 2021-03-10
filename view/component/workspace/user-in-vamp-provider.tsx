@@ -2,6 +2,7 @@ import * as React from "react";
 import { gql, useApolloClient, useQuery } from "@apollo/client";
 import { useEffect } from "react";
 import { GetUserInVamp, UserInVampSubscription } from "../../state/apollotypes";
+import { ViewLoading } from "../loading/view-loading";
 
 const USER_IN_VAMP_QUERY = gql`
   query GetUserInVamp($vampId: ID!, $userId: ID!) {
@@ -20,6 +21,9 @@ const USER_IN_VAMP_QUERY = gql`
         start
         duration
         loops
+      }
+      prefs {
+        latencyCompensation
       }
     }
   }
@@ -42,6 +46,9 @@ const USER_IN_VAMP_SUBSCRIPTION = gql`
         start
         duration
         loops
+      }
+      prefs {
+        latencyCompensation
       }
     }
   }
@@ -91,6 +98,10 @@ const UserInVampProvider: React.FunctionComponent<UserInVampProviderProps> = ({
 
   if (error) {
     console.error(error);
+  }
+  // Ensures that the data is done loading before any children get rendered.
+  if (loading) {
+    return <ViewLoading />;
   }
 
   return <>{children}</>;

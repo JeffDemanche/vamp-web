@@ -1,10 +1,13 @@
 import * as React from "react";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { useStoredAudio, useStreamedAudio } from "../../../util/react-hooks";
 import { workerScript } from "./oscilloscopeWorker";
 import * as styles from "./oscilloscope.less";
-import { useWindowDimensions } from "../../../util/workspace-hooks";
+import {
+  useWindowDimensions,
+  useWorkspaceWidth
+} from "../../../util/workspace-hooks";
 import { draw } from "./oscilloscopeScripts";
 
 interface OscilloscopeProps {
@@ -13,6 +16,7 @@ interface OscilloscopeProps {
     filename: string;
     storedLocally: boolean;
     localFilename: string;
+    latencyCompensation: number;
     duration: number;
   };
   dimensions: {
@@ -29,6 +33,8 @@ export const Oscilloscope: React.FC<OscilloscopeProps> = (
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { width: right } = useWindowDimensions();
 
+  const widthFn = useWorkspaceWidth();
+
   let audioData: Float32Array;
 
   if (props.audio) {
@@ -36,6 +42,15 @@ export const Oscilloscope: React.FC<OscilloscopeProps> = (
   } else {
     audioData = useStreamedAudio();
   }
+
+  const latencyPixelWidth = useMemo(() => {
+    if (props.audio) {
+      return widthFn(props.audio.latencyCompensation);
+    } else {
+      // TODO render latency compensation while recording.
+      return 0;
+    }
+  }, [props.audio, widthFn]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -103,7 +118,11 @@ export const Oscilloscope: React.FC<OscilloscopeProps> = (
   }, [audioData, props.dimensions.width]);
 
   return (
-    <div className={styles["oscilloscope"]} ref={divRef}>
+    <div
+      className={styles["oscilloscope"]}
+      ref={divRef}
+      style={{ left: `-${latencyPixelWidth}px` }}
+    >
       <canvas ref={canvasRef}></canvas>
     </div>
   );

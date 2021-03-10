@@ -38,6 +38,7 @@ const VAMP_QUERY = gql`
         audio {
           id
           filename
+          latencyCompensation
           storedLocally @client
           localFilename @client
           duration @client
@@ -110,6 +111,7 @@ const VAMP_SUBSCRIPTION = gql`
           audio {
             id
             filename
+            latencyCompensation
             storedLocally @client
             localFilename @client
             duration @client
@@ -218,6 +220,7 @@ const VampProvider: React.FunctionComponent<VampProviderProps> = ({
   if (vampError) {
     console.error(vampError);
   }
+  // Ensures that the Vamp is done loading before any children are rendered.
   if (vampLoading) {
     return <ViewLoading />;
   }

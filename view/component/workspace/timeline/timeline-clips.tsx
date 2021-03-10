@@ -20,6 +20,7 @@ interface TimelineClipsProps {
       filename: string;
       storedLocally: boolean;
       localFilename: string;
+      latencyCompensation: number;
       duration: number;
       error: string | null;
     };

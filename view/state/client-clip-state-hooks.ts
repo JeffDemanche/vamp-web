@@ -12,19 +12,25 @@ type ClientClip = GetClientClipsClient_vamp_clientClips;
  */
 export const useBeginClientClip = (): ((
   start: number,
-  audioStoreKey: string
+  audioStoreKey: string,
+  latencyCompensation: number
 ) => void) => {
   const { cache } = useApolloClient();
   const loadedVampId = loadedVampIdVar();
 
-  return (start: number, audioStoreKey: string): void => {
+  return (
+    start: number,
+    audioStoreKey: string,
+    latencyCompensation: number
+  ): void => {
     const data: ClientClip = {
       __typename: "ClientClip",
       audioStoreKey: audioStoreKey,
       realClipId: null,
       start: start,
       duration: -1,
-      inProgress: true
+      inProgress: true,
+      latencyCompensation
     };
 
     const newClientClipRef = cache.writeFragment({
@@ -36,6 +42,7 @@ export const useBeginClientClip = (): ((
           start
           duration
           inProgress
+          latencyCompensation
         }
       `
     });

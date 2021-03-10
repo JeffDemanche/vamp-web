@@ -59,12 +59,13 @@ export const GET_CLIENT_CLIPS_CLIENT = gql`
   query GetClientClipsClient($vampId: ID!) {
     # loadedVampId @client @export(as: "vampId")
     vamp(id: $vampId) @client {
-      clientClips @client {
-        start @client
-        audioStoreKey @client
-        realClipId @client
-        duration @client
-        inProgress @client
+      clientClips {
+        start
+        audioStoreKey
+        realClipId
+        duration
+        inProgress
+        latencyCompensation
       }
     }
   }

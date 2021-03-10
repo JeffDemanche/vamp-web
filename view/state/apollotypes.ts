@@ -4,6 +4,28 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: FloorAdapter
+// ====================================================
+
+export interface FloorAdapter_vamp {
+  __typename: "Vamp";
+  floorOpen: boolean | null;
+}
+
+export interface FloorAdapter {
+  vamp: FloorAdapter_vamp | null;
+}
+
+export interface FloorAdapterVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: WorkspaceAudioClient
 // ====================================================
 
@@ -12,6 +34,7 @@ export interface WorkspaceAudioClient_vamp_clips_audio {
   id: string;
   filename: string;
   localFilename: string;
+  latencyCompensation: number;
   storedLocally: boolean;
   duration: number;
 }
@@ -31,6 +54,7 @@ export interface WorkspaceAudioClient_vamp_clientClips {
   realClipId: string | null;
   inProgress: boolean;
   duration: number;
+  latencyCompensation: number | null;
 }
 
 export interface WorkspaceAudioClient_vamp_sections_subSections {
@@ -91,12 +115,36 @@ export interface WorkspaceAudioClient_vamp {
   forms: WorkspaceAudioClient_vamp_forms[];
 }
 
+export interface WorkspaceAudioClient_userInVamp_cab {
+  __typename: "Cab";
+  start: number;
+  duration: number;
+  loops: boolean;
+}
+
+export interface WorkspaceAudioClient_userInVamp_prefs {
+  __typename: "UserInVampPrefs";
+  latencyCompensation: number;
+}
+
+export interface WorkspaceAudioClient_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  cab: WorkspaceAudioClient_userInVamp_cab;
+  prefs: WorkspaceAudioClient_userInVamp_prefs;
+}
+
 export interface WorkspaceAudioClient {
   vamp: WorkspaceAudioClient_vamp | null;
+  /**
+   * Tries to find a UserInVamp, or adds one if not found.
+   */
+  userInVamp: WorkspaceAudioClient_userInVamp;
 }
 
 export interface WorkspaceAudioClientVariables {
   vampId: string;
+  userId: string;
 }
 
 /* tslint:disable */
@@ -124,6 +172,7 @@ export interface AddClipVariables {
   userId: string;
   vampId: string;
   file: any;
+  latencyCompensation?: number | null;
   referenceId?: string | null;
   start?: number | null;
 }
@@ -481,6 +530,7 @@ export interface TimelineClient_vamp_clips_audio {
   filename: string;
   localFilename: string;
   storedLocally: boolean;
+  latencyCompensation: number;
   duration: number;
   error: string | null;
 }
@@ -541,12 +591,18 @@ export interface GetUserInVamp_userInVamp_cab {
   loops: boolean;
 }
 
+export interface GetUserInVamp_userInVamp_prefs {
+  __typename: "UserInVampPrefs";
+  latencyCompensation: number;
+}
+
 export interface GetUserInVamp_userInVamp {
   __typename: "UserInVamp";
   id: string;
   vamp: GetUserInVamp_userInVamp_vamp;
   user: GetUserInVamp_userInVamp_user;
   cab: GetUserInVamp_userInVamp_cab;
+  prefs: GetUserInVamp_userInVamp_prefs;
 }
 
 export interface GetUserInVamp {
@@ -593,12 +649,18 @@ export interface UserInVampSubscription_subUserInVamp_cab {
   loops: boolean;
 }
 
+export interface UserInVampSubscription_subUserInVamp_prefs {
+  __typename: "UserInVampPrefs";
+  latencyCompensation: number;
+}
+
 export interface UserInVampSubscription_subUserInVamp {
   __typename: "UserInVamp";
   id: string;
   vamp: UserInVampSubscription_subUserInVamp_vamp;
   user: UserInVampSubscription_subUserInVamp_user;
   cab: UserInVampSubscription_subUserInVamp_cab;
+  prefs: UserInVampSubscription_subUserInVamp_prefs;
 }
 
 export interface UserInVampSubscription {
@@ -643,6 +705,7 @@ export interface GetVamp_vamp_clips_audio {
   __typename: "Audio";
   id: string;
   filename: string;
+  latencyCompensation: number;
   storedLocally: boolean;
   localFilename: string;
   duration: number;
@@ -767,6 +830,7 @@ export interface VampSubscription_subVamp_vampPayload_clips_audio {
   __typename: "Audio";
   id: string;
   filename: string;
+  latencyCompensation: number;
   storedLocally: boolean;
   localFilename: string;
   duration: number;
@@ -1046,6 +1110,7 @@ export interface GetClientClipsClient_vamp_clientClips {
   realClipId: string | null;
   duration: number;
   inProgress: boolean;
+  latencyCompensation: number | null;
 }
 
 export interface GetClientClipsClient_vamp {
@@ -1490,6 +1555,7 @@ export interface NewClientClip {
   start: number;
   duration: number;
   inProgress: boolean;
+  latencyCompensation: number | null;
 }
 
 /* tslint:disable */

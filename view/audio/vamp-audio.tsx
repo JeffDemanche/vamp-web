@@ -16,8 +16,7 @@ import { audioStore } from "./audio-store";
 import { vampAudioContext } from "./vamp-audio-context";
 import ClipPlayer from "./clip-player";
 import Looper from "./looper";
-import { WorkspaceAudioClient, AddClip, CabClient } from "../state/apollotypes";
-import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
+import { WorkspaceAudioClient, AddClip } from "../state/apollotypes";
 import { useSetLoop, useStop } from "../state/vamp-state-hooks";
 import {
   useEndClientClip,
@@ -26,7 +25,7 @@ import {
 import { FloorAdapter } from "./floor/floor-adapter";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
-  query WorkspaceAudioClient($vampId: ID!) {
+  query WorkspaceAudioClient($vampId: ID!, $userId: ID!) {
     vamp(id: $vampId) @client {
       id
 
@@ -50,6 +49,7 @@ const WORKSPACE_AUDIO_CLIENT = gql`
           id
           filename
           localFilename
+          latencyCompensation
           storedLocally
           duration
         }
@@ -61,6 +61,7 @@ const WORKSPACE_AUDIO_CLIENT = gql`
         realClipId
         inProgress
         duration
+        latencyCompensation
       }
 
       sections {
@@ -88,6 +89,17 @@ const WORKSPACE_AUDIO_CLIENT = gql`
         }
       }
     }
+    userInVamp(vampId: $vampId, userId: $userId) @client {
+      id
+      cab {
+        start
+        duration
+        loops
+      }
+      prefs {
+        latencyCompensation
+      }
+    }
   }
 `;
 
@@ -96,6 +108,7 @@ const ADD_CLIP_SERVER = gql`
     $userId: ID!
     $vampId: ID!
     $file: Upload!
+    $latencyCompensation: Float
     $referenceId: ID
     $start: Float
   ) {
@@ -104,6 +117,7 @@ const ADD_CLIP_SERVER = gql`
         userId: $userId
         vampId: $vampId
         file: $file
+        audioLatencyCompensation: $latencyCompensation
         referenceId: $referenceId
         start: $start
       }
@@ -141,23 +155,15 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         playStartTime,
         sections,
         forms
+      },
+      userInVamp: {
+        cab: { start: cabStart, duration: cabDuration, loops: cabLoops },
+        prefs: { latencyCompensation }
       }
     }
   } = useQuery<WorkspaceAudioClient>(WORKSPACE_AUDIO_CLIENT, {
-    variables: { vampId }
-  });
-
-  // State query for cab info.
-  const { data: userInVampData } = useQuery<CabClient>(CAB_CLIENT, {
     variables: { vampId, userId }
   });
-  const {
-    userInVamp: {
-      cab: { start: cabStart, duration: cabDuration, loops: cabLoops }
-    }
-  } = userInVampData || {
-    userInVamp: { cab: { cabStart: 0, cabDuration: 0, cabLoops: false } }
-  };
 
   const [addClipServer] = useMutation<AddClip>(ADD_CLIP_SERVER);
 
@@ -169,7 +175,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
   const [scheduler] = useState(SchedulerInstance);
-  // const [recorder] = useState(new Recorder(context));
   const [store] = useState(audioStore);
 
   // Passes the audio context into the scheduler instance.
@@ -268,13 +273,18 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
                   vampId,
                   userId,
                   file,
+                  latencyCompensation,
                   referenceId: recordingId
                 }
               });
               endClientClip(recordingId);
             }
           );
-          beginClientClip(prevData.playPosition, recordingId);
+          beginClientClip(
+            prevData.playPosition,
+            recordingId,
+            latencyCompensation
+          );
         } else {
           // TODO Give a user-facing warning about microphone access.
           console.error("No microhpone access granted.");
@@ -293,6 +303,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     apolloStop,
     beginClientClip,
     endClientClip,
+    latencyCompensation,
     play,
     playing,
     prevData,

@@ -67,6 +67,7 @@ export const typeDefs = gql`
     realClipId: ID
     duration: Float!
     inProgress: Boolean!
+    latencyCompensation: Float
   }
 `;
 
