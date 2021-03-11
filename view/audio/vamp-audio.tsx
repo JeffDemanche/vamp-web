@@ -111,6 +111,7 @@ const ADD_CLIP_SERVER = gql`
     $latencyCompensation: Float
     $referenceId: ID
     $start: Float
+    $duration: Float!
   ) {
     addClip(
       clip: {
@@ -120,6 +121,7 @@ const ADD_CLIP_SERVER = gql`
         audioLatencyCompensation: $latencyCompensation
         referenceId: $referenceId
         start: $start
+        duration: $duration
       }
     ) {
       id
@@ -266,10 +268,21 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         if (scheduler.recorder.mediaRecorderInitialized()) {
           const recordingId = scheduler.primeRecorder(
             prevData.playPosition,
-            file => {
+            async file => {
+              const dataArrBuff = await file.arrayBuffer();
+              const audioDuration = (await context.decodeAudioData(dataArrBuff))
+                .duration;
+
+              const limitedDuration = cabDuration - cabStart;
+
+              const duration = cabLoops ? limitedDuration : audioDuration;
+
+              console.log(duration);
+
               addClipServer({
                 variables: {
                   start: prevData.playPosition,
+                  duration,
                   vampId,
                   userId,
                   file,

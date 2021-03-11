@@ -85,7 +85,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       ? leftFn(clip.draggingInfo.position)
       : leftFn(clip.start);
 
-  const width = clip.audio.storedLocally ? widthFn(clip.audio.duration) : 200;
+  const width = clip.audio.storedLocally ? widthFn(clip.duration) : 200;
 
   const boxShadow = raised ? "2px 2px rgba(0, 0, 0, 0.2)" : undefined;
 

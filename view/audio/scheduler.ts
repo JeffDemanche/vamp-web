@@ -286,7 +286,7 @@ class Scheduler {
   private _recorderPrimed: boolean;
   private _recorderStartTime: number;
   private _recordingId: string;
-  private _onEndRecording: (file: Blob) => void;
+  private _onEndRecording: (file: Blob) => Promise<void>;
 
   /**
    * An object that handles dispatching metronome events.
@@ -375,7 +375,7 @@ class Scheduler {
 
   primeRecorder = (
     start: number,
-    onEndRecording?: (file: Blob) => void
+    onEndRecording?: (file: Blob) => Promise<void>
   ): string => {
     this._recorderPrimed = true;
     this._recorderStartTime = start;
@@ -391,7 +391,7 @@ class Scheduler {
 
   private stopRecording = (): void => {
     this._recorderPrimed = false;
-    this._recorder.stopRecording(100).then(blob => {
+    this._recorder.stopRecording(500).then(blob => {
       this._onEndRecording(blob);
     });
   };
