@@ -271,7 +271,8 @@ const MovableComponent: React.FC<MovableComponentProps> = ({
       className={classNames(
         styles["draggable-container"],
         className,
-        moving && styles["draggable-container-dragging"]
+        (moving || leftDragging || rightDragging) &&
+          styles["draggable-container-dragging"]
       )}
       style={{ ...style, width, height, left }}
     >
