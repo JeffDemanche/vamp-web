@@ -21,6 +21,7 @@ const USER_IN_VAMP_QUERY = gql`
         start
         duration
         loops
+        countdown
       }
       prefs {
         latencyCompensation
@@ -46,6 +47,7 @@ const USER_IN_VAMP_SUBSCRIPTION = gql`
         start
         duration
         loops
+        countdown
       }
       prefs {
         latencyCompensation

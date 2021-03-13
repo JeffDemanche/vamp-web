@@ -175,6 +175,7 @@ export interface AddClipVariables {
   latencyCompensation?: number | null;
   referenceId?: string | null;
   start?: number | null;
+  duration: number;
 }
 
 /* tslint:disable */
@@ -589,6 +590,7 @@ export interface GetUserInVamp_userInVamp_cab {
   start: number;
   duration: number;
   loops: boolean;
+  countdown: number;
 }
 
 export interface GetUserInVamp_userInVamp_prefs {
@@ -647,6 +649,7 @@ export interface UserInVampSubscription_subUserInVamp_cab {
   start: number;
   duration: number;
   loops: boolean;
+  countdown: number;
 }
 
 export interface UserInVampSubscription_subUserInVamp_prefs {
