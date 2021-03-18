@@ -86,7 +86,7 @@ class Recorder {
         resolve(true);
       }, after);
     });
-    console.timeEnd("record");
+
     this.mediaRecorderInitialized && this._mediaRecorder.stop();
     this._recording = false;
     const storeKey = this._currentAudioStoreKey;

@@ -66,7 +66,6 @@ class Floor {
     this._enabled = false;
     this.setupTestOscillator();
     this.setupTestNodegraph();
-    console.log(this._test_nodegraph);
   }
 
   set enabled(enabled: boolean) {

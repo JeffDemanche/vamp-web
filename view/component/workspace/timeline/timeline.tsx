@@ -22,14 +22,19 @@ const TIMELINE_CLIENT = gql`
         track {
           id
         }
-        audio {
-          id
-          filename
-          localFilename
-          storedLocally
-          latencyCompensation
+        content {
+          start
           duration
-          error
+          type
+          audio {
+            id
+            filename
+            localFilename
+            storedLocally
+            latencyCompensation
+            duration
+            error
+          }
         }
         draggingInfo {
           dragging

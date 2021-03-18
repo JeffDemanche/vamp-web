@@ -15,15 +15,20 @@ interface TimelineClipsProps {
     track: {
       id: string;
     };
-    audio: {
-      id: string;
-      filename: string;
-      storedLocally: boolean;
-      localFilename: string;
-      latencyCompensation: number;
+    content: {
+      start: number;
       duration: number;
-      error: string | null;
-    };
+      type: string;
+      audio: {
+        id: string;
+        filename: string;
+        storedLocally: boolean;
+        localFilename: string;
+        latencyCompensation: number;
+        duration: number;
+        error: string | null;
+      };
+    }[];
     draggingInfo: {
       dragging?: boolean;
       track?: string;

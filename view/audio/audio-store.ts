@@ -43,45 +43,54 @@ class AudioStore {
   async cacheClipAudio(
     clip: {
       id: string;
-      audio: {
-        id: string;
-        filename: string;
-        storedLocally: boolean;
-      };
+      content: {
+        type: string;
+        audio: {
+          id: string;
+          filename: string;
+          storedLocally: boolean;
+        };
+      }[];
     },
     vampId: string,
     apolloClient: ApolloClient<object>,
     audioContext: AudioContext
   ): Promise<void> {
-    if (!clip.audio.storedLocally) {
-      const cache = apolloClient.cache;
-      const res = await fetch(`/audio/${clip.audio.id}.webm`);
+    for (const content of clip.content) {
+      if (content.type !== "AUDIO") {
+        continue;
+      }
 
-      if (!res.ok) {
-        // Handle errors downloading audio file.
-        cache.modify({
-          id: cache.identify({ __typename: "Audio", id: clip.audio.id }),
-          fields: {
-            error: (): string => res.statusText
-          }
-        });
-      } else {
-        const blob = await res.blob();
-        const arrBuf = await blob.arrayBuffer();
+      if (!content.audio.storedLocally) {
+        const cache = apolloClient.cache;
+        const res = await fetch(`/audio/${content.audio.id}.webm`);
 
-        const audioBuffer = await audioContext.decodeAudioData(arrBuf);
+        if (!res.ok) {
+          // Handle errors downloading audio file.
+          cache.modify({
+            id: cache.identify({ __typename: "Audio", id: content.audio.id }),
+            fields: {
+              error: (): string => res.statusText
+            }
+          });
+        } else {
+          const blob = await res.blob();
+          const arrBuf = await blob.arrayBuffer();
 
-        cache.modify({
-          id: cache.identify({ __typename: "Audio", id: clip.audio.id }),
-          fields: {
-            storedLocally: (): boolean => {
-              return true;
-            },
-            duration: (): number => audioBuffer.duration
-          }
-        });
+          const audioBuffer = await audioContext.decodeAudioData(arrBuf);
 
-        this._store[clip.audio.id] = { data: blob };
+          cache.modify({
+            id: cache.identify({ __typename: "Audio", id: content.audio.id }),
+            fields: {
+              storedLocally: (): boolean => {
+                return true;
+              },
+              duration: (): number => audioBuffer.duration
+            }
+          });
+
+          this._store[content.audio.id] = { data: blob };
+        }
       }
     }
   }
