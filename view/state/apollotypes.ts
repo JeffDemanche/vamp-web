@@ -29,7 +29,7 @@ export interface FloorAdapterVariables {
 // GraphQL query operation: WorkspaceAudioClient
 // ====================================================
 
-export interface WorkspaceAudioClient_vamp_clips_audio {
+export interface WorkspaceAudioClient_vamp_clips_content_audio {
   __typename: "Audio";
   id: string;
   filename: string;
@@ -39,12 +39,21 @@ export interface WorkspaceAudioClient_vamp_clips_audio {
   duration: number;
 }
 
+export interface WorkspaceAudioClient_vamp_clips_content {
+  __typename: "ContentInClip";
+  id: string;
+  type: ClipContentType;
+  start: number;
+  duration: number;
+  audio: WorkspaceAudioClient_vamp_clips_content_audio | null;
+}
+
 export interface WorkspaceAudioClient_vamp_clips {
   __typename: "Clip";
   id: string;
   start: number;
   duration: number;
-  audio: WorkspaceAudioClient_vamp_clips_audio;
+  content: WorkspaceAudioClient_vamp_clips_content[];
 }
 
 export interface WorkspaceAudioClient_vamp_clientClips {
@@ -525,7 +534,7 @@ export interface TimelineClient_vamp_clips_track {
   id: string;
 }
 
-export interface TimelineClient_vamp_clips_audio {
+export interface TimelineClient_vamp_clips_content_audio {
   __typename: "Audio";
   id: string;
   filename: string;
@@ -536,13 +545,21 @@ export interface TimelineClient_vamp_clips_audio {
   error: string | null;
 }
 
+export interface TimelineClient_vamp_clips_content {
+  __typename: "ContentInClip";
+  start: number;
+  duration: number;
+  type: ClipContentType;
+  audio: TimelineClient_vamp_clips_content_audio | null;
+}
+
 export interface TimelineClient_vamp_clips {
   __typename: "Clip";
   id: string;
   start: number;
   duration: number;
   track: TimelineClient_vamp_clips_track | null;
-  audio: TimelineClient_vamp_clips_audio;
+  content: TimelineClient_vamp_clips_content[];
   draggingInfo: ClipDraggingInfo | null;
 }
 
@@ -704,7 +721,7 @@ export interface GetVamp_vamp_clips_user {
   id: string;
 }
 
-export interface GetVamp_vamp_clips_audio {
+export interface GetVamp_vamp_clips_content_audio {
   __typename: "Audio";
   id: string;
   filename: string;
@@ -715,6 +732,15 @@ export interface GetVamp_vamp_clips_audio {
   error: string | null;
 }
 
+export interface GetVamp_vamp_clips_content {
+  __typename: "ContentInClip";
+  id: string;
+  type: ClipContentType;
+  start: number;
+  duration: number;
+  audio: GetVamp_vamp_clips_content_audio | null;
+}
+
 export interface GetVamp_vamp_clips {
   __typename: "Clip";
   id: string;
@@ -723,7 +749,7 @@ export interface GetVamp_vamp_clips {
   track: GetVamp_vamp_clips_track | null;
   vamp: GetVamp_vamp_clips_vamp;
   user: GetVamp_vamp_clips_user;
-  audio: GetVamp_vamp_clips_audio;
+  content: GetVamp_vamp_clips_content[];
 }
 
 export interface GetVamp_vamp_sections_subSections {
@@ -829,7 +855,7 @@ export interface VampSubscription_subVamp_vampPayload_clips_user {
   id: string;
 }
 
-export interface VampSubscription_subVamp_vampPayload_clips_audio {
+export interface VampSubscription_subVamp_vampPayload_clips_content_audio {
   __typename: "Audio";
   id: string;
   filename: string;
@@ -840,6 +866,15 @@ export interface VampSubscription_subVamp_vampPayload_clips_audio {
   error: string | null;
 }
 
+export interface VampSubscription_subVamp_vampPayload_clips_content {
+  __typename: "ContentInClip";
+  id: string;
+  type: ClipContentType;
+  start: number;
+  duration: number;
+  audio: VampSubscription_subVamp_vampPayload_clips_content_audio | null;
+}
+
 export interface VampSubscription_subVamp_vampPayload_clips {
   __typename: "Clip";
   id: string;
@@ -848,7 +883,7 @@ export interface VampSubscription_subVamp_vampPayload_clips {
   track: VampSubscription_subVamp_vampPayload_clips_track | null;
   vamp: VampSubscription_subVamp_vampPayload_clips_vamp;
   user: VampSubscription_subVamp_vampPayload_clips_user;
-  audio: VampSubscription_subVamp_vampPayload_clips_audio;
+  content: VampSubscription_subVamp_vampPayload_clips_content[];
 }
 
 export interface VampSubscription_subVamp_vampPayload_sections_subSections {
@@ -1047,6 +1082,9 @@ export interface GetClipsServer_clips {
   track: GetClipsServer_clips_track | null;
   vamp: GetClipsServer_clips_vamp;
   user: GetClipsServer_clips_user;
+  /**
+   * Gets the first audio on this clip's content array.
+   */
   audio: GetClipsServer_clips_audio;
 }
 
@@ -1080,6 +1118,9 @@ export interface GetClipsClient_vamp_clips {
   __typename: "Clip";
   id: string;
   start: number;
+  /**
+   * Gets the first audio on this clip's content array.
+   */
   audio: GetClipsClient_vamp_clips_audio;
   draggingInfo: ClipDraggingInfo | null;
 }
@@ -1501,6 +1542,9 @@ export interface ViewBoundsDataClient_vamp_clips {
   __typename: "Clip";
   id: string;
   start: number;
+  /**
+   * Gets the first audio on this clip's content array.
+   */
   audio: ViewBoundsDataClient_vamp_clips_audio;
 }
 
@@ -1599,6 +1643,13 @@ export interface ClientClipRealClipId {
 //==============================================================
 // START Enums and Input Objects
 //==============================================================
+
+/**
+ * The type of content contained in a clip
+ */
+export enum ClipContentType {
+  AUDIO = "AUDIO",
+}
 
 export interface ClipDraggingInfo {
   dragging?: boolean | null;

@@ -1,5 +1,4 @@
 {
-    "prettier.trailingComma": "none",
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
     }

@@ -27,8 +27,6 @@ export class NodeGraph {
 
   public verifyConnection = (connection: Connection): boolean => {
     let verified = true;
-    console.log(this._nodes);
-    console.log(connection);
     if (
       !this._nodes[connection.fromNodeId] ||
       (!this._nodes[connection.toNodeId] &&

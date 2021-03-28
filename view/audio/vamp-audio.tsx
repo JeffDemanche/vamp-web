@@ -14,7 +14,7 @@ import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { useCurrentUserId, usePrevious } from "../util/react-hooks";
 import { audioStore } from "./audio-store";
 import { vampAudioContext } from "./vamp-audio-context";
-import ClipPlayer from "./clip-player";
+import { ClipPlayer } from "./clip-player";
 import Looper from "./looper";
 import { WorkspaceAudioClient, AddClip } from "../state/apollotypes";
 import { useSetLoop, useStop } from "../state/vamp-state-hooks";
@@ -45,13 +45,19 @@ const WORKSPACE_AUDIO_CLIENT = gql`
         id
         start
         duration
-        audio {
+        content {
           id
-          filename
-          localFilename
-          latencyCompensation
-          storedLocally
+          type
+          start
           duration
+          audio {
+            id
+            filename
+            localFilename
+            latencyCompensation
+            storedLocally
+            duration
+          }
         }
       }
 
@@ -219,7 +225,11 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const updateStartEnd = (
     clips: {
       start: number;
-      audio: { duration: number };
+      duration: number;
+      content: {
+        start: number;
+        duration: number;
+      }[];
     }[]
   ): void => {
     let start = 0;
@@ -230,9 +240,11 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     });
     let end = start;
     clips.forEach(clip => {
-      if (clip.start + clip.audio.duration > end) {
-        end = clip.start + clip.audio.duration;
-      }
+      clip.content.forEach(content => {
+        if (clip.start + content.start + content.duration > end) {
+          end = clip.start + content.start + content.duration;
+        }
+      });
     });
     apolloClient.cache.modify({
       id: apolloClient.cache.identify({ __typename: "Vamp", id: vampId }),
@@ -276,8 +288,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
               const limitedDuration = cabDuration - cabStart;
 
               const duration = cabLoops ? limitedDuration : audioDuration;
-
-              console.log(duration);
 
               addClipServer({
                 variables: {

@@ -2,8 +2,9 @@ import { useEffect } from "react";
 import { audioStore } from "./audio-store";
 import { SchedulerInstance, SchedulerEvent } from "./scheduler";
 import { usePrevious } from "../util/react-hooks";
-import _ = require("underscore");
+import * as _ from "underscore";
 import { useRemoveClientClip } from "../state/client-clip-state-hooks";
+import Clip from "../component/workspace/clip/clip";
 
 type Scheduler = typeof SchedulerInstance;
 
@@ -11,11 +12,17 @@ interface Clip {
   id: string;
   start: number;
   duration: number;
-  audio: {
+  content: {
     id: string;
-    latencyCompensation: number;
-    storedLocally: boolean;
-  };
+    type: string;
+    start: number;
+    duration: number;
+    audio: {
+      id: string;
+      latencyCompensation: number;
+      storedLocally: boolean;
+    };
+  }[];
 }
 
 interface ClientClip {
@@ -33,20 +40,33 @@ interface ClipPlayerProps {
   scheduler: Scheduler;
 }
 
-const createClipEvent = (
-  id: string,
-  start: number,
-  storeKey: string
-): SchedulerEvent => {
+const createContentEvent = ({
+  id,
+  start,
+  duration,
+  storeKey
+}: {
+  id: string;
+  start: number;
+  duration?: number;
+  storeKey: string;
+}): SchedulerEvent => {
   return {
     id,
     start,
-    type: "Clip",
-    dispatch: async (
-      context: AudioContext,
-      ctxStart: number,
-      offset: number
-    ): Promise<AudioScheduledSourceNode> => {
+    duration,
+    type: "Audio",
+    dispatch: async ({
+      context,
+      startTime,
+      offset,
+      duration
+    }: {
+      context: AudioContext;
+      startTime: number;
+      offset: number;
+      duration: number;
+    }): Promise<AudioScheduledSourceNode> => {
       const fileBuffer = await audioStore
         .getStoredAudio(storeKey)
         .data.arrayBuffer();
@@ -57,7 +77,7 @@ const createClipEvent = (
       source.buffer = decodedData;
       source.connect(context.destination);
 
-      const contextDiff = context.currentTime - ctxStart;
+      const contextDiff = context.currentTime - startTime;
 
       // The WAA start function takes different params for delaying the
       // start of a node (when) and playing the node from a point other
@@ -65,7 +85,7 @@ const createClipEvent = (
       const when = offset < 0 ? -offset : 0;
       const offsetVal = offset > 0 ? offset : 0;
 
-      source.start(ctxStart + when, offsetVal + contextDiff);
+      source.start(startTime + when, offsetVal + contextDiff, duration);
 
       return source;
     }
@@ -73,12 +93,41 @@ const createClipEvent = (
 };
 
 /**
+ * Calculates the real scheduler start time for a piece of clip content.
+ */
+const calcContentStart = (
+  clip: Clip,
+  clipContent: Clip["content"][number]
+): number =>
+  clip.start - clipContent.audio.latencyCompensation + clipContent.start;
+
+/**
+ * Calculates how long clip content should play for, respecting that it might
+ * get cut off if the clip ends before it does.
+ */
+const calcContentDuration = (
+  clip: Clip,
+  clipContent: Clip["content"][number]
+): number => Math.min(clipContent.duration, clip.duration - clipContent.start);
+
+/**
  * Called for every clip addition in cache.
  */
 const onClipAdded = (clip: Clip, scheduler: Scheduler): void => {
-  if (clip.audio.storedLocally) {
-    scheduler.addEvent(createClipEvent(clip.id, clip.start, clip.audio.id));
-  }
+  clip.content.forEach(content => {
+    if (content.type === "audio") {
+      if (content.audio.storedLocally) {
+        scheduler.addEvent(
+          createContentEvent({
+            id: content.id,
+            start: calcContentStart(clip, content),
+            duration: calcContentDuration(clip, content),
+            storeKey: content.audio.id
+          })
+        );
+      }
+    }
+  });
 };
 
 /**
@@ -95,7 +144,9 @@ const onClientClipAdded = (
  * Called for every clip removal from cache.
  */
 const onClipRemoved = (clip: Clip, scheduler: Scheduler): void => {
-  scheduler.removeEvent(clip.id);
+  clip.content.forEach(content => {
+    scheduler.removeEvent(content.id);
+  });
 };
 
 /**
@@ -106,6 +157,77 @@ const onClientClipRemoved = (
   scheduler: Scheduler
 ): void => {
   scheduler.removeEvent(clientClip.audioStoreKey);
+};
+
+const onClipContentAdded = (
+  clip: Clip,
+  clipContent: Clip["content"][number],
+  scheduler: Scheduler
+): void => {
+  if (clipContent.audio.storedLocally) {
+    scheduler.addEvent(
+      createContentEvent({
+        id: clipContent.id,
+        start: calcContentStart(clip, clipContent),
+        duration: calcContentDuration(clip, clipContent),
+        storeKey: clipContent.audio.id
+      })
+    );
+  }
+};
+
+const onClipContentChanged = (
+  prevClip: Clip,
+  clip: Clip,
+  prevClipContent: Clip["content"][number],
+  clipContent: Clip["content"][number],
+  scheduler: Scheduler,
+  clientClips: ClientClip[],
+  removeClientClip: (audioStoreKey: string) => boolean
+): void => {
+  if (!prevClipContent.audio.storedLocally && clipContent.audio.storedLocally) {
+    // Clip audio was just downloaded.
+    scheduler.addEvent(
+      createContentEvent({
+        id: clipContent.id,
+        start: calcContentStart(clip, clipContent),
+        duration: calcContentDuration(clip, clipContent),
+        storeKey: clipContent.audio.id
+      })
+    );
+
+    // The following deals with the case when this clip takes over from a client
+    // clip.
+    const clientClip = _.findWhere(clientClips, { realClipId: clip.id });
+    if (clientClip) {
+      removeClientClip(clientClip.audioStoreKey);
+    }
+  }
+
+  // Updates to content caused by updates to containing clip or by updates to
+  // the content itself.
+  const eventUpdate = {
+    start:
+      (prevClip.start !== clip.start ||
+        prevClipContent.start !== clipContent.start) &&
+      calcContentStart(clip, clipContent),
+    duration:
+      (prevClip.duration !== clip.duration ||
+        prevClipContent.duration !== clipContent.duration) &&
+      calcContentDuration(clip, clipContent)
+  };
+  if (!_.isEmpty(eventUpdate)) {
+    scheduler.updateEvent(clipContent.id, eventUpdate);
+  }
+};
+
+const onClipContentRemoved = (
+  prevClipContent: Clip["content"][number],
+  scheduler: Scheduler
+): void => {
+  if (prevClipContent.type === "audio") {
+    scheduler.removeEvent(prevClipContent.id);
+  }
 };
 
 /**
@@ -119,26 +241,64 @@ const onClipChanged = (
   clientClips: ClientClip[],
   removeClientClip: (audioStoreKey: string) => boolean
 ): void => {
-  if (!prevClip.audio.storedLocally && clip.audio.storedLocally) {
-    // Clip audio was just downloaded.
-    scheduler.addEvent(
-      createClipEvent(
-        clip.id,
-        clip.start - clip.audio.latencyCompensation,
-        clip.audio.id
-      )
-    );
+  // Transform content arrays into maps where their IDs are keys.
+  const prevClipContentMap: {
+    [contentId: string]: Clip["content"][number];
+  } = {};
+  const clipContentMap: { [contentId: string]: Clip["content"][number] } = {};
 
-    // The following deals with the case when this clip takes over from a client
-    // clip.
-    const clientClip = _.findWhere(clientClips, { realClipId: clip.id });
-    if (clientClip) {
-      removeClientClip(clientClip.audioStoreKey);
+  prevClip.content.forEach(prevContent => {
+    prevClipContentMap[prevContent.id] = prevContent;
+  });
+
+  clip.content.forEach(content => {
+    clipContentMap[content.id] = content;
+  });
+
+  const existingContentIds = new Set<string>();
+
+  Object.keys(prevClipContentMap).forEach(prevContentId => {
+    if (!clipContentMap[prevContentId]) {
+      onClipContentRemoved(prevClipContentMap[prevContentId], scheduler);
+    } else {
+      existingContentIds.add(prevContentId);
     }
-  }
-  if (prevClip.start !== clip.start) {
-    scheduler.updateEvent(clip.id, { start: clip.start });
-  }
+  });
+
+  Object.keys(clipContentMap).forEach(contentId => {
+    if (!prevClipContentMap[contentId]) {
+      onClipContentAdded(clip, clipContentMap[contentId], scheduler);
+    } else {
+      existingContentIds.add(contentId);
+    }
+  });
+
+  // This is a boolean value that's true if any of the props in the string array
+  // have changed on the clip since last update.
+  const updateContentFromClipChange = (["start", "duration"] as Array<
+    keyof Clip
+  >).reduce<boolean>(
+    (prev, curr) => prev || clip[curr] !== prevClip[curr],
+    false
+  );
+
+  // Individual content elements changed.
+  Array.from(existingContentIds).forEach(existingId => {
+    if (
+      updateContentFromClipChange ||
+      !_.isEqual(prevClipContentMap[existingId], clipContentMap[existingId])
+    ) {
+      onClipContentChanged(
+        prevClip,
+        clip,
+        prevClipContentMap[existingId],
+        clipContentMap[existingId],
+        scheduler,
+        clientClips,
+        removeClientClip
+      );
+    }
+  });
 };
 
 /**
@@ -152,11 +312,11 @@ const onClientClipChanged = (
 ): void => {
   if (prevClientClip.inProgress && !clientClip.inProgress) {
     scheduler.addEvent(
-      createClipEvent(
-        clientClip.audioStoreKey,
-        clientClip.start - clientClip.latencyCompensation,
-        clientClip.audioStoreKey
-      )
+      createContentEvent({
+        id: clientClip.audioStoreKey,
+        start: clientClip.start - clientClip.latencyCompensation,
+        storeKey: clientClip.audioStoreKey
+      })
     );
   }
 };
@@ -164,9 +324,11 @@ const onClientClipChanged = (
 /**
  * This is a component that's used in the WorkspaceAudio component. This is
  * responsible for tracking clips in the Apollo cache and managing their
- * scheduled audio events.
+ * scheduled audio events. For instance, if we add a new clip, we immediately
+ * want to update the scheduler to play that clip's content at the right time.
+ * Same thing when we update or remove a clip.
  */
-const ClipPlayer = ({
+export const ClipPlayer = ({
   clips,
   clientClips,
   audioStore,
@@ -253,9 +415,7 @@ const ClipPlayer = ({
         onClientClipAdded(clientClip, scheduler);
       });
     }
-  }, [clips, clientClips]);
+  }, [clips, clientClips, prev, scheduler, removeClientClip]);
 
   return null;
 };
-
-export default ClipPlayer;

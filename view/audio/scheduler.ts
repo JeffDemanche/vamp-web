@@ -1,3 +1,4 @@
+import * as _ from "underscore";
 import ObjectID from "bson-objectid";
 import { processMetronome, VampFormData } from "../util/metronome-hooks";
 import Recorder from "./recorder";
@@ -7,7 +8,9 @@ class SchedulerEvent {
 
   public start: number;
 
-  public type: "Clip";
+  public duration?: number;
+
+  public type: "Audio";
 
   /**
    * Called by scheduler when this event starts playing. All events that use Web
@@ -19,12 +22,14 @@ class SchedulerEvent {
    * we get this directly from `context` we risk having variance in when things
    * are dispatched.
    * @param offset Number of seconds into the event to start playing at.
+   * @param duration After how many seconds to stop playing.
    */
-  public dispatch: (
-    context: AudioContext,
-    startTime: number,
-    offset?: number
-  ) => Promise<void | AudioScheduledSourceNode>;
+  public dispatch: (args: {
+    context: AudioContext;
+    startTime: number;
+    offset?: number;
+    duration?: number;
+  }) => Promise<void | AudioScheduledSourceNode>;
 }
 
 interface LoadedTick {
@@ -365,11 +370,12 @@ class Scheduler {
       ? currentVampTime - event.start
       : this._idleTime - event.start;
 
-    const node = await event.dispatch(
-      this._context,
-      startWhilePlaying ? contextTime : this._audioContextPlayStart,
-      eventOffset
-    );
+    const node = await event.dispatch({
+      context: this._context,
+      startTime: startWhilePlaying ? contextTime : this._audioContextPlayStart,
+      offset: eventOffset,
+      duration: event.duration
+    });
     if (node) this._dispatchedAudioNodes[eventId] = node;
   };
 
@@ -475,8 +481,14 @@ class Scheduler {
    * Updates properties on a scheduled event. To do this we stop that event's
    * audio node and then restart it after updating the event.
    */
-  updateEvent = (eventId: string, { start }: { start: number }): void => {
-    this._events[eventId].start = start;
+  updateEvent = (
+    eventId: string,
+    { start, duration }: { start?: number; duration?: number }
+  ): void => {
+    if (_.isEmpty({ start, duration })) return;
+
+    start && (this._events[eventId].start = start);
+    duration && (this._events[eventId].duration = duration);
     if (this._dispatchedAudioNodes[eventId]) {
       this._dispatchedAudioNodes[eventId]?.disconnect();
       this._dispatchedAudioNodes[eventId]?.stop(0);
@@ -500,6 +512,13 @@ class Scheduler {
   };
 
   /**
+   * Useful for testing.
+   */
+  clearEvents = (): void => {
+    this._events = {};
+  };
+
+  /**
    * When the form model changes, this provides that information to
    * `_metronomeScheduler`.
    */
@@ -509,6 +528,10 @@ class Scheduler {
 
   get recorder(): Recorder {
     return this._recorder;
+  }
+
+  get events(): { [id: string]: SchedulerEvent } {
+    return this._events;
   }
 }
 

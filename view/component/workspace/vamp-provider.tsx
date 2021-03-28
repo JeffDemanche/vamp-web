@@ -35,14 +35,20 @@ const VAMP_QUERY = gql`
         user {
           id
         }
-        audio {
+        content {
           id
-          filename
-          latencyCompensation
-          storedLocally @client
-          localFilename @client
-          duration @client
-          error @client
+          type
+          start
+          duration
+          audio {
+            id
+            filename
+            latencyCompensation
+            storedLocally @client
+            localFilename @client
+            duration @client
+            error @client
+          }
         }
       }
       sections {
@@ -108,14 +114,20 @@ const VAMP_SUBSCRIPTION = gql`
           user {
             id
           }
-          audio {
+          content {
             id
-            filename
-            latencyCompensation
-            storedLocally @client
-            localFilename @client
-            duration @client
-            error @client
+            type
+            start
+            duration
+            audio {
+              id
+              filename
+              latencyCompensation
+              storedLocally @client
+              localFilename @client
+              duration @client
+              error @client
+            }
           }
         }
         sections {

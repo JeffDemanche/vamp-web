@@ -1,7 +1,6 @@
 import * as React from "react";
 
 import styles = require("./clip.less");
-import { Oscilloscope } from "../oscilloscope/oscilloscope";
 import {
   useWorkspaceWidth,
   useWorkspaceLeft,
@@ -11,12 +10,13 @@ import {
 import Playhead from "../../element/playhead";
 import TrashButton from "./trash-button";
 import MovableComponent from "../../element/movable-component";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { UpdateClip } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../util/react-hooks";
 import { FailureOverlay } from "./failure-overlay";
 import { DropZone } from "../workspace-drop-zones";
+import { ClipContentAudio } from "./content/clip-content-audio";
 
 const UPDATE_CLIP = gql`
   mutation UpdateClip($clipUpdate: UpdateClipInput!) {
@@ -33,15 +33,20 @@ interface ClipProps {
     id: string;
     start: number;
     duration: number;
-    audio: {
-      id: string;
-      filename: string;
-      storedLocally: boolean;
-      localFilename: string;
-      latencyCompensation: number;
+    content: {
+      start: number;
       duration: number;
-      error: string | null;
-    };
+      type: string;
+      audio: {
+        id: string;
+        filename: string;
+        storedLocally: boolean;
+        localFilename: string;
+        latencyCompensation: number;
+        duration: number;
+        error: string | null;
+      };
+    }[];
     draggingInfo: {
       dragging?: boolean;
       track?: string;
@@ -78,16 +83,34 @@ const Clip: React.FunctionComponent<ClipProps> = ({
 
   const [raised, setRaised] = useState(false);
 
-  const opacity = clip.audio.storedLocally ? 1.0 : 0.7;
+  const opacity = clip.content.every(content => content.audio.storedLocally)
+    ? 1.0
+    : 0.7;
+
+  const audioErrors = clip.content
+    .map(content => content.audio.error)
+    .filter(error => error !== null);
 
   const left =
     clip.draggingInfo.dragging || clip.draggingInfo.track
       ? leftFn(clip.draggingInfo.position)
       : leftFn(clip.start);
 
-  const width = clip.audio.storedLocally ? widthFn(clip.duration) : 200;
+  const width = widthFn(clip.duration);
 
   const boxShadow = raised ? "2px 2px rgba(0, 0, 0, 0.2)" : undefined;
+
+  const audioContent = useMemo(() => {
+    const elements: JSX.Element[] = [];
+    clip.content.forEach((content, i) => {
+      if (content.type === "AUDIO") {
+        elements.push(
+          <ClipContentAudio key={i} content={content}></ClipContentAudio>
+        );
+      }
+    });
+    return elements;
+  }, [clip.content]);
 
   return (
     <MovableComponent
@@ -101,7 +124,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
         setTrackIndexState(zone.metadata.index);
       }}
       onDrop={(zone: DropZone<{ index: number }>): void => {
-        if (!clip.audio.error)
+        if (audioErrors.length === 0)
           updateClip({
             variables: {
               clipUpdate: {
@@ -113,7 +136,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
           });
       }}
       onWidthChanged={(newWidth): void => {
-        if (!clip.audio.error)
+        if (audioErrors.length === 0)
           updateClip({
             variables: {
               clipUpdate: {
@@ -125,7 +148,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
           });
       }}
       onLeftChanged={(newLeft): void => {
-        if (!clip.audio.error)
+        if (audioErrors.length === 0)
           updateClip({
             variables: {
               clipUpdate: { vampId, clipId: clip.id, start: timeFn(newLeft) }
@@ -147,18 +170,14 @@ const Clip: React.FunctionComponent<ClipProps> = ({
         </div>
         <div className={styles["background"]} style={{ opacity }}>
           <Playhead containerStart={clip.start} />
-          {clip.audio.error ? (
+          {audioErrors.length > 0 ? (
             <FailureOverlay
-              error={clip.audio.error}
+              // TODO this is currently just displaying the first error.
+              error={audioErrors[0]}
               height={clipHeight}
             ></FailureOverlay>
           ) : (
-            <Oscilloscope
-              audio={clip.audio}
-              dimensions={{
-                width: width
-              }}
-            ></Oscilloscope>
+            audioContent
           )}
         </div>
       </div>
