@@ -185,6 +185,8 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const [scheduler] = useState(SchedulerInstance);
   const [store] = useState(audioStore);
 
+  const [currentRecordingId, setCurrentRecordingId] = useState<string>(null);
+
   // Passes the audio context into the scheduler instance.
   useEffect(() => {
     scheduler.giveContext(context);
@@ -300,9 +302,13 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
                   referenceId: recordingId
                 }
               });
-              endClientClip(recordingId);
             }
           );
+
+          if (currentRecordingId !== null)
+            throw new Error("Current recording ID already set.");
+          setCurrentRecordingId(recordingId);
+
           beginClientClip(
             prevData.playPosition,
             recordingId,
@@ -313,6 +319,10 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
           console.error("No microhpone access granted.");
           apolloStop();
         }
+      }
+      if (!recording && prevData.recording) {
+        endClientClip(currentRecordingId);
+        setCurrentRecordingId(null);
       }
       if (playing && !prevData.playing) {
         play();
@@ -325,6 +335,11 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     addClipServer,
     apolloStop,
     beginClientClip,
+    cabDuration,
+    cabLoops,
+    cabStart,
+    context,
+    currentRecordingId,
     endClientClip,
     latencyCompensation,
     play,

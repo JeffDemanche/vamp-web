@@ -115,7 +115,7 @@ const calcContentDuration = (
  */
 const onClipAdded = (clip: Clip, scheduler: Scheduler): void => {
   clip.content.forEach(content => {
-    if (content.type === "audio") {
+    if (content.type === "AUDIO") {
       if (content.audio.storedLocally) {
         scheduler.addEvent(
           createContentEvent({
@@ -206,16 +206,20 @@ const onClipContentChanged = (
 
   // Updates to content caused by updates to containing clip or by updates to
   // the content itself.
-  const eventUpdate = {
-    start:
-      (prevClip.start !== clip.start ||
-        prevClipContent.start !== clipContent.start) &&
-      calcContentStart(clip, clipContent),
-    duration:
-      (prevClip.duration !== clip.duration ||
-        prevClipContent.duration !== clipContent.duration) &&
-      calcContentDuration(clip, clipContent)
-  };
+  const eventUpdate: Partial<{ start: number; duration: number }> = {};
+
+  if (
+    prevClip.start !== clip.start ||
+    prevClipContent.start !== clipContent.start
+  )
+    eventUpdate.start = calcContentStart(clip, clipContent);
+
+  if (
+    prevClip.duration !== clip.duration ||
+    prevClipContent.duration !== clipContent.duration
+  )
+    eventUpdate.duration = calcContentDuration(clip, clipContent);
+
   if (!_.isEmpty(eventUpdate)) {
     scheduler.updateEvent(clipContent.id, eventUpdate);
   }
