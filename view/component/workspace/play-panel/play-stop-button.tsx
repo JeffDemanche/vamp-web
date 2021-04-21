@@ -12,13 +12,15 @@ import {
   usePlay,
   usePause,
   useStop,
-  useSeek
+  useSeek,
+  useCountOff
 } from "../../../state/vamp-state-hooks";
 
 const PlayStopButton: React.FunctionComponent = () => {
   const vampId = useCurrentVampId();
 
   const play = usePlay();
+  const countOff = useCountOff();
   const pause = usePause();
   const stop = useStop();
   const seek = useSeek();
@@ -42,7 +44,7 @@ const PlayStopButton: React.FunctionComponent = () => {
         stop();
       }
     } else {
-      play();
+      countOff();
     }
   };
 

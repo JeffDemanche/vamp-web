@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useEffect } from "react";
 import { audioStore } from "./audio-store";
 import { SchedulerInstance, SchedulerEvent } from "./scheduler";
@@ -59,11 +60,13 @@ const createContentEvent = ({
     dispatch: async ({
       context,
       startTime,
+      when,
       offset,
       duration
     }: {
       context: AudioContext;
       startTime: number;
+      when: number;
       offset: number;
       duration: number;
     }): Promise<AudioScheduledSourceNode> => {
@@ -82,10 +85,10 @@ const createContentEvent = ({
       // The WAA start function takes different params for delaying the
       // start of a node (when) and playing the node from a point other
       // than the start (offset).
-      const when = offset < 0 ? -offset : 0;
+      const whenVal = (offset < 0 ? -offset : 0) + (when ?? 0);
       const offsetVal = offset > 0 ? offset : 0;
 
-      source.start(startTime + when, offsetVal + contextDiff, duration);
+      source.start(startTime + whenVal, offsetVal + contextDiff, duration);
 
       return source;
     }
@@ -115,7 +118,7 @@ const calcContentDuration = (
  */
 const onClipAdded = (clip: Clip, scheduler: Scheduler): void => {
   clip.content.forEach(content => {
-    if (content.type === "AUDIO") {
+    if (content.type.toLowerCase() === "audio") {
       if (content.audio.storedLocally) {
         scheduler.addEvent(
           createContentEvent({
@@ -229,7 +232,7 @@ const onClipContentRemoved = (
   prevClipContent: Clip["content"][number],
   scheduler: Scheduler
 ): void => {
-  if (prevClipContent.type === "audio") {
+  if (prevClipContent.type.toLowerCase() === "audio") {
     scheduler.removeEvent(prevClipContent.id);
   }
 };
@@ -332,12 +335,12 @@ const onClientClipChanged = (
  * want to update the scheduler to play that clip's content at the right time.
  * Same thing when we update or remove a clip.
  */
-export const ClipPlayer = ({
+export const ClipPlayer: React.FC<ClipPlayerProps> = ({
   clips,
   clientClips,
   audioStore,
   scheduler
-}: ClipPlayerProps): JSX.Element => {
+}: ClipPlayerProps) => {
   const prev = usePrevious({ clips, clientClips });
 
   const removeClientClip = useRemoveClientClip();

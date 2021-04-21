@@ -1,5 +1,6 @@
 import * as _ from "underscore";
 import ObjectID from "bson-objectid";
+import { CountOff } from "../util/count-off-hooks";
 import { processMetronome, VampFormData } from "../util/metronome-hooks";
 import Recorder from "./recorder";
 
@@ -21,12 +22,15 @@ class SchedulerEvent {
    * @param startTime The value of context.currentTime when play was started. If
    * we get this directly from `context` we risk having variance in when things
    * are dispatched.
-   * @param offset Number of seconds into the event to start playing at.
+   * @param when Number of seconds between dispatch and when the event should
+   * start playing.
+   * @param offset Number of seconds into the event to begin playback at.
    * @param duration After how many seconds to stop playing.
    */
   public dispatch: (args: {
     context: AudioContext;
     startTime: number;
+    when?: number;
     offset?: number;
     duration?: number;
   }) => Promise<void | AudioScheduledSourceNode>;
@@ -37,6 +41,27 @@ interface LoadedTick {
   nextTickCode: string;
   level: number;
 }
+
+const metronomeTick = (
+  context: AudioContext,
+  type: "Beep",
+  level: number,
+  nodeStartTime: number,
+  onEnded?: (this: AudioScheduledSourceNode, ev: Event) => void
+): AudioScheduledSourceNode => {
+  switch (type) {
+    case "Beep": {
+      const osc = context.createOscillator();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(level === 0 ? 880 : 440, nodeStartTime);
+      osc.connect(context.destination);
+      osc.onended = onEnded;
+      osc.start(nodeStartTime);
+      osc.stop(nodeStartTime + 0.05);
+      return osc;
+    }
+  }
+};
 
 /**
  * This is encapsulated within the `Scheduler` instance. There are a number of
@@ -84,39 +109,22 @@ class MetronomeScheduler {
     [code: string]: LoadedTick;
   };
 
-  constructor(context: AudioContext) {
-    this._context = context;
+  constructor() {
     this.loadedTicks = {};
     this.enabled = true;
     this._isPlaying = [];
     this.clear();
   }
 
+  giveContext = (context: AudioContext): void => {
+    this._context = context;
+  };
+
   private firstLoadedTick = (): LoadedTick =>
     this.loadedTicks[this._firstLoadedTickCode];
 
   private lastLoadedTick = (): LoadedTick =>
     this.loadedTicks[this._lastLoadedTickCode];
-
-  private tick = (
-    type: "Beep",
-    level: number,
-    nodeStartTime: number,
-    onEnded: () => void
-  ): void => {
-    switch (type) {
-      case "Beep": {
-        const osc = this._context.createOscillator();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(level === 0 ? 880 : 440, nodeStartTime);
-        osc.connect(this._context.destination);
-        osc.onended = onEnded;
-        osc.start(nodeStartTime);
-        osc.stop(nodeStartTime + 0.05);
-        this._activeTickNode = osc;
-      }
-    }
-  };
 
   /**
    * 1 if code1 comes after code2, 0 if they're equal, -1 if code1 comes before
@@ -222,7 +230,11 @@ class MetronomeScheduler {
     this._lastLoadedTickCode = undefined;
   };
 
-  public dispatch = (ctxStart: number, idleTime: number): void => {
+  public dispatch = (
+    ctxStart: number,
+    idleTime: number,
+    after?: number
+  ): void => {
     this._isPlaying.push(true);
     this._latestPlaying = this._isPlaying.length - 1;
     const playingIndex = this._latestPlaying;
@@ -252,10 +264,11 @@ class MetronomeScheduler {
         );
       }
 
-      this.tick(
+      this._activeTickNode = metronomeTick(
+        this._context,
         "Beep",
         nextTick.level,
-        ctxStart + nextTick.time - idleTime,
+        ctxStart + nextTick.time + (after ?? 0) - idleTime,
         () => {
           playNextTick();
         }
@@ -271,6 +284,85 @@ class MetronomeScheduler {
     this._activeTickNode?.disconnect();
     this._activeTickNode?.stop(0);
   };
+}
+
+/**
+ * This is a separate class from `MetromeScheduler`, since that class has a lot
+ * of extra functionality for playing infinitely, seeking, etc. This class can
+ * play/stop a pre-specified list of form sections.
+ */
+class CountOffMetronomeScheduler {
+  private _context: AudioContext;
+
+  private _countOff: CountOff;
+
+  private _ticks: { sound: string; level: number; time: number }[];
+
+  private _activeTickNodes: AudioScheduledSourceNode[];
+
+  constructor() {
+    this._ticks = [];
+    this._activeTickNodes = [];
+  }
+
+  giveContext = (context: AudioContext): void => {
+    this._context = context;
+  };
+
+  /**
+   * We supply an array of sections here that we convert into an array of ticks
+   * with specified times. In most cases we'll only have a single "section"
+   * here, but it'll be nice to support complex countoffs.
+   */
+  public setCountOff = (countOff: CountOff): void => {
+    this._countOff = countOff;
+
+    let measureStartTimeAcc = 0;
+
+    this._ticks = [];
+
+    countOff.measures.forEach(measure => {
+      for (let r = 0; r < measure.repetitions; r++) {
+        for (let n = 0; n < measure.beats; n++) {
+          const beatTimeInMeasure = (60.0 / measure.bpm) * n;
+          this._ticks.push({
+            sound: measure.metronomeSound,
+            level: n === 0 ? 0 : 1,
+            time: measureStartTimeAcc + beatTimeInMeasure
+          });
+        }
+        // Increment by measure duration
+        measureStartTimeAcc += (60.0 / measure.bpm) * measure.beats;
+      }
+    });
+  };
+
+  public dispatch = (ctxStart: number, idleTime: number): void => {
+    if (!this._countOff)
+      throw new Error(
+        "Tried to dispatch count off scheduler without countOff data"
+      );
+
+    this._ticks.forEach(tick => {
+      this._activeTickNodes.push(
+        metronomeTick(
+          this._context,
+          "Beep",
+          tick.level,
+          ctxStart + tick.time - idleTime
+        )
+      );
+    });
+  };
+
+  public stop = (): void => {
+    this._activeTickNodes.forEach(node => {
+      node.disconnect();
+      node.stop(0);
+    });
+  };
+
+  public getCountOff = (): CountOff => this._countOff;
 }
 
 /**
@@ -297,6 +389,11 @@ class Scheduler {
    * An object that handles dispatching metronome events.
    */
   private _metronomeScheduler: MetronomeScheduler;
+
+  /**
+   * A simpler object that handles dispatching the pre-play countoff.
+   */
+  private _countOffMetronomeScheduler: CountOffMetronomeScheduler;
 
   /**
    * If an event's dispatch function returns an AudioScheduledSourceNode, that
@@ -327,6 +424,8 @@ class Scheduler {
     this._idleTime = 0;
     this._isPlaying = false;
     this._audioContextPlayStart = 0;
+    this._metronomeScheduler = new MetronomeScheduler();
+    this._countOffMetronomeScheduler = new CountOffMetronomeScheduler();
   }
 
   /**
@@ -337,7 +436,8 @@ class Scheduler {
   giveContext = (context: AudioContext): void => {
     this._context = context;
     this._recorder = new Recorder(context);
-    this._metronomeScheduler = new MetronomeScheduler(context);
+    this._metronomeScheduler.giveContext(context);
+    this._countOffMetronomeScheduler.giveContext(context);
   };
 
   /**
@@ -349,10 +449,14 @@ class Scheduler {
    * AudioContext.currentTime *at the time when play was pressed*. Setting this
    * param as true will calculate those offsets *at the time this method is
    * called*, which is useful when events are updated during play.
+   *
+   * @param after Optionally, adds this many seconds offset to the event
+   * dispatch.
    */
   private playEvent = async (
     eventId: string,
-    startWhilePlaying = false
+    startWhilePlaying = false,
+    after?: number
   ): Promise<void> => {
     const event = this._events[eventId];
     if (!event) throw new Error("Tried to play event that wasn't registered.");
@@ -373,6 +477,7 @@ class Scheduler {
     const node = await event.dispatch({
       context: this._context,
       startTime: startWhilePlaying ? contextTime : this._audioContextPlayStart,
+      when: after,
       offset: eventOffset,
       duration: event.duration
     });
@@ -404,8 +509,10 @@ class Scheduler {
 
   /**
    * Plays all scheduled events, starting at `_idleTime`.
+   *
+   * @param after Specify to precisely delay playback by this many seconds.
    */
-  play = async (): Promise<void> => {
+  play = async (after?: number): Promise<void> => {
     this._isPlaying = true;
     this._context.suspend();
 
@@ -418,15 +525,27 @@ class Scheduler {
     const eventIds = Object.keys(this._events);
     for (let i = 0; i < eventIds.length; i++) {
       const eventId = eventIds[i];
-      await this.playEvent(eventId);
+      await this.playEvent(eventId, false, after);
     }
 
     this._metronomeScheduler.dispatch(
       this._audioContextPlayStart,
-      this._idleTime
+      this._idleTime,
+      after
     );
 
     this._context.resume();
+  };
+
+  /**
+   * Begins the countoff sequence. As long as setCountOff gets called properly
+   * by the state adapter, this should play the countOff for its precise
+   * duration, and then begin actual playback automatically, without the need to
+   * call play() from the adapter.
+   */
+  countOff = (): void => {
+    this._countOffMetronomeScheduler.dispatch(this._context.currentTime, 0);
+    this.play(this._countOffMetronomeScheduler.getCountOff().duration);
   };
 
   /**
@@ -524,6 +643,13 @@ class Scheduler {
    */
   updateMetronome = (vampFormData: VampFormData, seekTo: number): void => {
     this._metronomeScheduler.updateFormData(vampFormData, seekTo);
+  };
+
+  /**
+   * Updates the stored countOff configuration used to count off.
+   */
+  setCountOff = (countOff: CountOff): void => {
+    this._countOffMetronomeScheduler.setCountOff(countOff);
   };
 
   get recorder(): Recorder {

@@ -31,6 +31,20 @@ export const cache = new InMemoryCache({
         end: (end = 0): number => end,
         loop: (loop = true): boolean => loop,
         recording: (recording = false): boolean => recording,
+        countingOff: (countingOff = false): boolean => countingOff,
+        countOff: (
+          countOff = { duration: 0, measures: [] }
+        ): {
+          duration: number;
+          measures: {
+            repetitions: number;
+            bpm: number;
+            beats: number;
+            metronomeSound: string;
+          }[];
+        } => countOff,
+        countingOffStartTime: (countingOffStartTime = 0): number =>
+          countingOffStartTime,
         floorOpen: (floorOpen = false): boolean => floorOpen,
         clientClips: {
           read: (clientClips = []) => clientClips,

@@ -1,8 +1,54 @@
 import { loadedVampIdVar } from "./cache";
-import { useApolloClient } from "@apollo/client";
+import { gql, useApolloClient } from "@apollo/client";
 import { ME_CLIENT } from "./queries/user-queries";
-import { MeClient, CabClient } from "./apollotypes";
+import { MeClient, CabClient, CountOffDurationQuery } from "./apollotypes";
 import { CAB_CLIENT } from "./queries/user-in-vamp-queries";
+
+export const useCountOff = (): (() => void) => {
+  const { cache } = useApolloClient();
+  const loadedVampId = loadedVampIdVar();
+
+  const COUNT_OFF_DURATION_QUERY = gql`
+    query CountOffDurationQuery($vampId: ID!) {
+      vamp(id: $vampId) @client {
+        countOff {
+          duration
+        }
+      }
+    }
+  `;
+
+  const {
+    vamp: {
+      countOff: { duration }
+    }
+  } = cache.readQuery<CountOffDurationQuery>({
+    query: COUNT_OFF_DURATION_QUERY,
+    variables: { vampId: loadedVampId }
+  });
+
+  return (): void => {
+    const startTime = Date.now();
+    cache.modify({
+      id: cache.identify({ __typename: "Vamp", id: loadedVampId }),
+      fields: {
+        playStartTime: (): number => startTime + duration * 1000,
+        countingOff: (): boolean => true,
+        countingOffStartTime: (): number => startTime
+      }
+    });
+    setTimeout(() => {
+      cache.modify({
+        id: cache.identify({ __typename: "Vamp", id: loadedVampId }),
+        fields: {
+          countingOff: (): boolean => false,
+          countingOffStartTime: (): number => -1,
+          playing: (): boolean => true
+        }
+      });
+    }, duration * 1000);
+  };
+};
 
 export const usePlay = (): (() => void) => {
   const { cache } = useApolloClient();

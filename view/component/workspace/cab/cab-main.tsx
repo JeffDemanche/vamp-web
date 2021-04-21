@@ -103,7 +103,7 @@ const CabMain: React.FC = () => {
     if (prevStart !== undefined) {
       seek(start);
     }
-  }, [start]);
+  }, [prevStart, seek, start]);
 
   /**
    * updateCab does not update the local cache, so we're doing it manually here.

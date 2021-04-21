@@ -341,7 +341,7 @@ export const useMeasures = ({
 }): ProcessedMetronome => {
   const vampId = useCurrentVampId();
 
-  const { data, loading, error } = useQuery<MetronomeQuery>(METRONOME_QUERY, {
+  const { data } = useQuery<MetronomeQuery>(METRONOME_QUERY, {
     variables: { vampId }
   });
 

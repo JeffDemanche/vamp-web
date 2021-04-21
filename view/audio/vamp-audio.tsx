@@ -9,7 +9,7 @@
 
 import { SchedulerInstance } from "./scheduler";
 import * as React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { useCurrentUserId, usePrevious } from "../util/react-hooks";
 import { audioStore } from "./audio-store";
@@ -23,6 +23,9 @@ import {
   useBeginClientClip
 } from "../state/client-clip-state-hooks";
 import { FloorAdapter } from "./floor/floor-adapter";
+import { CountOffAdapter } from "./count-off-adapter";
+import { SeekAdapter } from "./adapter/seek-adapter";
+import { PlayStopAdapter } from "./adapter/play-stop-adapter";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!, $userId: ID!) {
@@ -192,21 +195,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     scheduler.giveContext(context);
   }, [context, scheduler]);
 
-  const play = useCallback((): void => {
-    scheduler.play();
-  }, [scheduler]);
-
-  const seek = useCallback(
-    (time: number): void => {
-      scheduler.seek(time);
-    },
-    [scheduler]
-  );
-
-  const stop = useCallback((): void => {
-    scheduler.stop();
-  }, [scheduler]);
-
   /**
    * The values passed here will be tracked between state changes.
    */
@@ -272,9 +260,9 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   }, [sections, forms, scheduler]);
 
   /**
-   * PLAY DATA
+   * RECORD DATA
    *
-   * Handles changes to playing and recording.
+   * Handles changes to recording.
    */
   useEffect(() => {
     if (prevData) {
@@ -324,12 +312,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         endClientClip(currentRecordingId);
         setCurrentRecordingId(null);
       }
-      if (playing && !prevData.playing) {
-        play();
-      }
-      if (!playing && prevData.playing) {
-        stop();
-      }
     }
   }, [
     addClipServer,
@@ -342,38 +324,13 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     currentRecordingId,
     endClientClip,
     latencyCompensation,
-    play,
     playing,
     prevData,
     recording,
     scheduler,
-    stop,
     userId,
     vampId
   ]);
-
-  // Run on every state update. So whenever the props fed to this component from
-  // Apollo are updated, we handle those changes here. Think of this as the
-  // interface between the Apollo state and the behavior of the audio module.
-  useEffect(() => {
-    if (prevData) {
-      // Signals that some seek has occured while playing, such as restarting at
-      // the beginning during a loop.
-      if (
-        prevData &&
-        playing &&
-        prevData.playing &&
-        playStartTime != prevData.playStartTime
-      ) {
-        seek(cabStart);
-      }
-
-      // Signalled when when a seek occured while not playing.
-      if (!playing && playPosition != prevData.playPosition) {
-        seek(playPosition);
-      }
-    }
-  });
 
   /**
    * CLIPS DATA
@@ -411,7 +368,10 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         loops={cabLoops}
         playing={playing}
       ></Looper>
+      <PlayStopAdapter scheduler={scheduler}></PlayStopAdapter>
       <FloorAdapter></FloorAdapter>
+      <CountOffAdapter scheduler={scheduler}></CountOffAdapter>
+      <SeekAdapter scheduler={scheduler}></SeekAdapter>
     </>
   );
 };

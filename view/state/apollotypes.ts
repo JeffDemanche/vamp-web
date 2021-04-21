@@ -4,11 +4,135 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: PlayStopAdapterQuery
+// ====================================================
+
+export interface PlayStopAdapterQuery_vamp {
+  __typename: "Vamp";
+  id: string;
+  playing: boolean | null;
+  /**
+   * Is the "count off" currently in process. This happens before playing, etc.
+   * get changed in state.
+   */
+  countingOff: boolean | null;
+}
+
+export interface PlayStopAdapterQuery {
+  vamp: PlayStopAdapterQuery_vamp | null;
+}
+
+export interface PlayStopAdapterQueryVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: SeekAdapterQuery
+// ====================================================
+
+export interface SeekAdapterQuery_vamp {
+  __typename: "Vamp";
+  id: string;
+  playing: boolean | null;
+  /**
+   * The position in seconds of the current position before play was pressed.
+   */
+  playPosition: number | null;
+  /**
+   * The Date.now() value of the instant when playing began, or -1 if not
+   * playing. The true current time when playing will be playPosition +
+   * (Date.now() - playStartTime) / 1000.
+   */
+  playStartTime: number | null;
+}
+
+export interface SeekAdapterQuery_userInVamp_cab {
+  __typename: "Cab";
+  start: number;
+}
+
+export interface SeekAdapterQuery_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  cab: SeekAdapterQuery_userInVamp_cab;
+}
+
+export interface SeekAdapterQuery {
+  vamp: SeekAdapterQuery_vamp | null;
+  /**
+   * Tries to find a UserInVamp, or adds one if not found.
+   */
+  userInVamp: SeekAdapterQuery_userInVamp;
+}
+
+export interface SeekAdapterQueryVariables {
+  vampId: string;
+  userId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: CountOffAdapterQuery
+// ====================================================
+
+export interface CountOffAdapterQuery_vamp_countOff {
+  __typename: "CountOff";
+  duration: number;
+}
+
+export interface CountOffAdapterQuery_vamp {
+  __typename: "Vamp";
+  id: string;
+  /**
+   * The position in seconds of the current position before play was pressed.
+   */
+  playPosition: number | null;
+  /**
+   * Contains the data about the count off
+   */
+  countOff: CountOffAdapterQuery_vamp_countOff | null;
+  /**
+   * Is the "count off" currently in process. This happens before playing, etc.
+   * get changed in state.
+   */
+  countingOff: boolean | null;
+  /**
+   * Date.now() of when countdown began (see playStartTime, which is similar).
+   */
+  countingOffStartTime: number | null;
+}
+
+export interface CountOffAdapterQuery {
+  vamp: CountOffAdapterQuery_vamp | null;
+}
+
+export interface CountOffAdapterQueryVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FloorAdapter
 // ====================================================
 
 export interface FloorAdapter_vamp {
   __typename: "Vamp";
+  /**
+   * Is the floor open in the workspace or not.
+   */
   floorOpen: boolean | null;
 }
 
@@ -113,7 +237,15 @@ export interface WorkspaceAudioClient_vamp {
   playing: boolean | null;
   recording: boolean | null;
   metronomeSound: string;
+  /**
+   * The position in seconds of the current position before play was pressed.
+   */
   playPosition: number | null;
+  /**
+   * The Date.now() value of the instant when playing began, or -1 if not
+   * playing. The true current time when playing will be playPosition +
+   * (Date.now() - playStartTime) / 1000.
+   */
   playStartTime: number | null;
   start: number | null;
   end: number | null;
@@ -328,6 +460,9 @@ export interface UpdateClipVariables {
 
 export interface FloorOverlayWrapper_vamp {
   __typename: "Vamp";
+  /**
+   * Is the floor open in the workspace or not.
+   */
   floorOpen: boolean | null;
 }
 
@@ -469,6 +604,32 @@ export interface UpdateMetronomeSound {
 
 export interface UpdateMetronomeSoundVariables {
   update: VampUpdateInput;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: PlayPanelQuery
+// ====================================================
+
+export interface PlayPanelQuery_vamp {
+  __typename: "Vamp";
+  /**
+   * Is the "count off" currently in process. This happens before playing, etc.
+   * get changed in state.
+   */
+  countingOff: boolean | null;
+}
+
+export interface PlayPanelQuery {
+  vamp: PlayPanelQuery_vamp | null;
+}
+
+export interface PlayPanelQueryVariables {
+  vampId: string;
 }
 
 /* tslint:disable */
@@ -791,6 +952,20 @@ export interface GetVamp_vamp_forms {
   postSection: GetVamp_vamp_forms_postSection | null;
 }
 
+export interface GetVamp_vamp_countOff_measures {
+  __typename: "CountOffMeasure";
+  repetitions: number;
+  bpm: number;
+  beats: number;
+  metronomeSound: string;
+}
+
+export interface GetVamp_vamp_countOff {
+  __typename: "CountOff";
+  duration: number;
+  measures: GetVamp_vamp_countOff_measures[];
+}
+
 export interface GetVamp_vamp_clientClips {
   __typename: "ClientClip";
   audioStoreKey: string;
@@ -808,12 +983,36 @@ export interface GetVamp_vamp {
   sections: GetVamp_vamp_sections[];
   forms: GetVamp_vamp_forms[];
   playing: boolean | null;
+  /**
+   * The position in seconds of the current position before play was pressed.
+   */
   playPosition: number | null;
+  /**
+   * The Date.now() value of the instant when playing began, or -1 if not
+   * playing. The true current time when playing will be playPosition +
+   * (Date.now() - playStartTime) / 1000.
+   */
   playStartTime: number | null;
   start: number | null;
   end: number | null;
   loop: boolean | null;
   recording: boolean | null;
+  /**
+   * Is the "count off" currently in process. This happens before playing, etc.
+   * get changed in state.
+   */
+  countingOff: boolean | null;
+  /**
+   * Contains the data about the count off
+   */
+  countOff: GetVamp_vamp_countOff | null;
+  /**
+   * Date.now() of when countdown began (see playStartTime, which is similar).
+   */
+  countingOffStartTime: number | null;
+  /**
+   * Is the floor open in the workspace or not.
+   */
   floorOpen: boolean | null;
   clientClips: (GetVamp_vamp_clientClips | null)[] | null;
 }
@@ -925,6 +1124,20 @@ export interface VampSubscription_subVamp_vampPayload_forms {
   postSection: VampSubscription_subVamp_vampPayload_forms_postSection | null;
 }
 
+export interface VampSubscription_subVamp_vampPayload_countOff_measures {
+  __typename: "CountOffMeasure";
+  repetitions: number;
+  bpm: number;
+  beats: number;
+  metronomeSound: string;
+}
+
+export interface VampSubscription_subVamp_vampPayload_countOff {
+  __typename: "CountOff";
+  duration: number;
+  measures: VampSubscription_subVamp_vampPayload_countOff_measures[];
+}
+
 export interface VampSubscription_subVamp_vampPayload_clientClips {
   __typename: "ClientClip";
   audioStoreKey: string;
@@ -942,12 +1155,36 @@ export interface VampSubscription_subVamp_vampPayload {
   sections: VampSubscription_subVamp_vampPayload_sections[];
   forms: VampSubscription_subVamp_vampPayload_forms[];
   playing: boolean | null;
+  /**
+   * The position in seconds of the current position before play was pressed.
+   */
   playPosition: number | null;
+  /**
+   * The Date.now() value of the instant when playing began, or -1 if not
+   * playing. The true current time when playing will be playPosition +
+   * (Date.now() - playStartTime) / 1000.
+   */
   playStartTime: number | null;
   start: number | null;
   end: number | null;
   loop: boolean | null;
   recording: boolean | null;
+  /**
+   * Is the "count off" currently in process. This happens before playing, etc.
+   * get changed in state.
+   */
+  countingOff: boolean | null;
+  /**
+   * Contains the data about the count off
+   */
+  countOff: VampSubscription_subVamp_vampPayload_countOff | null;
+  /**
+   * Date.now() of when countdown began (see playStartTime, which is similar).
+   */
+  countingOffStartTime: number | null;
+  /**
+   * Is the floor open in the workspace or not.
+   */
   floorOpen: boolean | null;
   clientClips: (VampSubscription_subVamp_vampPayload_clientClips | null)[] | null;
 }
@@ -1381,7 +1618,15 @@ export interface RecordingClientVariables {
 
 export interface PlayPositionStartTimeClient_vamp {
   __typename: "Vamp";
+  /**
+   * The position in seconds of the current position before play was pressed.
+   */
   playPosition: number | null;
+  /**
+   * The Date.now() value of the instant when playing began, or -1 if not
+   * playing. The true current time when playing will be playPosition +
+   * (Date.now() - playStartTime) / 1000.
+   */
   playStartTime: number | null;
 }
 
@@ -1414,6 +1659,83 @@ export interface MetronomeInfoClient {
 }
 
 export interface MetronomeInfoClientVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: CountOffDurationQuery
+// ====================================================
+
+export interface CountOffDurationQuery_vamp_countOff {
+  __typename: "CountOff";
+  duration: number;
+}
+
+export interface CountOffDurationQuery_vamp {
+  __typename: "Vamp";
+  /**
+   * Contains the data about the count off
+   */
+  countOff: CountOffDurationQuery_vamp_countOff | null;
+}
+
+export interface CountOffDurationQuery {
+  vamp: CountOffDurationQuery_vamp | null;
+}
+
+export interface CountOffDurationQueryVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: CountOffReverseCounterQuery
+// ====================================================
+
+export interface CountOffReverseCounterQuery_vamp_countOff_measures {
+  __typename: "CountOffMeasure";
+  repetitions: number;
+  beats: number;
+  bpm: number;
+}
+
+export interface CountOffReverseCounterQuery_vamp_countOff {
+  __typename: "CountOff";
+  duration: number;
+  measures: CountOffReverseCounterQuery_vamp_countOff_measures[];
+}
+
+export interface CountOffReverseCounterQuery_vamp {
+  __typename: "Vamp";
+  /**
+   * Is the "count off" currently in process. This happens before playing, etc.
+   * get changed in state.
+   */
+  countingOff: boolean | null;
+  /**
+   * Date.now() of when countdown began (see playStartTime, which is similar).
+   */
+  countingOffStartTime: number | null;
+  /**
+   * Contains the data about the count off
+   */
+  countOff: CountOffReverseCounterQuery_vamp_countOff | null;
+}
+
+export interface CountOffReverseCounterQuery {
+  vamp: CountOffReverseCounterQuery_vamp | null;
+}
+
+export interface CountOffReverseCounterQueryVariables {
   vampId: string;
 }
 
@@ -1509,7 +1831,15 @@ export interface GetCurrentUserId {
 export interface TrueTimeClient_vamp {
   __typename: "Vamp";
   playing: boolean | null;
+  /**
+   * The position in seconds of the current position before play was pressed.
+   */
   playPosition: number | null;
+  /**
+   * The Date.now() value of the instant when playing began, or -1 if not
+   * playing. The true current time when playing will be playPosition +
+   * (Date.now() - playStartTime) / 1000.
+   */
   playStartTime: number | null;
   start: number | null;
   end: number | null;

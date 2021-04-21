@@ -8,21 +8,30 @@ import { MetronomeSetting } from "./metronome-setting";
 
 import * as styles from "./play-panel.less";
 import Timecode from "./timecode";
-import { useHover } from "../../../util/react-hooks";
+import { useCurrentVampId, useHover } from "../../../util/react-hooks";
 import { useEffect, useState } from "react";
 import { TitleSetting } from "./title-setting";
+import gql from "graphql-tag";
+import { useQuery } from "@apollo/client";
+import { TimecodeCountoff } from "./timecode-countoff";
+import { PlayPanelQuery } from "../../../state/apollotypes";
+
+const PLAY_PANEL_QUERY = gql`
+  query PlayPanelQuery($vampId: ID!) {
+    vamp(id: $vampId) @client {
+      countingOff
+    }
+  }
+`;
 
 const PlayPanel: React.FunctionComponent = () => {
-  const metronomeOptions = [
-    {
-      index: 1,
-      value: "Hi-Hat"
-    },
-    {
-      index: 2,
-      value: "Beep"
+  const vampId = useCurrentVampId();
+
+  const {
+    data: {
+      vamp: { countingOff }
     }
-  ];
+  } = useQuery<PlayPanelQuery>(PLAY_PANEL_QUERY, { variables: { vampId } });
 
   const [width, setWidth] = useState(-1);
 
@@ -34,7 +43,7 @@ const PlayPanel: React.FunctionComponent = () => {
     } else {
       setWidth(-1);
     }
-  }, [isHovered]);
+  }, [hoverRef, isHovered]);
 
   const style = width == -1 ? {} : { width };
 
@@ -43,7 +52,11 @@ const PlayPanel: React.FunctionComponent = () => {
       <TitleSetting></TitleSetting>
       <div className={styles["play-panel"]} ref={hoverRef} style={style}>
         <PlayStopButton></PlayStopButton>
-        <Timecode></Timecode>
+        {countingOff ? (
+          <TimecodeCountoff></TimecodeCountoff>
+        ) : (
+          <Timecode></Timecode>
+        )}
         <div className={styles["play-options"]}>
           <BPMSetting></BPMSetting>
           <BeatsPerBarSetting></BeatsPerBarSetting>
