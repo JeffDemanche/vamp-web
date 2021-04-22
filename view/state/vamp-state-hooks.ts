@@ -4,7 +4,7 @@ import { ME_CLIENT } from "./queries/user-queries";
 import { MeClient, CabClient, CountOffDurationQuery } from "./apollotypes";
 import { CAB_CLIENT } from "./queries/user-in-vamp-queries";
 
-export const useCountOff = (): (() => void) => {
+export const useCountOff = (): ((recordCountOff: boolean) => void) => {
   const { cache } = useApolloClient();
   const loadedVampId = loadedVampIdVar();
 
@@ -27,12 +27,13 @@ export const useCountOff = (): (() => void) => {
     variables: { vampId: loadedVampId }
   });
 
-  return (): void => {
+  return (recordCountOff = false): void => {
     const startTime = Date.now();
     cache.modify({
       id: cache.identify({ __typename: "Vamp", id: loadedVampId }),
       fields: {
         playStartTime: (): number => startTime + duration * 1000,
+        recording: (recording): boolean => recordCountOff || recording,
         countingOff: (): boolean => true,
         countingOffStartTime: (): number => startTime
       }

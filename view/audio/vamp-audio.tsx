@@ -10,22 +10,19 @@
 import { SchedulerInstance } from "./scheduler";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
-import { useCurrentUserId, usePrevious } from "../util/react-hooks";
+import { gql, useApolloClient, useQuery } from "@apollo/client";
+import { useCurrentUserId } from "../util/react-hooks";
 import { audioStore } from "./audio-store";
 import { vampAudioContext } from "./vamp-audio-context";
 import { ClipPlayer } from "./clip-player";
 import Looper from "./looper";
-import { WorkspaceAudioClient, AddClip } from "../state/apollotypes";
-import { useSetLoop, useStop } from "../state/vamp-state-hooks";
-import {
-  useEndClientClip,
-  useBeginClientClip
-} from "../state/client-clip-state-hooks";
+import { WorkspaceAudioClient } from "../state/apollotypes";
+import { useSetLoop } from "../state/vamp-state-hooks";
 import { FloorAdapter } from "./floor/floor-adapter";
 import { CountOffAdapter } from "./count-off-adapter";
 import { SeekAdapter } from "./adapter/seek-adapter";
 import { PlayStopAdapter } from "./adapter/play-stop-adapter";
+import { RecordAdapter } from "./adapter/record-adapter";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!, $userId: ID!) {
@@ -35,9 +32,7 @@ const WORKSPACE_AUDIO_CLIENT = gql`
       bpm
       beatsPerBar
       playing
-      recording
       metronomeSound
-      playPosition
       playStartTime
 
       start
@@ -105,35 +100,6 @@ const WORKSPACE_AUDIO_CLIENT = gql`
         duration
         loops
       }
-      prefs {
-        latencyCompensation
-      }
-    }
-  }
-`;
-
-const ADD_CLIP_SERVER = gql`
-  mutation AddClip(
-    $userId: ID!
-    $vampId: ID!
-    $file: Upload!
-    $latencyCompensation: Float
-    $referenceId: ID
-    $start: Float
-    $duration: Float!
-  ) {
-    addClip(
-      clip: {
-        userId: $userId
-        vampId: $vampId
-        file: $file
-        audioLatencyCompensation: $latencyCompensation
-        referenceId: $referenceId
-        start: $start
-        duration: $duration
-      }
-    ) {
-      id
     }
   }
 `;
@@ -157,55 +123,26 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   // State query for clientside Vamp playback info.
   const {
     data: {
-      vamp: {
-        playing,
-        recording,
-        clips,
-        clientClips,
-        playPosition,
-        playStartTime,
-        sections,
-        forms
-      },
+      vamp: { playing, clips, clientClips, playStartTime, sections, forms },
       userInVamp: {
-        cab: { start: cabStart, duration: cabDuration, loops: cabLoops },
-        prefs: { latencyCompensation }
+        cab: { start: cabStart, duration: cabDuration, loops: cabLoops }
       }
     }
   } = useQuery<WorkspaceAudioClient>(WORKSPACE_AUDIO_CLIENT, {
     variables: { vampId, userId }
   });
 
-  const [addClipServer] = useMutation<AddClip>(ADD_CLIP_SERVER);
-
-  const apolloStop = useStop();
   const setLoop = useSetLoop();
-  const beginClientClip = useBeginClientClip();
-  const endClientClip = useEndClientClip();
 
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
   const [scheduler] = useState(SchedulerInstance);
   const [store] = useState(audioStore);
 
-  const [currentRecordingId, setCurrentRecordingId] = useState<string>(null);
-
   // Passes the audio context into the scheduler instance.
   useEffect(() => {
     scheduler.giveContext(context);
   }, [context, scheduler]);
-
-  /**
-   * The values passed here will be tracked between state changes.
-   */
-  const prevData = usePrevious({
-    playing,
-    recording,
-    clips,
-    clientClips,
-    playPosition,
-    playStartTime
-  });
 
   /**
    * Called on every clips update (see the useEffect hook). After the audio for
@@ -260,79 +197,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   }, [sections, forms, scheduler]);
 
   /**
-   * RECORD DATA
-   *
-   * Handles changes to recording.
-   */
-  useEffect(() => {
-    if (prevData) {
-      if (recording && !prevData.recording) {
-        if (scheduler.recorder.mediaRecorderInitialized()) {
-          const recordingId = scheduler.primeRecorder(
-            prevData.playPosition,
-            async file => {
-              const dataArrBuff = await file.arrayBuffer();
-              const audioDuration = (await context.decodeAudioData(dataArrBuff))
-                .duration;
-
-              const limitedDuration = cabDuration - cabStart;
-
-              const duration = cabLoops ? limitedDuration : audioDuration;
-
-              addClipServer({
-                variables: {
-                  start: prevData.playPosition,
-                  duration,
-                  vampId,
-                  userId,
-                  file,
-                  latencyCompensation,
-                  referenceId: recordingId
-                }
-              });
-            }
-          );
-
-          if (currentRecordingId !== null)
-            throw new Error("Current recording ID already set.");
-          setCurrentRecordingId(recordingId);
-
-          beginClientClip(
-            prevData.playPosition,
-            recordingId,
-            latencyCompensation
-          );
-        } else {
-          // TODO Give a user-facing warning about microphone access.
-          console.error("No microhpone access granted.");
-          apolloStop();
-        }
-      }
-      if (!recording && prevData.recording) {
-        endClientClip(currentRecordingId);
-        setCurrentRecordingId(null);
-      }
-    }
-  }, [
-    addClipServer,
-    apolloStop,
-    beginClientClip,
-    cabDuration,
-    cabLoops,
-    cabStart,
-    context,
-    currentRecordingId,
-    endClientClip,
-    latencyCompensation,
-    playing,
-    prevData,
-    recording,
-    scheduler,
-    userId,
-    vampId
-  ]);
-
-  /**
    * CLIPS DATA
    *
    * Handles changes to clips (and client clips).
@@ -368,10 +232,12 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         loops={cabLoops}
         playing={playing}
       ></Looper>
+      <RecordAdapter scheduler={scheduler} context={context}></RecordAdapter>
       <PlayStopAdapter scheduler={scheduler}></PlayStopAdapter>
-      <FloorAdapter></FloorAdapter>
       <CountOffAdapter scheduler={scheduler}></CountOffAdapter>
       <SeekAdapter scheduler={scheduler}></SeekAdapter>
+
+      <FloorAdapter></FloorAdapter>
     </>
   );
 };

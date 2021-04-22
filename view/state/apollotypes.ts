@@ -32,6 +32,87 @@ export interface PlayStopAdapterQueryVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: RecordAdapterQuery
+// ====================================================
+
+export interface RecordAdapterQuery_vamp {
+  __typename: "Vamp";
+  recording: boolean | null;
+  /**
+   * The position in seconds of the current position before play was pressed.
+   */
+  playPosition: number | null;
+}
+
+export interface RecordAdapterQuery_userInVamp_cab {
+  __typename: "Cab";
+  start: number;
+  duration: number;
+  loops: boolean;
+}
+
+export interface RecordAdapterQuery_userInVamp_prefs {
+  __typename: "UserInVampPrefs";
+  latencyCompensation: number;
+}
+
+export interface RecordAdapterQuery_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  cab: RecordAdapterQuery_userInVamp_cab;
+  prefs: RecordAdapterQuery_userInVamp_prefs;
+}
+
+export interface RecordAdapterQuery {
+  vamp: RecordAdapterQuery_vamp | null;
+  /**
+   * Tries to find a UserInVamp, or adds one if not found.
+   */
+  userInVamp: RecordAdapterQuery_userInVamp;
+}
+
+export interface RecordAdapterQueryVariables {
+  userId: string;
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: AddClipMutation
+// ====================================================
+
+export interface AddClipMutation_addClip {
+  __typename: "Clip";
+  id: string;
+}
+
+export interface AddClipMutation {
+  /**
+   * Adds a clip and puts the new clip in the Vamp specfied.
+   */
+  addClip: AddClipMutation_addClip;
+}
+
+export interface AddClipMutationVariables {
+  userId: string;
+  vampId: string;
+  file: any;
+  latencyCompensation?: number | null;
+  referenceId?: string | null;
+  start?: number | null;
+  duration: number;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: SeekAdapterQuery
 // ====================================================
 
@@ -235,12 +316,7 @@ export interface WorkspaceAudioClient_vamp {
   bpm: number;
   beatsPerBar: number;
   playing: boolean | null;
-  recording: boolean | null;
   metronomeSound: string;
-  /**
-   * The position in seconds of the current position before play was pressed.
-   */
-  playPosition: number | null;
   /**
    * The Date.now() value of the instant when playing began, or -1 if not
    * playing. The true current time when playing will be playPosition +
@@ -263,16 +339,10 @@ export interface WorkspaceAudioClient_userInVamp_cab {
   loops: boolean;
 }
 
-export interface WorkspaceAudioClient_userInVamp_prefs {
-  __typename: "UserInVampPrefs";
-  latencyCompensation: number;
-}
-
 export interface WorkspaceAudioClient_userInVamp {
   __typename: "UserInVamp";
   id: string;
   cab: WorkspaceAudioClient_userInVamp_cab;
-  prefs: WorkspaceAudioClient_userInVamp_prefs;
 }
 
 export interface WorkspaceAudioClient {
@@ -286,37 +356,6 @@ export interface WorkspaceAudioClient {
 export interface WorkspaceAudioClientVariables {
   vampId: string;
   userId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: AddClip
-// ====================================================
-
-export interface AddClip_addClip {
-  __typename: "Clip";
-  id: string;
-}
-
-export interface AddClip {
-  /**
-   * Adds a clip and puts the new clip in the Vamp specfied.
-   */
-  addClip: AddClip_addClip;
-}
-
-export interface AddClipVariables {
-  userId: string;
-  vampId: string;
-  file: any;
-  latencyCompensation?: number | null;
-  referenceId?: string | null;
-  start?: number | null;
-  duration: number;
 }
 
 /* tslint:disable */
@@ -1710,17 +1749,11 @@ export interface CountOffReverseCounterQuery_vamp_countOff_measures {
 
 export interface CountOffReverseCounterQuery_vamp_countOff {
   __typename: "CountOff";
-  duration: number;
   measures: CountOffReverseCounterQuery_vamp_countOff_measures[];
 }
 
 export interface CountOffReverseCounterQuery_vamp {
   __typename: "Vamp";
-  /**
-   * Is the "count off" currently in process. This happens before playing, etc.
-   * get changed in state.
-   */
-  countingOff: boolean | null;
   /**
    * Date.now() of when countdown began (see playStartTime, which is similar).
    */

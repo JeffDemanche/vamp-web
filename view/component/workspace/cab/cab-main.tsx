@@ -100,7 +100,7 @@ const CabMain: React.FC = () => {
   const prevStart = usePrevious(start);
 
   useEffect(() => {
-    if (prevStart !== undefined) {
+    if (prevStart !== undefined && prevStart !== start) {
       seek(start);
     }
   }, [prevStart, seek, start]);

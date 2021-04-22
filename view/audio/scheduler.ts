@@ -280,7 +280,11 @@ class MetronomeScheduler {
   };
 
   public stop = (): void => {
-    this._isPlaying[this._latestPlaying] = false;
+    Object.keys(this._isPlaying)
+      .map(Number)
+      .forEach(k => {
+        this._isPlaying[k] = false;
+      });
     this._activeTickNode?.disconnect();
     this._activeTickNode?.stop(0);
   };

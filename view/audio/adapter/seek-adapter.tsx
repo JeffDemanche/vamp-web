@@ -1,9 +1,7 @@
 import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
-import { sec } from "mathjs";
-import React, { useCallback, useEffect, useMemo } from "react";
-import { CountOff } from "../../util/count-off-hooks";
-import { useMeasures } from "../../util/metronome-hooks";
+import React, { useCallback, useEffect } from "react";
+import { useSeek } from "../../state/vamp-state-hooks";
 import {
   useCurrentUserId,
   useCurrentVampId,
@@ -51,6 +49,8 @@ export const SeekAdapter: React.FC<SeekAdapterProps> = ({
     }
   } = useQuery(SEEK_ADAPTER_QUERY, { variables: { vampId, userId } });
 
+  const apolloSeek = useSeek();
+
   const seek = useCallback(
     (time: number): void => {
       scheduler.seek(time);
@@ -64,6 +64,13 @@ export const SeekAdapter: React.FC<SeekAdapterProps> = ({
     playStartTime,
     cabStart
   });
+
+  // Seeks to the current cab location on component load (essentially on page
+  // load).
+  useEffect(() => {
+    apolloSeek(cabStart);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (prevData) {

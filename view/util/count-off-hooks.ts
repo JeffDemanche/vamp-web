@@ -4,7 +4,7 @@ import {
   CountOffReverseCounterQuery,
   GetVamp_vamp_countOff
 } from "../state/apollotypes";
-import { useCurrentVampId, usePrevious } from "./react-hooks";
+import { useCurrentVampId } from "./react-hooks";
 
 export interface CountOff {
   duration: number;
@@ -47,19 +47,16 @@ export const useCountOffReverseCounter = (): number => {
   const {
     data: {
       vamp: {
-        countingOff,
         countingOffStartTime,
-        countOff: { duration, measures }
+        countOff: { measures }
       }
     }
   } = useQuery<CountOffReverseCounterQuery>(
     gql`
       query CountOffReverseCounterQuery($vampId: ID!) {
         vamp(id: $vampId) @client {
-          countingOff
           countingOffStartTime
           countOff {
-            duration
             measures {
               repetitions
               beats

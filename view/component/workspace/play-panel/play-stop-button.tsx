@@ -8,24 +8,16 @@ import {
 } from "../../../state/queries/vamp-queries";
 import { RecordingClient, PlayingClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../util/react-hooks";
-import {
-  usePlay,
-  usePause,
-  useStop,
-  useSeek,
-  useCountOff
-} from "../../../state/vamp-state-hooks";
+import { usePlay, useStop, useSeek } from "../../../state/vamp-state-hooks";
 
 const PlayStopButton: React.FunctionComponent = () => {
   const vampId = useCurrentVampId();
 
   const play = usePlay();
-  const countOff = useCountOff();
-  const pause = usePause();
   const stop = useStop();
   const seek = useSeek();
 
-  const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
+  const { data } = useQuery<PlayingClient>(PLAYING_CLIENT, {
     variables: { vampId }
   });
   const { data: recordingData } = useQuery<RecordingClient>(RECORDING_CLIENT, {
@@ -44,7 +36,7 @@ const PlayStopButton: React.FunctionComponent = () => {
         stop();
       }
     } else {
-      countOff();
+      play();
     }
   };
 
