@@ -1,6 +1,6 @@
 import { gql, Reference, useApolloClient } from "@apollo/client";
-import { GetClientClipsClient_vamp_clientClips } from "./apollotypes";
-import { loadedVampIdVar } from "./cache";
+import { GetClientClipsClient_vamp_clientClips } from "../state/apollotypes";
+import { loadedVampIdVar } from "../state/cache";
 
 type ClientClip = GetClientClipsClient_vamp_clientClips;
 

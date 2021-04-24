@@ -8,7 +8,7 @@ import {
 } from "../../../state/queries/vamp-queries";
 import { RecordingClient, PlayingClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../util/react-hooks";
-import { usePlay, useStop, useSeek } from "../../../state/vamp-state-hooks";
+import { usePlay, useStop, useSeek } from "../../../util/vamp-state-hooks";
 
 const PlayStopButton: React.FunctionComponent = () => {
   const vampId = useCurrentVampId();

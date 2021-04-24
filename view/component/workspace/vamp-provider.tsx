@@ -5,7 +5,7 @@ import { GetVamp, VampSubscription } from "../../state/apollotypes";
 import { ViewNotFound } from "../not-found/view-not-found";
 import { ViewLoading } from "../loading/view-loading";
 import { loadedVampIdVar } from "../../state/cache";
-import { useHandOffClientClip } from "../../state/client-clip-state-hooks";
+import { useHandOffClientClip } from "../../util/client-clip-state-hooks";
 
 /**
  * This encompasses all the data that should be in the cache *when the page

@@ -14,7 +14,7 @@ import {
   useSeek,
   useSetFloorOpen,
   useStop
-} from "../../state/vamp-state-hooks";
+} from "../../util/vamp-state-hooks";
 import { useEffect } from "react";
 
 interface HotKeysTypes {

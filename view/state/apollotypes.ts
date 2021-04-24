@@ -35,6 +35,11 @@ export interface PlayStopAdapterQueryVariables {
 // GraphQL query operation: RecordAdapterQuery
 // ====================================================
 
+export interface RecordAdapterQuery_vamp_countOff {
+  __typename: "CountOff";
+  duration: number;
+}
+
 export interface RecordAdapterQuery_vamp {
   __typename: "Vamp";
   recording: boolean | null;
@@ -42,6 +47,10 @@ export interface RecordAdapterQuery_vamp {
    * The position in seconds of the current position before play was pressed.
    */
   playPosition: number | null;
+  /**
+   * Contains the data about the count off
+   */
+  countOff: RecordAdapterQuery_vamp_countOff | null;
 }
 
 export interface RecordAdapterQuery_userInVamp_cab {
@@ -101,6 +110,7 @@ export interface AddClipMutationVariables {
   userId: string;
   vampId: string;
   file: any;
+  contentStart?: number | null;
   latencyCompensation?: number | null;
   referenceId?: string | null;
   start?: number | null;

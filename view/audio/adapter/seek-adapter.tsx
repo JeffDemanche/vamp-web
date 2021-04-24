@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import React, { useCallback, useEffect } from "react";
-import { useSeek } from "../../state/vamp-state-hooks";
+import { useSeek } from "../../util/vamp-state-hooks";
 import {
   useCurrentUserId,
   useCurrentVampId,

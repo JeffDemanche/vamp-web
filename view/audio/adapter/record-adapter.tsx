@@ -5,8 +5,8 @@ import { AddClipMutation, RecordAdapterQuery } from "../../state/apollotypes";
 import {
   useBeginClientClip,
   useEndClientClip
-} from "../../state/client-clip-state-hooks";
-import { useStop } from "../../state/vamp-state-hooks";
+} from "../../util/client-clip-state-hooks";
+import { useStop } from "../../util/vamp-state-hooks";
 import {
   useCurrentUserId,
   useCurrentVampId,
@@ -24,6 +24,9 @@ const RECORD_ADAPTER_QUERY = gql`
     vamp(id: $vampId) @client {
       recording
       playPosition
+      countOff {
+        duration
+      }
     }
     userInVamp(userId: $userId, vampId: $vampId) @client {
       id
@@ -44,6 +47,7 @@ const ADD_CLIP_MUTATION = gql`
     $userId: ID!
     $vampId: ID!
     $file: Upload!
+    $contentStart: Float
     $latencyCompensation: Float
     $referenceId: ID
     $start: Float
@@ -54,6 +58,7 @@ const ADD_CLIP_MUTATION = gql`
         userId: $userId
         vampId: $vampId
         file: $file
+        contentStart: $contentStart
         audioLatencyCompensation: $latencyCompensation
         referenceId: $referenceId
         start: $start
@@ -74,7 +79,11 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
 
   const {
     data: {
-      vamp: { recording, playPosition },
+      vamp: {
+        recording,
+        playPosition,
+        countOff: { duration: countOffDuration }
+      },
       userInVamp: {
         cab: { start: cabStart, duration: cabDuration, loops: cabLoops },
         prefs: { latencyCompensation }
@@ -108,6 +117,8 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
 
               const duration = cabLoops ? cabDuration : audioDuration;
 
+              const audioStart = -countOffDuration;
+
               addClip({
                 variables: {
                   start: prevData.playPosition,
@@ -115,6 +126,7 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
                   vampId,
                   userId,
                   file,
+                  contentStart: audioStart,
                   latencyCompensation,
                   referenceId: recordingId
                 }
@@ -150,6 +162,7 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
     cabLoops,
     cabStart,
     context,
+    countOffDuration,
     currentRecordingId,
     endClientClip,
     latencyCompensation,

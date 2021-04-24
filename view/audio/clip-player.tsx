@@ -4,7 +4,7 @@ import { audioStore } from "./audio-store";
 import { SchedulerInstance, SchedulerEvent } from "./scheduler";
 import { usePrevious } from "../util/react-hooks";
 import * as _ from "underscore";
-import { useRemoveClientClip } from "../state/client-clip-state-hooks";
+import { useRemoveClientClip } from "../util/client-clip-state-hooks";
 import Clip from "../component/workspace/clip/clip";
 
 type Scheduler = typeof SchedulerInstance;

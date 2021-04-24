@@ -10,8 +10,9 @@ import {
   usePlay,
   usePause,
   useStop,
-  useRecord
-} from "../../../state/vamp-state-hooks";
+  useRecord,
+  useCountOff
+} from "../../../util/vamp-state-hooks";
 
 /**
  * This is the basic record button that shows up when the Vamp is empty.
@@ -23,8 +24,9 @@ const CabNew: React.FunctionComponent = () => {
   const pause = usePause();
   const stop = useStop();
   const record = useRecord();
+  const countOff = useCountOff();
 
-  const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
+  const { data } = useQuery<PlayingClient>(PLAYING_CLIENT, {
     variables: { vampId }
   });
 
@@ -35,7 +37,7 @@ const CabNew: React.FunctionComponent = () => {
         if (data.vamp.playing) {
           stop();
         } else {
-          record();
+          countOff(true);
         }
       }}
     >

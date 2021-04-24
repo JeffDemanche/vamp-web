@@ -1,8 +1,12 @@
-import { loadedVampIdVar } from "./cache";
+import { loadedVampIdVar } from "../state/cache";
 import { gql, useApolloClient } from "@apollo/client";
-import { ME_CLIENT } from "./queries/user-queries";
-import { MeClient, CabClient, CountOffDurationQuery } from "./apollotypes";
-import { CAB_CLIENT } from "./queries/user-in-vamp-queries";
+import { ME_CLIENT } from "../state/queries/user-queries";
+import {
+  MeClient,
+  CabClient,
+  CountOffDurationQuery
+} from "../state/apollotypes";
+import { CAB_CLIENT } from "../state/queries/user-in-vamp-queries";
 
 export const useCountOff = (): ((recordCountOff: boolean) => void) => {
   const { cache } = useApolloClient();
@@ -38,6 +42,10 @@ export const useCountOff = (): ((recordCountOff: boolean) => void) => {
         countingOffStartTime: (): number => startTime
       }
     });
+    // NOTE setTimeout isn't very accurate, so we try to handle actual audio
+    // scheduling changes below this level (in scheduler.ts). The goal is that
+    // this cache update affects only visual UI components, for which higher
+    // error is acceptable.
     setTimeout(() => {
       cache.modify({
         id: cache.identify({ __typename: "Vamp", id: loadedVampId }),

@@ -1,7 +1,7 @@
 import { gql, useQuery } from "@apollo/client";
 import * as React from "react";
 import { useEffect } from "react";
-import { useSetFloorOpen } from "../../../state/vamp-state-hooks";
+import { useSetFloorOpen } from "../../../util/vamp-state-hooks";
 import { useCurrentVampId, usePrevious } from "../../../util/react-hooks";
 import { useOverlay } from "../../element/overlay/overlay";
 import { Floor } from "./floor";

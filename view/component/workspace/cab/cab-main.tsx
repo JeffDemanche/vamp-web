@@ -17,7 +17,12 @@ import {
 import MovableComponent from "../../element/movable-component";
 import Playhead from "../../element/playhead";
 import { useState, useEffect } from "react";
-import { useRecord, useSeek, useStop } from "../../../state/vamp-state-hooks";
+import {
+  useCountOff,
+  useRecord,
+  useSeek,
+  useStop
+} from "../../../util/vamp-state-hooks";
 import { VampToggleButton } from "../../element/toggle-button";
 import classNames = require("classnames");
 
@@ -81,6 +86,7 @@ const CabMain: React.FC = () => {
 
   const stop = useStop();
   const record = useRecord();
+  const countOff = useCountOff();
   const seek = useSeek();
 
   const { data, loading, error } = useQuery<CabMainQuery>(CAB_MAIN_QUERY, {
@@ -154,7 +160,7 @@ const CabMain: React.FC = () => {
           setAdjusting(active);
         }}
         onClick={(): void => {
-          record();
+          countOff(true);
         }}
       >
         <div

@@ -11,7 +11,7 @@
 import { useEffect } from "react";
 import { useTrueTime, useCurrentVampId } from "../util/react-hooks";
 import { useIsEmpty } from "../util/workspace-hooks";
-import { useSeek } from "../state/vamp-state-hooks";
+import { useSeek } from "../util/vamp-state-hooks";
 
 interface LooperProps {
   start: number;

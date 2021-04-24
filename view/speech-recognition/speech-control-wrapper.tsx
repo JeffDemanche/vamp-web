@@ -14,7 +14,7 @@ import {
   useRecord,
   useSeek,
   useStop
-} from "../state/vamp-state-hooks";
+} from "../util/vamp-state-hooks";
 
 interface SpeechControlTypes {
   children: React.ReactNode;
@@ -33,9 +33,6 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
   };
 
   const recognition = startSpeechRecognition();
-  if (!recognition) {
-    return <div style={{ height: "100%" }}>{props.children}</div>;
-  }
 
   const vampId = useCurrentVampId();
 
@@ -129,6 +126,10 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
 
   // maybe we'd like to render something if we're listening
   useEffect(() => {}, [isListening]);
+
+  if (!recognition) {
+    return <div style={{ height: "100%" }}>{props.children}</div>;
+  }
 
   return (
     <div className={"speech-control"} style={{ height: "inherit" }}>

@@ -17,7 +17,7 @@ import { vampAudioContext } from "./vamp-audio-context";
 import { ClipPlayer } from "./clip-player";
 import Looper from "./looper";
 import { WorkspaceAudioClient } from "../state/apollotypes";
-import { useSetLoop } from "../state/vamp-state-hooks";
+import { useSetLoop } from "../util/vamp-state-hooks";
 import { FloorAdapter } from "./floor/floor-adapter";
 import { CountOffAdapter } from "./count-off-adapter";
 import { SeekAdapter } from "./adapter/seek-adapter";
