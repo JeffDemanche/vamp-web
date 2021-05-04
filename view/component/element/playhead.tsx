@@ -8,6 +8,7 @@ import { useWorkspaceWidth } from "../../util/workspace-hooks";
 
 interface PlayheadProps {
   containerStart: number;
+  containerDuration?: number;
 }
 
 /**
@@ -15,14 +16,15 @@ interface PlayheadProps {
  * along that container using CSS offsets according
  */
 const Playhead: React.FC<PlayheadProps> = ({
-  containerStart
+  containerStart,
+  containerDuration
 }: PlayheadProps) => {
   const vampId = useCurrentVampId();
   const trueTime = useTrueTime(100);
 
   const widthFn = useWorkspaceWidth();
 
-  const playheadWidth = widthFn(trueTime - containerStart);
+  const playheadRelativeLeft = widthFn(trueTime - containerStart);
 
   const {
     data: {
@@ -30,10 +32,16 @@ const Playhead: React.FC<PlayheadProps> = ({
     }
   } = useQuery<PlayingClient>(PLAYING_CLIENT, { variables: { vampId } });
 
+  const shouldRender =
+    containerDuration === undefined ||
+    (containerStart + containerDuration > trueTime &&
+      containerStart < trueTime);
+  if (!shouldRender) return null;
+
   const display = trueTime >= containerStart && playing ? "block" : "none";
 
   const style = {
-    left: `${playheadWidth}px`,
+    left: `${playheadRelativeLeft}px`,
     display
   };
 
