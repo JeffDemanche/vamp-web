@@ -11,7 +11,6 @@ import {
   useWorkspaceLeft,
   useWorkspaceWidth
 } from "../../../util/workspace-hooks";
-import { Oscilloscope } from "../oscilloscope/oscilloscope";
 
 const CAB_MAIN_RECORDING_QUERY = gql`
   query CabMainRecording($vampId: ID!, $userId: ID!) {
@@ -53,13 +52,7 @@ const CabMainRecording: React.FC = () => {
     <div
       style={{ left, width: `${widthNum}px` }}
       className={styles["cab-main-recording"]}
-    >
-      <Oscilloscope
-        dimensions={{
-          width: widthNum
-        }}
-      ></Oscilloscope>
-    </div>
+    ></div>
   );
 };
 
