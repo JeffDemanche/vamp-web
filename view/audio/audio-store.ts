@@ -1,11 +1,13 @@
 import { ApolloClient } from "@apollo/client";
+import { AdaptiveWaveform } from "./waveform/adaptive-waveform";
 
 interface StoredAudio {
   data: Blob;
+  adaptiveWaveform?: AdaptiveWaveform;
 }
 
 /**
- * Downloaded audio needs to be stored in memory somehwere. There doesn't seem
+ * Downloaded audio needs to be stored in memory somewhere. There doesn't seem
  * to be much support for doing that in Apollo or Redux, so we're doing it in
  * this class, which is essentially a dictionary for audio data.
  */
@@ -89,7 +91,13 @@ class AudioStore {
             }
           });
 
-          this._store[content.audio.id] = { data: blob };
+          const adaptiveWaveform = new AdaptiveWaveform(audioBuffer);
+          adaptiveWaveform.generateWaveform(0.005);
+
+          this._store[content.audio.id] = {
+            data: blob,
+            adaptiveWaveform
+          };
         }
       }
     }

@@ -1,4 +1,40 @@
+@import "../../../../constants/transitions.less";
+
 .content-container {
-  background-color: black;
-  opacity: 0.4;
+  position: absolute;
+  height: 100%;
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+
+  svg {
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.content-border-box {
+  --b: 1px; /* thickness of the border */
+  --c: white; /* color of the border */
+  --w: 15px; /* width of border */
+
+  opacity: 0.5;
+
+  border: var(--b) solid transparent; /* space for the border */
+  background: linear-gradient(var(--c), var(--c)) top left,
+    linear-gradient(var(--c), var(--c)) top left,
+    linear-gradient(var(--c), var(--c)) bottom left,
+    linear-gradient(var(--c), var(--c)) bottom left,
+    linear-gradient(var(--c), var(--c)) top right,
+    linear-gradient(var(--c), var(--c)) top right,
+    linear-gradient(var(--c), var(--c)) bottom right,
+    linear-gradient(var(--c), var(--c)) bottom right;
+  background-size: var(--b) var(--w), var(--w) var(--b);
+  background-origin: border-box;
+  background-repeat: no-repeat;
+
+  position: absolute;
+  width: 100%;
+  height: 80%;
+  top: 10%;
+  left: 0;
 }

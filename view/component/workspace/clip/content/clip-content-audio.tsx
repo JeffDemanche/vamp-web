@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as styles from "./clip-content-audio.less";
 import { useWorkspaceWidth } from "../../../../util/workspace-hooks";
-import { Oscilloscope } from "../../oscilloscope/oscilloscope";
+import { useWaveformSVG } from "../../../../audio/waveform/waveform-hooks";
 
 interface ClipContentAudioProps {
   content: {
@@ -22,16 +22,17 @@ interface ClipContentAudioProps {
 export const ClipContentAudio: React.FC<ClipContentAudioProps> = ({
   content
 }: ClipContentAudioProps) => {
+  const { svg } = useWaveformSVG(content.audio.id, 1);
+
   const widthFn = useWorkspaceWidth();
 
+  const width = widthFn(content.audio.duration);
+  const left = widthFn(content.start - content.audio.latencyCompensation);
+
   return (
-    <div className={styles["content-container"]}>
-      <Oscilloscope
-        audio={content.audio}
-        dimensions={{
-          width: widthFn(content.audio.duration)
-        }}
-      ></Oscilloscope>
+    <div className={styles["content-container"]} style={{ width, left }}>
+      {svg}
+      <div className={styles["content-border-box"]}></div>
     </div>
   );
 };

@@ -2,7 +2,6 @@ import * as React from "react";
 
 import * as styles from "./cab.less";
 import { useTrueTime } from "../../../util/react-hooks";
-import { Oscilloscope } from "../oscilloscope/oscilloscope";
 import { useWorkspaceWidth } from "../../../util/workspace-hooks";
 
 /*
@@ -20,13 +19,7 @@ const CabNewRecording = (): JSX.Element => {
     <div
       style={{ width: `${width}px` }}
       className={styles["cab-new-recording"]}
-    >
-      <Oscilloscope
-        dimensions={{
-          width: width
-        }}
-      ></Oscilloscope>
-    </div>
+    ></div>
   );
 };
 
