@@ -14,6 +14,7 @@ interface BarProps {
   bpm: number;
   beats: number;
   gapWidth: number;
+  children?: React.ReactChildren | React.ReactChild;
 }
 
 export const Bar: React.FC<BarProps> = ({
@@ -25,7 +26,8 @@ export const Bar: React.FC<BarProps> = ({
   label,
   bpm,
   beats,
-  gapWidth
+  gapWidth,
+  children
 }: BarProps) => {
   const { barHeight } = useMetronomeDimensions();
 
@@ -70,6 +72,7 @@ export const Bar: React.FC<BarProps> = ({
       }}
       className={classNames(styles["bar"], depth !== 0 && styles["variant"])}
     >
+      {children}
       <div className={styles["label"]} ref={labelRef}>
         {text}.
       </div>

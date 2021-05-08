@@ -14,6 +14,7 @@ import {
 import { Bar } from "./bar";
 import * as styles from "./metronome.less";
 import { SectionHandle } from "./section-handle";
+import Playhead from "../../../element/playhead";
 
 interface RenderInfo {
   measures: {
@@ -194,6 +195,8 @@ export const Metronome: React.FC<{}> = () => {
           ? expandedSectionHandleHeight + expandedSectionHandleMargin
           : sectionHandleHeight + sectionHandleMargin);
 
+      const measureDuration =
+        (60.0 / measure.section.bpm) * measure.section.beatsPerBar;
       elems.push(
         <Bar
           num={num}
@@ -201,16 +204,19 @@ export const Metronome: React.FC<{}> = () => {
           depth={renderInfo.measures[num].depth}
           left={leftFn(measure.timeStart)}
           top={top}
-          width={widthFn(
-            (60.0 / measure.section.bpm) * measure.section.beatsPerBar
-          )}
+          width={widthFn(measureDuration)}
           bpm={measure.section.bpm}
           beats={measure.section.beatsPerBar}
           label={
             measure.section.startMeasure === measure.num && measure.section.name
           }
           gapWidth={gapWidth}
-        ></Bar>
+        >
+          <Playhead
+            containerStart={measure.timeStart}
+            containerDuration={measureDuration}
+          />
+        </Bar>
       );
     });
 
