@@ -1,4 +1,4 @@
-import classNames = require("classnames");
+import classNames from "classnames";
 import * as React from "react";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { usePrevious } from "../../../util/react-hooks";

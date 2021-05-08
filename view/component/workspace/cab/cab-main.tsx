@@ -24,7 +24,7 @@ import {
   useStop
 } from "../../../util/vamp-state-hooks";
 import { VampToggleButton } from "../../element/toggle-button";
-import classNames = require("classnames");
+import classNames from "classnames";
 
 export const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {

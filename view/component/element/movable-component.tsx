@@ -8,7 +8,7 @@ import {
   useWorkspaceLeft
 } from "../../util/workspace-hooks";
 import _ = require("underscore");
-import classNames = require("classnames");
+import classNames from "classnames";
 import { DropZone, DropZonesContext } from "../workspace/workspace-drop-zones";
 
 interface MovableComponentProps {

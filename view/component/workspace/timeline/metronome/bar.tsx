@@ -1,4 +1,4 @@
-import classNames = require("classnames");
+import classNames from "classnames";
 import * as React from "react";
 import { useMemo, useRef } from "react";
 import { useMetronomeDimensions } from "../../../../util/metronome-hooks";
