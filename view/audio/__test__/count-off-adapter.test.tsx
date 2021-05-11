@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CountOffAdapter } from "../count-off-adapter";
+import { CountOffAdapter } from "../adapter/count-off-adapter";
 import { mount } from "enzyme";
 import { useQuery } from "@apollo/client";
 import { SchedulerInstance } from "../scheduler";

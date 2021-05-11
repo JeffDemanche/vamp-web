@@ -2,11 +2,11 @@ import { useQuery } from "@apollo/client";
 import _ from "underscore";
 import gql from "graphql-tag";
 import React, { useEffect, useMemo } from "react";
-import { CountOffAdapterQuery } from "../state/apollotypes";
-import { CountOff, useUpdateCountOff } from "../util/count-off-hooks";
-import { useMeasures } from "../util/metronome-hooks";
-import { useCurrentVampId, usePrevious } from "../util/react-hooks";
-import { SchedulerInstance } from "./scheduler";
+import { CountOffAdapterQuery } from "../../state/apollotypes";
+import { CountOff, useUpdateCountOff } from "../../util/count-off-hooks";
+import { useMeasures } from "../../util/metronome-hooks";
+import { useCurrentVampId, usePrevious } from "../../util/react-hooks";
+import { SchedulerInstance } from "../scheduler";
 
 export const COUNT_OFF_ADAPTER_QUERY = gql`
   query CountOffAdapterQuery($vampId: ID!) {

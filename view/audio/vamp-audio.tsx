@@ -19,7 +19,7 @@ import Looper from "./looper";
 import { WorkspaceAudioClient } from "../state/apollotypes";
 import { useSetLoop } from "../util/vamp-state-hooks";
 import { FloorAdapter } from "./floor/floor-adapter";
-import { CountOffAdapter } from "./count-off-adapter";
+import { CountOffAdapter } from "./adapter/count-off-adapter";
 import { SeekAdapter } from "./adapter/seek-adapter";
 import { PlayStopAdapter } from "./adapter/play-stop-adapter";
 import { RecordAdapter } from "./adapter/record-adapter";

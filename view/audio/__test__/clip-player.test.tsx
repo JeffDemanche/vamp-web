@@ -6,7 +6,7 @@ import { ClipPlayer } from "../clip-player";
 import { audioStore } from "../audio-store";
 import { SchedulerInstance } from "../scheduler";
 
-jest.mock("../../state/client-clip-state-hooks");
+jest.mock("../../util/client-clip-state-hooks");
 
 const clipMocks = [
   {
