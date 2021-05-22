@@ -1,22 +1,20 @@
 import * as React from "react";
+import { useContext } from "react";
 import { CountOffAdapter } from "../adapter/count-off-adapter";
 import { mount } from "enzyme";
 import { useQuery } from "@apollo/client";
 import { SchedulerInstance } from "../scheduler";
-import { useMeasures } from "../../util/metronome-hooks";
 import { useUpdateCountOff } from "../../util/count-off-hooks";
 
 jest.mock("../../util/react-hooks");
-jest.mock("../../util/count-off-hooks", () => ({
-  useUpdateCountOff: jest.fn(() => () => {})
-}));
-jest.mock("../../util/metronome-hooks", () => ({
-  ...jest.requireActual("../../util/metronome-hooks"),
-  useMeasures: jest.fn()
-}));
+jest.mock("../../util/count-off-hooks");
 jest.mock("@apollo/client", () => ({
   ...jest.requireActual("@apollo/client"),
   useQuery: jest.fn()
+}));
+jest.mock("react", () => ({
+  ...jest.requireActual("react"),
+  useContext: jest.fn()
 }));
 jest.mock("../scheduler");
 
@@ -53,7 +51,6 @@ describe("Count Off Adapter", () => {
 
   it("calls scheduler countOff method when countOff becomes true in state", () => {
     const countOffSpy = jest.spyOn(SchedulerInstance, "countOff");
-    (useMeasures as jest.Mock).mockImplementation(() => useMeasuresReturnFour);
     (useQuery as jest.Mock)
       .mockImplementationOnce(() => ({
         data: {
@@ -73,6 +70,9 @@ describe("Count Off Adapter", () => {
           }
         }
       }));
+    (useContext as jest.Mock).mockImplementation(() => ({
+      getMeasureMap: (): unknown => useMeasuresReturnFour.measureMap
+    }));
 
     const component = mount(
       <CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>
@@ -90,9 +90,6 @@ describe("Count Off Adapter", () => {
       (useUpdateCountOff as jest.Mock).mockImplementationOnce(
         () => updateCountOffFn
       );
-      (useMeasures as jest.Mock).mockImplementation(
-        () => useMeasuresReturnFour
-      );
       (useQuery as jest.Mock).mockImplementationOnce(() => ({
         data: {
           vamp: {
@@ -101,6 +98,9 @@ describe("Count Off Adapter", () => {
             countingOffStartTime: -1
           }
         }
+      }));
+      (useContext as jest.Mock).mockImplementation(() => ({
+        getMeasureMap: (): unknown => useMeasuresReturnFour.measureMap
       }));
 
       mount(<CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>);
@@ -118,9 +118,6 @@ describe("Count Off Adapter", () => {
       (useUpdateCountOff as jest.Mock).mockImplementationOnce(
         () => updateCountOffFn
       );
-      (useMeasures as jest.Mock).mockImplementation(
-        () => useMeasuresReturnFour
-      );
       (useQuery as jest.Mock).mockImplementationOnce(() => ({
         data: {
           vamp: {
@@ -129,6 +126,9 @@ describe("Count Off Adapter", () => {
             countingOffStartTime: -1
           }
         }
+      }));
+      (useContext as jest.Mock).mockImplementation(() => ({
+        getMeasureMap: (): unknown => useMeasuresReturnFour.measureMap
       }));
 
       mount(<CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>);
@@ -147,9 +147,6 @@ describe("Count Off Adapter", () => {
       (useUpdateCountOff as jest.Mock).mockImplementationOnce(
         () => updateCountOffFn
       );
-      (useMeasures as jest.Mock).mockImplementation(
-        () => useMeasuresReturnFour
-      );
       (useQuery as jest.Mock).mockImplementationOnce(() => ({
         data: {
           vamp: {
@@ -158,6 +155,9 @@ describe("Count Off Adapter", () => {
             countingOffStartTime: -1
           }
         }
+      }));
+      (useContext as jest.Mock).mockImplementation(() => ({
+        getMeasureMap: (): unknown => useMeasuresReturnFour.measureMap
       }));
 
       mount(<CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>);
@@ -176,9 +176,6 @@ describe("Count Off Adapter", () => {
       (useUpdateCountOff as jest.Mock).mockImplementationOnce(
         () => updateCountOffFn
       );
-      (useMeasures as jest.Mock).mockImplementation(
-        () => useMeasuresReturnThree
-      );
       (useQuery as jest.Mock).mockImplementationOnce(() => ({
         data: {
           vamp: {
@@ -187,6 +184,9 @@ describe("Count Off Adapter", () => {
             countingOffStartTime: -1
           }
         }
+      }));
+      (useContext as jest.Mock).mockImplementation(() => ({
+        getMeasureMap: (): unknown => useMeasuresReturnThree.measureMap
       }));
 
       mount(<CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>);

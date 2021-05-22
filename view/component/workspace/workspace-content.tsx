@@ -10,6 +10,7 @@ import { WorkspaceContentClient } from "../../state/apollotypes";
 import { useWindowDimensions } from "../../util/workspace-hooks";
 import { DropZonesProvider } from "./workspace-drop-zones";
 import { FloorOverlay } from "./floor/floor-overlay";
+import { MetronomeProvider } from "./context/metronome-context";
 
 const TemporalZoomContext = React.createContext(100);
 const HorizontalPosContext = React.createContext(0);
@@ -167,27 +168,29 @@ const WorkspaceContent: React.FC = () => {
   );
 
   return (
-    <TemporalZoomContext.Provider value={temporalZoom}>
-      <HorizontalPosContext.Provider
-        value={horizontalPos + horizontalPosOffset}
-      >
-        <DropZonesProvider>
-          <FloorOverlay></FloorOverlay>
-          <div className={styles["workspace"]} onWheel={onWheel}>
-            <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
-            <div className={styles["play-and-tracks"]}>
-              <div className={styles["play-panel"]}>
-                <PlayPanel></PlayPanel>
+    <MetronomeProvider>
+      <TemporalZoomContext.Provider value={temporalZoom}>
+        <HorizontalPosContext.Provider
+          value={horizontalPos + horizontalPosOffset}
+        >
+          <DropZonesProvider>
+            <FloorOverlay></FloorOverlay>
+            <div className={styles["workspace"]} onWheel={onWheel}>
+              <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
+              <div className={styles["play-and-tracks"]}>
+                <div className={styles["play-panel"]}>
+                  <PlayPanel></PlayPanel>
+                </div>
+                <Timeline
+                  offsetRef={offsetRef}
+                  tracksRef={trackRefUpdate}
+                ></Timeline>
               </div>
-              <Timeline
-                offsetRef={offsetRef}
-                tracksRef={trackRefUpdate}
-              ></Timeline>
             </div>
-          </div>
-        </DropZonesProvider>
-      </HorizontalPosContext.Provider>
-    </TemporalZoomContext.Provider>
+          </DropZonesProvider>
+        </HorizontalPosContext.Provider>
+      </TemporalZoomContext.Provider>
+    </MetronomeProvider>
   );
 };
 

@@ -9,7 +9,7 @@
 
 import { SchedulerInstance } from "./scheduler";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { gql, useApolloClient, useQuery } from "@apollo/client";
 import { useCurrentUserId } from "../util/react-hooks";
 import { audioStore } from "./audio-store";
@@ -23,6 +23,8 @@ import { CountOffAdapter } from "./adapter/count-off-adapter";
 import { SeekAdapter } from "./adapter/seek-adapter";
 import { PlayStopAdapter } from "./adapter/play-stop-adapter";
 import { RecordAdapter } from "./adapter/record-adapter";
+import { EmptyVampAdapter } from "./adapter/empty-vamp-adapter";
+import { MetronomeContext } from "../component/workspace/context/metronome-context";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!, $userId: ID!) {
@@ -186,15 +188,16 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     });
   };
 
+  const { getMeasureMap } = useContext(MetronomeContext);
+
   /**
    * FORM DATA
    *
    * Handles changes to form.
    */
   useEffect(() => {
-    const vampFormData = { sections, forms };
-    scheduler.updateMetronome(vampFormData, playStartTime);
-  }, [sections, forms, scheduler]);
+    scheduler.updateMetronome(getMeasureMap, playStartTime);
+  }, [scheduler, getMeasureMap]);
 
   /**
    * CLIPS DATA
@@ -236,6 +239,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       <PlayStopAdapter scheduler={scheduler}></PlayStopAdapter>
       <CountOffAdapter scheduler={scheduler}></CountOffAdapter>
       <SeekAdapter scheduler={scheduler}></SeekAdapter>
+      <EmptyVampAdapter></EmptyVampAdapter>
 
       <FloorAdapter></FloorAdapter>
     </>

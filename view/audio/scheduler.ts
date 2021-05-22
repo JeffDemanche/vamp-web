@@ -1,8 +1,8 @@
 import * as _ from "underscore";
 import ObjectID from "bson-objectid";
 import { CountOff } from "../util/count-off-hooks";
-import { processMetronome, VampFormData } from "../util/metronome-hooks";
 import Recorder from "./recorder";
+import { MetronomeContextData } from "../component/workspace/context/metronome-context";
 
 class SchedulerEvent {
   readonly id: string;
@@ -92,7 +92,7 @@ class MetronomeScheduler {
   private _latestPlaying: number;
 
   /** We pass this into `processMetronome` which does most of the hard work. */
-  private _vampFormData: VampFormData;
+  private _getMeasureMap: MetronomeContextData["getMeasureMap"];
 
   private _activeTickNode: AudioScheduledSourceNode;
 
@@ -156,7 +156,8 @@ class MetronomeScheduler {
    */
   private loadMeasures = (start: number, end: number): void => {
     start = Math.floor(start);
-    if (!this._vampFormData) throw new Error("No form data in metronome.");
+    if (!this._getMeasureMap)
+      throw new Error("No measure map function provided to metronome.");
 
     // Ensures we load measures between the current range and where we're
     // seeking to (to avoid gaps).
@@ -167,11 +168,7 @@ class MetronomeScheduler {
       end = this.firstLoadedTick().time;
     }
 
-    const { measureMap } = processMetronome({
-      vampFormData: this._vampFormData,
-      start,
-      end
-    });
+    const measureMap = this._getMeasureMap({ start, end });
 
     const keys = Object.keys(measureMap).map(Number);
     keys.forEach(key => {
@@ -212,12 +209,12 @@ class MetronomeScheduler {
   /**
    * Provides new form data from the server for the metronome to use.
    */
-  public updateFormData = (
-    vampFormData: VampFormData,
+  public updateGetMeasureMap = (
+    getMeasureMap: MetronomeContextData["getMeasureMap"],
     seekTo: number
   ): void => {
     this.clear();
-    this._vampFormData = vampFormData;
+    this._getMeasureMap = getMeasureMap;
     this.seek(seekTo);
   };
 
@@ -642,11 +639,19 @@ class Scheduler {
   };
 
   /**
-   * When the form model changes, this provides that information to
-   * `_metronomeScheduler`.
+   * When the form model changes, the MetronomeContext changes, and when that
+   * happens, this provides that information to `_metronomeScheduler`.
+   *
+   * @param getMeasureMap This is a function that returns metronome measure data
+   * for a time range. This is defined in MetronomeProvider and changes whenever
+   * the form/section models change. When that happens, we call this function to
+   * update the metronome scheduler.
    */
-  updateMetronome = (vampFormData: VampFormData, seekTo: number): void => {
-    this._metronomeScheduler.updateFormData(vampFormData, seekTo);
+  updateMetronome = (
+    getMeasureMap: MetronomeContextData["getMeasureMap"],
+    seekTo: number
+  ): void => {
+    this._metronomeScheduler.updateGetMeasureMap(getMeasureMap, seekTo);
   };
 
   /**
