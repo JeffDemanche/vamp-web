@@ -333,45 +333,6 @@ export interface WorkspaceAudioClient_vamp_clientClips {
   latencyCompensation: number | null;
 }
 
-export interface WorkspaceAudioClient_vamp_sections_subSections {
-  __typename: "Section";
-  id: string;
-}
-
-export interface WorkspaceAudioClient_vamp_sections {
-  __typename: "Section";
-  id: string;
-  name: string | null;
-  bpm: number;
-  beatsPerBar: number;
-  metronomeSound: string;
-  startMeasure: number;
-  repetitions: number | null;
-  subSections: WorkspaceAudioClient_vamp_sections_subSections[] | null;
-}
-
-export interface WorkspaceAudioClient_vamp_forms_preSection {
-  __typename: "Section";
-  id: string;
-}
-
-export interface WorkspaceAudioClient_vamp_forms_insertedSections {
-  __typename: "Section";
-  id: string;
-}
-
-export interface WorkspaceAudioClient_vamp_forms_postSection {
-  __typename: "Section";
-  id: string;
-}
-
-export interface WorkspaceAudioClient_vamp_forms {
-  __typename: "Form";
-  preSection: WorkspaceAudioClient_vamp_forms_preSection;
-  insertedSections: WorkspaceAudioClient_vamp_forms_insertedSections[];
-  postSection: WorkspaceAudioClient_vamp_forms_postSection | null;
-}
-
 export interface WorkspaceAudioClient_vamp {
   __typename: "Vamp";
   id: string;
@@ -380,18 +341,14 @@ export interface WorkspaceAudioClient_vamp {
   playing: boolean | null;
   metronomeSound: string;
   /**
-   * The Date.now() value of the instant when playing began, or -1 if not
-   * playing. The true current time when playing will be playPosition +
-   * (Date.now() - playStartTime) / 1000.
+   * The position in seconds of the current position before play was pressed.
    */
-  playStartTime: number | null;
+  playPosition: number | null;
   start: number | null;
   end: number | null;
   loop: boolean | null;
   clips: WorkspaceAudioClient_vamp_clips[];
   clientClips: (WorkspaceAudioClient_vamp_clientClips | null)[] | null;
-  sections: WorkspaceAudioClient_vamp_sections[];
-  forms: WorkspaceAudioClient_vamp_forms[];
 }
 
 export interface WorkspaceAudioClient_userInVamp_cab {
@@ -556,6 +513,68 @@ export interface UpdateClipVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: MetronomeQuery
+// ====================================================
+
+export interface MetronomeQuery_vamp_sections_subSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_sections {
+  __typename: "Section";
+  id: string;
+  name: string | null;
+  bpm: number;
+  beatsPerBar: number;
+  metronomeSound: string;
+  startMeasure: number;
+  repetitions: number | null;
+  subSections: MetronomeQuery_vamp_sections_subSections[] | null;
+}
+
+export interface MetronomeQuery_vamp_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_forms_insertedSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_forms_postSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_forms {
+  __typename: "Form";
+  preSection: MetronomeQuery_vamp_forms_preSection;
+  insertedSections: MetronomeQuery_vamp_forms_insertedSections[];
+  postSection: MetronomeQuery_vamp_forms_postSection | null;
+}
+
+export interface MetronomeQuery_vamp {
+  __typename: "Vamp";
+  sections: MetronomeQuery_vamp_sections[];
+  forms: MetronomeQuery_vamp_forms[];
+}
+
+export interface MetronomeQuery {
+  vamp: MetronomeQuery_vamp | null;
+}
+
+export interface MetronomeQueryVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FloorOverlayWrapper
 // ====================================================
 
@@ -611,9 +630,26 @@ export interface UseIsEmptyVariables {
 // GraphQL query operation: BeatsPerBarClient
 // ====================================================
 
+export interface BeatsPerBarClient_vamp_sections {
+  __typename: "Section";
+  id: string;
+  beatsPerBar: number;
+}
+
+export interface BeatsPerBarClient_vamp_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface BeatsPerBarClient_vamp_forms {
+  __typename: "Form";
+  preSection: BeatsPerBarClient_vamp_forms_preSection;
+}
+
 export interface BeatsPerBarClient_vamp {
   __typename: "Vamp";
-  beatsPerBar: number;
+  sections: BeatsPerBarClient_vamp_sections[];
+  forms: BeatsPerBarClient_vamp_forms[];
 }
 
 export interface BeatsPerBarClient {
@@ -633,17 +669,24 @@ export interface BeatsPerBarClientVariables {
 // GraphQL mutation operation: UpdateBeatsPerBar
 // ====================================================
 
-export interface UpdateBeatsPerBar_updateVamp {
-  __typename: "Vamp";
+export interface UpdateBeatsPerBar_updatePreSection {
+  __typename: "Section";
   beatsPerBar: number;
 }
 
 export interface UpdateBeatsPerBar {
-  updateVamp: UpdateBeatsPerBar_updateVamp | null;
+  /**
+   * Updates the preSection of the form. If there aren't any
+   *     insertedSections, this is equivalent to updating the section properties for
+   *     the entire Vamp.
+   */
+  updatePreSection: UpdateBeatsPerBar_updatePreSection;
 }
 
 export interface UpdateBeatsPerBarVariables {
-  update: VampUpdateInput;
+  vampId: string;
+  formIndex?: number | null;
+  beatsPerBar: number;
 }
 
 /* tslint:disable */
@@ -655,9 +698,26 @@ export interface UpdateBeatsPerBarVariables {
 // GraphQL query operation: BPMClient
 // ====================================================
 
+export interface BPMClient_vamp_sections {
+  __typename: "Section";
+  id: string;
+  bpm: number;
+}
+
+export interface BPMClient_vamp_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface BPMClient_vamp_forms {
+  __typename: "Form";
+  preSection: BPMClient_vamp_forms_preSection;
+}
+
 export interface BPMClient_vamp {
   __typename: "Vamp";
-  bpm: number;
+  sections: BPMClient_vamp_sections[];
+  forms: BPMClient_vamp_forms[];
 }
 
 export interface BPMClient {
@@ -677,17 +737,24 @@ export interface BPMClientVariables {
 // GraphQL mutation operation: UpdateBPM
 // ====================================================
 
-export interface UpdateBPM_updateVamp {
-  __typename: "Vamp";
+export interface UpdateBPM_updatePreSection {
+  __typename: "Section";
   bpm: number;
 }
 
 export interface UpdateBPM {
-  updateVamp: UpdateBPM_updateVamp | null;
+  /**
+   * Updates the preSection of the form. If there aren't any
+   *     insertedSections, this is equivalent to updating the section properties for
+   *     the entire Vamp.
+   */
+  updatePreSection: UpdateBPM_updatePreSection;
 }
 
 export interface UpdateBPMVariables {
-  update: VampUpdateInput;
+  vampId: string;
+  formIndex?: number | null;
+  bpm: number;
 }
 
 /* tslint:disable */
@@ -699,9 +766,26 @@ export interface UpdateBPMVariables {
 // GraphQL query operation: MetronomeSoundClient
 // ====================================================
 
+export interface MetronomeSoundClient_vamp_sections {
+  __typename: "Section";
+  id: string;
+  metronomeSound: string;
+}
+
+export interface MetronomeSoundClient_vamp_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeSoundClient_vamp_forms {
+  __typename: "Form";
+  preSection: MetronomeSoundClient_vamp_forms_preSection;
+}
+
 export interface MetronomeSoundClient_vamp {
   __typename: "Vamp";
-  metronomeSound: string;
+  sections: MetronomeSoundClient_vamp_sections[];
+  forms: MetronomeSoundClient_vamp_forms[];
 }
 
 export interface MetronomeSoundClient {
@@ -721,17 +805,24 @@ export interface MetronomeSoundClientVariables {
 // GraphQL mutation operation: UpdateMetronomeSound
 // ====================================================
 
-export interface UpdateMetronomeSound_updateVamp {
-  __typename: "Vamp";
+export interface UpdateMetronomeSound_updatePreSection {
+  __typename: "Section";
   metronomeSound: string;
 }
 
 export interface UpdateMetronomeSound {
-  updateVamp: UpdateMetronomeSound_updateVamp | null;
+  /**
+   * Updates the preSection of the form. If there aren't any
+   *     insertedSections, this is equivalent to updating the section properties for
+   *     the entire Vamp.
+   */
+  updatePreSection: UpdateMetronomeSound_updatePreSection;
 }
 
 export interface UpdateMetronomeSoundVariables {
-  update: VampUpdateInput;
+  vampId: string;
+  formIndex?: number | null;
+  metronomeSound: string;
 }
 
 /* tslint:disable */
@@ -1828,68 +1919,6 @@ export interface CountOffReverseCounterQuery {
 }
 
 export interface CountOffReverseCounterQueryVariables {
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL query operation: MetronomeQuery
-// ====================================================
-
-export interface MetronomeQuery_vamp_sections_subSections {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeQuery_vamp_sections {
-  __typename: "Section";
-  id: string;
-  name: string | null;
-  bpm: number;
-  beatsPerBar: number;
-  metronomeSound: string;
-  startMeasure: number;
-  repetitions: number | null;
-  subSections: MetronomeQuery_vamp_sections_subSections[] | null;
-}
-
-export interface MetronomeQuery_vamp_forms_preSection {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeQuery_vamp_forms_insertedSections {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeQuery_vamp_forms_postSection {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeQuery_vamp_forms {
-  __typename: "Form";
-  preSection: MetronomeQuery_vamp_forms_preSection;
-  insertedSections: MetronomeQuery_vamp_forms_insertedSections[];
-  postSection: MetronomeQuery_vamp_forms_postSection | null;
-}
-
-export interface MetronomeQuery_vamp {
-  __typename: "Vamp";
-  sections: MetronomeQuery_vamp_sections[];
-  forms: MetronomeQuery_vamp_forms[];
-}
-
-export interface MetronomeQuery {
-  vamp: MetronomeQuery_vamp | null;
-}
-
-export interface MetronomeQueryVariables {
   vampId: string;
 }
 
