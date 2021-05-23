@@ -1,7 +1,11 @@
 import { useMutation, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
-import React, { useEffect, useState } from "react";
-import { AddClipMutation, RecordAdapterQuery } from "../../state/apollotypes";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  AddClipMutation,
+  RecordAdapterQuery,
+  RecordAdapterUpdateCab
+} from "../../state/apollotypes";
 import {
   useBeginClientClip,
   useEndClientClip
@@ -13,6 +17,8 @@ import {
   usePrevious
 } from "../../util/react-hooks";
 import { SchedulerInstance } from "../scheduler";
+import { useIsEmpty } from "../../component/workspace/hooks/use-is-empty";
+import { MetronomeContext } from "../../component/workspace/context/metronome-context";
 
 interface RecordAdapterProps {
   scheduler: typeof SchedulerInstance;
@@ -70,12 +76,36 @@ const ADD_CLIP_MUTATION = gql`
   }
 `;
 
+const UPDATE_CAB_MUTATION = gql`
+  mutation RecordAdapterUpdateCab(
+    $userId: ID!
+    $vampId: ID!
+    $start: Float
+    $duration: Float
+    $loops: Boolean
+  ) {
+    updateUserInVamp(
+      update: {
+        userId: $userId
+        vampId: $vampId
+        cabStart: $start
+        cabDuration: $duration
+        cabLoops: $loops
+      }
+    ) {
+      id
+    }
+  }
+`;
+
 export const RecordAdapter: React.FC<RecordAdapterProps> = ({
   scheduler,
   context
 }: RecordAdapterProps) => {
   const vampId = useCurrentVampId();
   const userId = useCurrentUserId();
+
+  const empty = useIsEmpty();
 
   const {
     data: {
@@ -99,8 +129,11 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
   const endClientClip = useEndClientClip();
 
   const [addClip] = useMutation<AddClipMutation>(ADD_CLIP_MUTATION);
+  const [updateCab] = useMutation<RecordAdapterUpdateCab>(UPDATE_CAB_MUTATION);
 
   const apolloStop = useStop();
+
+  const { truncateEndOfRecording } = useContext(MetronomeContext);
 
   const prevData = usePrevious({ recording, playPosition });
 
@@ -115,10 +148,37 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
               const audioDuration = (await context.decodeAudioData(dataArrBuff))
                 .duration;
 
-              const duration = cabLoops ? cabDuration : audioDuration;
+              const truncatedEndOfRecordingTime = truncateEndOfRecording(
+                cabStart +
+                  audioDuration -
+                  countOffDuration -
+                  latencyCompensation
+              );
+              const emptyDuration =
+                truncatedEndOfRecordingTime === 0
+                  ? audioDuration - countOffDuration - latencyCompensation
+                  : truncatedEndOfRecordingTime;
+              const cabLoopsDuration = cabDuration;
+              const noLoopDuration = audioDuration;
+
+              let duration = emptyDuration;
+              if (!empty) {
+                if (cabLoops) duration = cabLoopsDuration;
+                else duration = noLoopDuration;
+              }
 
               const audioStart = -countOffDuration;
 
+              if (empty) {
+                updateCab({
+                  variables: {
+                    userId,
+                    vampId,
+                    duration,
+                    loops: true
+                  }
+                });
+              }
               addClip({
                 variables: {
                   start: prevData.playPosition,

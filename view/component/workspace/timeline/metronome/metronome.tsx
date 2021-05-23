@@ -1,10 +1,5 @@
 import * as React from "react";
-import { useMemo, useState } from "react";
-import {
-  Measure,
-  useMeasures,
-  useMetronomeDimensions
-} from "../../../../util/metronome-hooks";
+import { useContext, useMemo, useState } from "react";
 import {
   useWindowDimensions,
   useWorkspaceLeft,
@@ -15,6 +10,11 @@ import { Bar } from "./bar";
 import * as styles from "./metronome.less";
 import { SectionHandle } from "./section-handle";
 import Playhead from "../../../element/playhead";
+import {
+  Measure,
+  MetronomeContext,
+  useMetronomeDimensions
+} from "../../context/metronome-context";
 
 interface RenderInfo {
   measures: {
@@ -43,16 +43,16 @@ export const Metronome: React.FC<{}> = () => {
     return [minScreenTime, maxScreenTime];
   }, [timeFn, width]);
 
-  const {
-    measureMap,
-    sectionMap,
-    preSectionId,
-    insertedSectionIds,
-    postSectionId
-  } = useMeasures({
-    start: timeBounds[0] - 5,
-    end: timeBounds[1] + 5
-  });
+  const start = timeBounds[0] - 5;
+  const end = timeBounds[1] + 5;
+
+  const { getMeasureMap, getSectionMap, getSectionIds } = useContext(
+    MetronomeContext
+  );
+
+  const measureMap = getMeasureMap({ start, end });
+  const sectionMap = getSectionMap({ start, end });
+  const { preSectionId, postSectionId } = getSectionIds();
 
   const renderInfo: RenderInfo = useMemo(() => {
     const measureNums = Object.keys(measureMap).map(key => parseInt(key));

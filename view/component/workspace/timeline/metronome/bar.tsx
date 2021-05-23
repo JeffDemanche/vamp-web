@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import * as React from "react";
 import { useMemo, useRef } from "react";
-import { useMetronomeDimensions } from "../../../../util/metronome-hooks";
+import { useMetronomeDimensions } from "../../context/metronome-context";
 import * as styles from "./metronome.less";
 
 interface BarProps {

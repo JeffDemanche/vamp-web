@@ -6,8 +6,9 @@ import TimelineClips from "./timeline-clips";
 import { RECORDING_CLIENT } from "../../../state/queries/vamp-queries";
 import { RecordingClient, TimelineClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../util/react-hooks";
-import { MutableRefObject, useCallback } from "react";
+import { MutableRefObject } from "react";
 import { Metronome } from "./metronome/metronome";
+import { useIsEmpty } from "../hooks/use-is-empty";
 
 const TIMELINE_CLIENT = gql`
   query TimelineClient($vampId: ID!) {
@@ -71,17 +72,14 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
   });
 
   // If empty we render in the "new Vamp" layout.
-  const isEmpty = useCallback(
-    () => (data ? data.vamp.clips.length == 0 : true),
-    [data]
-  );
+  const empty = useIsEmpty();
 
   if (!data || loading) {
     return <div>Loading</div>;
   }
 
-  const timelineContent = isEmpty() ? (
-    <Cab empty={isEmpty()} recording={recordingData.vamp.recording}></Cab>
+  const timelineContent = empty ? (
+    <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
   ) : (
     <>
       <div className={styles["top-cell"]}>
@@ -95,7 +93,7 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
         ></TimelineClips>
       </div>
       <div className={styles["bottom-cell"]}>
-        <Cab empty={isEmpty()} recording={recordingData.vamp.recording}></Cab>
+        <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
       </div>
     </>
   );

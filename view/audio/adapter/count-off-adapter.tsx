@@ -1,12 +1,12 @@
 import { useQuery } from "@apollo/client";
 import _ from "underscore";
 import gql from "graphql-tag";
-import React, { useEffect, useMemo } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { CountOffAdapterQuery } from "../../state/apollotypes";
 import { CountOff, useUpdateCountOff } from "../../util/count-off-hooks";
-import { useMeasures } from "../../util/metronome-hooks";
 import { useCurrentVampId, usePrevious } from "../../util/react-hooks";
 import { SchedulerInstance } from "../scheduler";
+import { MetronomeContext } from "../../component/workspace/context/metronome-context";
 
 export const COUNT_OFF_ADAPTER_QUERY = gql`
   query CountOffAdapterQuery($vampId: ID!) {
@@ -47,7 +47,9 @@ export const CountOffAdapter: React.FC<CountOffAdapterProps> = ({
 
   const updateCountOff = useUpdateCountOff();
 
-  const { measureMap } = useMeasures({
+  const { getMeasureMap } = useContext(MetronomeContext);
+
+  const measureMap = getMeasureMap({
     start: playPosition,
     end: playPosition,
     formIndex: 0

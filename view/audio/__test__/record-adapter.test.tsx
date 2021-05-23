@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useContext } from "react";
 import { SchedulerInstance } from "../scheduler";
 import { useMutation, useQuery } from "@apollo/client";
 import { RecordAdapter } from "../adapter/record-adapter";
@@ -6,12 +7,22 @@ import {
   useBeginClientClip,
   useEndClientClip
 } from "../../util/client-clip-state-hooks";
+import { useIsEmpty } from "../../component/workspace/hooks/use-is-empty";
 import { mount } from "enzyme";
 
 jest.mock("../../util/react-hooks");
 jest.mock("../../util/vamp-state-hooks");
 jest.mock("../recorder");
 jest.mock("../../util/client-clip-state-hooks");
+jest.mock("../../component/workspace/hooks/use-is-empty", () => ({
+  useIsEmpty: jest.fn()
+}));
+jest.mock("react", () => ({
+  ...jest.requireActual("react"),
+  useContext: jest.fn(() => ({
+    truncateEndOfRecording: (time: number): number => time
+  }))
+}));
 jest.mock("@apollo/client", () => ({
   ...jest.requireActual("@apollo/client"),
   useQuery: jest.fn(),
@@ -27,6 +38,8 @@ describe("Record Adapter", () => {
   });
 
   it("primes scheduler recorder when recording begins", () => {
+    (useIsEmpty as jest.Mock).mockImplementation(() => true);
+
     const primeRecorderSpy = jest.spyOn(SchedulerInstance, "primeRecorder");
     (useQuery as jest.Mock)
       .mockImplementationOnce(() => ({
@@ -73,6 +86,8 @@ describe("Record Adapter", () => {
   });
 
   it("begins client clip when recording begins", () => {
+    (useIsEmpty as jest.Mock).mockImplementation(() => true);
+
     const useBeginClientClipFn = jest.fn();
     (useBeginClientClip as jest.Mock).mockImplementation(
       () => useBeginClientClipFn
@@ -122,7 +137,9 @@ describe("Record Adapter", () => {
     expect(useBeginClientClipFn).toBeCalledWith(0, expect.anything(), 0);
   });
 
-  it("ends client clip when recording begins", () => {
+  it("ends client clip when recording ends", () => {
+    (useIsEmpty as jest.Mock).mockImplementation(() => true);
+
     const useEndClientClipFn = jest.fn();
     (useEndClientClip as jest.Mock).mockImplementation(
       () => useEndClientClipFn

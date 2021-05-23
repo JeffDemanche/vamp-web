@@ -4,6 +4,76 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: CountOffAdapterQuery
+// ====================================================
+
+export interface CountOffAdapterQuery_vamp_countOff {
+  __typename: "CountOff";
+  duration: number;
+}
+
+export interface CountOffAdapterQuery_vamp {
+  __typename: "Vamp";
+  id: string;
+  /**
+   * The position in seconds of the current position before play was pressed.
+   */
+  playPosition: number | null;
+  /**
+   * Contains the data about the count off
+   */
+  countOff: CountOffAdapterQuery_vamp_countOff | null;
+  /**
+   * Is the "count off" currently in process. This happens before playing, etc.
+   * get changed in state.
+   */
+  countingOff: boolean | null;
+  /**
+   * Date.now() of when countdown began (see playStartTime, which is similar).
+   */
+  countingOffStartTime: number | null;
+}
+
+export interface CountOffAdapterQuery {
+  vamp: CountOffAdapterQuery_vamp | null;
+}
+
+export interface CountOffAdapterQueryVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL mutation operation: EmptyVampAdapterUpdateCab
+// ====================================================
+
+export interface EmptyVampAdapterUpdateCab_updateUserInVamp {
+  __typename: "UserInVamp";
+  id: string;
+}
+
+export interface EmptyVampAdapterUpdateCab {
+  updateUserInVamp: EmptyVampAdapterUpdateCab_updateUserInVamp;
+}
+
+export interface EmptyVampAdapterUpdateCabVariables {
+  userId: string;
+  vampId: string;
+  start?: number | null;
+  duration?: number | null;
+  loops?: boolean | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: PlayStopAdapterQuery
 // ====================================================
 
@@ -123,6 +193,32 @@ export interface AddClipMutationVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL mutation operation: RecordAdapterUpdateCab
+// ====================================================
+
+export interface RecordAdapterUpdateCab_updateUserInVamp {
+  __typename: "UserInVamp";
+  id: string;
+}
+
+export interface RecordAdapterUpdateCab {
+  updateUserInVamp: RecordAdapterUpdateCab_updateUserInVamp;
+}
+
+export interface RecordAdapterUpdateCabVariables {
+  userId: string;
+  vampId: string;
+  start?: number | null;
+  duration?: number | null;
+  loops?: boolean | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: SeekAdapterQuery
 // ====================================================
 
@@ -164,50 +260,6 @@ export interface SeekAdapterQuery {
 export interface SeekAdapterQueryVariables {
   vampId: string;
   userId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL query operation: CountOffAdapterQuery
-// ====================================================
-
-export interface CountOffAdapterQuery_vamp_countOff {
-  __typename: "CountOff";
-  duration: number;
-}
-
-export interface CountOffAdapterQuery_vamp {
-  __typename: "Vamp";
-  id: string;
-  /**
-   * The position in seconds of the current position before play was pressed.
-   */
-  playPosition: number | null;
-  /**
-   * Contains the data about the count off
-   */
-  countOff: CountOffAdapterQuery_vamp_countOff | null;
-  /**
-   * Is the "count off" currently in process. This happens before playing, etc.
-   * get changed in state.
-   */
-  countingOff: boolean | null;
-  /**
-   * Date.now() of when countdown began (see playStartTime, which is similar).
-   */
-  countingOffStartTime: number | null;
-}
-
-export interface CountOffAdapterQuery {
-  vamp: CountOffAdapterQuery_vamp | null;
-}
-
-export interface CountOffAdapterQueryVariables {
-  vampId: string;
 }
 
 /* tslint:disable */
@@ -520,6 +572,33 @@ export interface FloorOverlayWrapper {
 }
 
 export interface FloorOverlayWrapperVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: UseIsEmpty
+// ====================================================
+
+export interface UseIsEmpty_vamp_clips {
+  __typename: "Clip";
+  id: string;
+}
+
+export interface UseIsEmpty_vamp {
+  __typename: "Vamp";
+  clips: UseIsEmpty_vamp_clips[];
+}
+
+export interface UseIsEmpty {
+  vamp: UseIsEmpty_vamp | null;
+}
+
+export interface UseIsEmptyVariables {
   vampId: string;
 }
 
@@ -1717,36 +1796,6 @@ export interface MetronomeInfoClientVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: CountOffDurationQuery
-// ====================================================
-
-export interface CountOffDurationQuery_vamp_countOff {
-  __typename: "CountOff";
-  duration: number;
-}
-
-export interface CountOffDurationQuery_vamp {
-  __typename: "Vamp";
-  /**
-   * Contains the data about the count off
-   */
-  countOff: CountOffDurationQuery_vamp_countOff | null;
-}
-
-export interface CountOffDurationQuery {
-  vamp: CountOffDurationQuery_vamp | null;
-}
-
-export interface CountOffDurationQueryVariables {
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
 // GraphQL query operation: CountOffReverseCounterQuery
 // ====================================================
 
@@ -1893,6 +1942,36 @@ export interface TrueTimeClient {
 }
 
 export interface TrueTimeClientVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: CountOffDurationQuery
+// ====================================================
+
+export interface CountOffDurationQuery_vamp_countOff {
+  __typename: "CountOff";
+  duration: number;
+}
+
+export interface CountOffDurationQuery_vamp {
+  __typename: "Vamp";
+  /**
+   * Contains the data about the count off
+   */
+  countOff: CountOffDurationQuery_vamp_countOff | null;
+}
+
+export interface CountOffDurationQuery {
+  vamp: CountOffDurationQuery_vamp | null;
+}
+
+export interface CountOffDurationQueryVariables {
   vampId: string;
 }
 
