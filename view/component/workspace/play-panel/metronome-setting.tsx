@@ -11,15 +11,32 @@ const METRONOME_SOUND_CLIENT = gql`
   query MetronomeSoundClient($vampId: ID!) {
     # loadedVampId @client @export(as: "vampId")
     vamp(id: $vampId) @client {
-      metronomeSound @client
+      sections {
+        id
+        metronomeSound
+      }
+      forms {
+        preSection {
+          id
+        }
+      }
     }
   }
 `;
 
 const UPDATE_METRONOME_SOUND = gql`
-  mutation UpdateMetronomeSound($update: VampUpdateInput!) {
-    updateVamp(update: $update) {
-      # We don't need to do anything with this.
+  mutation UpdateMetronomeSound(
+    $vampId: ID!
+    $formIndex: Int
+    $metronomeSound: String!
+  ) {
+    updatePreSection(
+      update: {
+        vampId: $vampId
+        formIndex: $formIndex
+        sectionUpdate: { metronomeSound: $metronomeSound }
+      }
+    ) {
       metronomeSound
     }
   }
@@ -43,16 +60,21 @@ export const MetronomeSetting = (): JSX.Element => {
     return <div>Loading</div>;
   }
 
+  const preSectionId = data.vamp.forms[0].preSection.id;
+  const preSectionMetronomeSound = data.vamp.sections.find(
+    section => section.id === preSectionId
+  ).metronomeSound;
+
   return (
     <SettingSelect
-      value={data.vamp.metronomeSound}
+      value={preSectionMetronomeSound}
       options={[
         { index: 1, value: "Hi-Hat" },
         { index: 2, value: "Beep" }
       ]}
       onChange={(payload: string): void => {
         updateMetronomeSound({
-          variables: { update: { id: vampId, metronomeSound: payload } }
+          variables: { vampId, metronomeSound: payload }
         });
       }}
     ></SettingSelect>

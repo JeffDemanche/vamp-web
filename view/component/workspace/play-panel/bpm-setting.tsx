@@ -8,15 +8,29 @@ const BPM_CLIENT = gql`
   query BPMClient($vampId: ID!) {
     # loadedVampId @client @export(as: "vampId")
     vamp(id: $vampId) @client {
-      bpm @client
+      sections {
+        id
+        bpm
+      }
+      forms {
+        preSection {
+          id
+        }
+      }
     }
   }
 `;
 
 const UPDATE_BPM_MUTATION = gql`
   # See server typedefs for VampUpdateInput.
-  mutation UpdateBPM($update: VampUpdateInput!) {
-    updateVamp(update: $update) {
+  mutation UpdateBPM($vampId: ID!, $formIndex: Int, $bpm: Int!) {
+    updatePreSection(
+      update: {
+        vampId: $vampId
+        formIndex: $formIndex
+        sectionUpdate: { bpm: $bpm }
+      }
+    ) {
       # It's not really necessary to select anything here. For now the mutation
       # returns all the Vamp data, but we don't need it.
       bpm
@@ -41,15 +55,20 @@ export const BPMSetting = (): JSX.Element => {
     return <div>Loading</div>;
   }
 
+  const preSectionId = data.vamp.forms[0].preSection.id;
+  const preSectionBPM = data.vamp.sections.find(
+    section => section.id === preSectionId
+  ).bpm;
+
   return (
     <SettingNumeric
-      value={data.vamp.bpm}
+      value={preSectionBPM}
       integer={true}
       minValue={1}
       maxValue={499}
       text="BPM"
       onChange={(payload: number): void => {
-        updateBPM({ variables: { update: { id: vampId, bpm: payload } } });
+        updateBPM({ variables: { vampId, bpm: payload } });
       }}
     ></SettingNumeric>
   );

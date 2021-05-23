@@ -11,15 +11,32 @@ const BEATS_PER_BAR_CLIENT = gql`
   query BeatsPerBarClient($vampId: ID!) {
     # loadedVampId @client @export(as: "vampId")
     vamp(id: $vampId) @client {
-      beatsPerBar @client
+      sections {
+        id
+        beatsPerBar
+      }
+      forms {
+        preSection {
+          id
+        }
+      }
     }
   }
 `;
 
 const UPDATE_BEATS_PER_BAR = gql`
-  mutation UpdateBeatsPerBar($update: VampUpdateInput!) {
-    updateVamp(update: $update) {
-      # We don't need to do anything with this.
+  mutation UpdateBeatsPerBar(
+    $vampId: ID!
+    $formIndex: Int
+    $beatsPerBar: Int!
+  ) {
+    updatePreSection(
+      update: {
+        vampId: $vampId
+        formIndex: $formIndex
+        sectionUpdate: { beatsPerBar: $beatsPerBar }
+      }
+    ) {
       beatsPerBar
     }
   }
@@ -43,16 +60,21 @@ export const BeatsPerBarSetting = (): JSX.Element => {
     return <div>Loading</div>;
   }
 
+  const preSectionId = data.vamp.forms[0].preSection.id;
+  const preSectionBeatsPerBar = data.vamp.sections.find(
+    section => section.id === preSectionId
+  ).beatsPerBar;
+
   return (
     <SettingNumeric
-      value={data.vamp.beatsPerBar}
+      value={preSectionBeatsPerBar}
       integer={true}
       minValue={1}
       maxValue={499}
       text="/ Bar"
       onChange={(payload: number): void => {
         updateBeatsPerBar({
-          variables: { update: { id: vampId, beatsPerBar: payload } }
+          variables: { vampId, beatsPerBar: payload }
         });
       }}
     ></SettingNumeric>
