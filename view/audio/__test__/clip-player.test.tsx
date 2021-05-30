@@ -7,6 +7,11 @@ import { audioStore } from "../audio-store";
 import { SchedulerInstance } from "../scheduler";
 
 jest.mock("../../util/client-clip-state-hooks");
+jest.mock("../../util/react-hooks");
+jest.mock("@apollo/client", () => ({
+  ...jest.requireActual("@apollo/client"),
+  useQuery: jest.fn(() => ({ data: { vamp: { countOff: { duration: 2 } } } }))
+}));
 
 const clipMocks = [
   {
@@ -340,7 +345,9 @@ describe("Clip Player (Scheduler adapter)", () => {
 
       expect(Object.keys(SchedulerInstance.events).length).toEqual(1);
       expect(SchedulerInstance.events["cc1key"]).toBeDefined();
-      expect(SchedulerInstance.events["cc1key"].start).toBeCloseTo(-0.16);
+      // Start time for client clip takes into account countOff duration and
+      // latency compensation.
+      expect(SchedulerInstance.events["cc1key"].start).toBeCloseTo(-2.16);
     });
 
     it("removes scheduler event when client clip is removed", () => {

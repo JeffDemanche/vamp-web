@@ -268,6 +268,36 @@ export interface SeekAdapterQueryVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: ClipPlayerQuery
+// ====================================================
+
+export interface ClipPlayerQuery_vamp_countOff {
+  __typename: "CountOff";
+  duration: number;
+}
+
+export interface ClipPlayerQuery_vamp {
+  __typename: "Vamp";
+  /**
+   * Contains the data about the count off
+   */
+  countOff: ClipPlayerQuery_vamp_countOff | null;
+}
+
+export interface ClipPlayerQuery {
+  vamp: ClipPlayerQuery_vamp | null;
+}
+
+export interface ClipPlayerQueryVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FloorAdapter
 // ====================================================
 
@@ -548,6 +578,68 @@ export interface UpdateClip {
 
 export interface UpdateClipVariables {
   clipUpdate: UpdateClipInput;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: MetronomeQuery
+// ====================================================
+
+export interface MetronomeQuery_vamp_sections_subSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_sections {
+  __typename: "Section";
+  id: string;
+  name: string | null;
+  bpm: number;
+  beatsPerBar: number;
+  metronomeSound: string;
+  startMeasure: number;
+  repetitions: number | null;
+  subSections: MetronomeQuery_vamp_sections_subSections[] | null;
+}
+
+export interface MetronomeQuery_vamp_forms_preSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_forms_insertedSections {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_forms_postSection {
+  __typename: "Section";
+  id: string;
+}
+
+export interface MetronomeQuery_vamp_forms {
+  __typename: "Form";
+  preSection: MetronomeQuery_vamp_forms_preSection;
+  insertedSections: MetronomeQuery_vamp_forms_insertedSections[];
+  postSection: MetronomeQuery_vamp_forms_postSection | null;
+}
+
+export interface MetronomeQuery_vamp {
+  __typename: "Vamp";
+  sections: MetronomeQuery_vamp_sections[];
+  forms: MetronomeQuery_vamp_forms[];
+}
+
+export interface MetronomeQuery {
+  vamp: MetronomeQuery_vamp | null;
+}
+
+export interface MetronomeQueryVariables {
+  vampId: string;
 }
 
 /* tslint:disable */
@@ -1828,68 +1920,6 @@ export interface CountOffReverseCounterQuery {
 }
 
 export interface CountOffReverseCounterQueryVariables {
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL query operation: MetronomeQuery
-// ====================================================
-
-export interface MetronomeQuery_vamp_sections_subSections {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeQuery_vamp_sections {
-  __typename: "Section";
-  id: string;
-  name: string | null;
-  bpm: number;
-  beatsPerBar: number;
-  metronomeSound: string;
-  startMeasure: number;
-  repetitions: number | null;
-  subSections: MetronomeQuery_vamp_sections_subSections[] | null;
-}
-
-export interface MetronomeQuery_vamp_forms_preSection {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeQuery_vamp_forms_insertedSections {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeQuery_vamp_forms_postSection {
-  __typename: "Section";
-  id: string;
-}
-
-export interface MetronomeQuery_vamp_forms {
-  __typename: "Form";
-  preSection: MetronomeQuery_vamp_forms_preSection;
-  insertedSections: MetronomeQuery_vamp_forms_insertedSections[];
-  postSection: MetronomeQuery_vamp_forms_postSection | null;
-}
-
-export interface MetronomeQuery_vamp {
-  __typename: "Vamp";
-  sections: MetronomeQuery_vamp_sections[];
-  forms: MetronomeQuery_vamp_forms[];
-}
-
-export interface MetronomeQuery {
-  vamp: MetronomeQuery_vamp | null;
-}
-
-export interface MetronomeQueryVariables {
   vampId: string;
 }
 
