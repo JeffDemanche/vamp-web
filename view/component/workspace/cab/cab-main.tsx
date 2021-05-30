@@ -7,7 +7,7 @@ import {
   useCurrentUserId,
   usePrevious
 } from "../../../util/react-hooks";
-import { CabMainQuery, UpdateCab } from "../../../state/apollotypes";
+import { CabMainQuery, CabMode, UpdateCab } from "../../../state/apollotypes";
 import {
   useWorkspaceWidth,
   useWorkspaceLeft,
@@ -23,20 +23,24 @@ import {
   useSeek,
   useStop
 } from "../../../util/vamp-state-hooks";
-import { VampToggleButton } from "../../element/toggle-button";
 import classNames from "classnames";
+import { MultiModeButton } from "../../element/multi-mode-button/multi-mode-button";
+import { InfiniteClipIcon } from "../../element/icon/infinite-clip-icon";
+import { StackClipIcon } from "../../element/icon/stack-clip-icon";
+import { TelescopeClipIcon } from "../../element/icon/telescope-clip-icon";
+import { useCabLoops } from "../hooks/use-cab-loops";
 
 export const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
     userInVamp(vampId: $vampId, userId: $userId) @client {
-      id @client
-      cab @client {
-        user @client {
-          id @client
+      id
+      cab {
+        user {
+          id
         }
-        start @client
-        duration @client
-        loops @client
+        start
+        duration
+        mode
       }
     }
   }
@@ -48,7 +52,7 @@ const UPDATE_CAB = gql`
     $vampId: ID!
     $start: Float
     $duration: Float
-    $loops: Boolean
+    $mode: CabMode
   ) {
     updateUserInVamp(
       update: {
@@ -56,7 +60,7 @@ const UPDATE_CAB = gql`
         vampId: $vampId
         cabStart: $start
         cabDuration: $duration
-        cabLoops: $loops
+        cabMode: $mode
       }
     ) {
       id
@@ -97,11 +101,13 @@ const CabMain: React.FC = () => {
 
   const {
     userInVamp: {
-      cab: { start, duration, loops }
+      cab: { start, duration, mode }
     }
   } = data || {
-    userInVamp: { id: "", cab: { start: 0, duration: 0, loops: false } }
+    userInVamp: { id: "", cab: { start: 0, duration: 0 } }
   };
+
+  const loops = useCabLoops();
 
   const prevStart = usePrevious(start);
 
@@ -110,6 +116,9 @@ const CabMain: React.FC = () => {
       seek(start);
     }
   }, [prevStart, seek, start]);
+
+  const modes = [CabMode.INFINITE, CabMode.STACK, CabMode.TELESCOPE];
+  const [modeIndex, setModeIndex] = useState(modes.indexOf(mode));
 
   /**
    * updateCab does not update the local cache, so we're doing it manually here.
@@ -120,16 +129,16 @@ const CabMain: React.FC = () => {
     vampId,
     duration,
     start,
-    loops
+    mode
   }: {
     userId: string;
     vampId: string;
     duration?: number;
     start?: number;
-    loops?: boolean;
+    mode?: CabMode;
   }): void => {
     updateCab({
-      variables: { userId, vampId, duration, start, loops }
+      variables: { userId, vampId, duration, start, mode }
     });
   };
 
@@ -171,16 +180,21 @@ const CabMain: React.FC = () => {
         >
           {playhead}
           <div className={styles["track-bounds-controls"]}>
-            <VampToggleButton
-              on={loops}
-              style={{ width: "40px", height: "35px" }}
-              onToggle={(e, on): void => {
-                e.stopPropagation();
-                updateCabWithClient({ userId, vampId, loops: on });
+            <MultiModeButton
+              selectedIndex={modeIndex}
+              modes={[
+                {
+                  name: "Infinity",
+                  icon: <InfiniteClipIcon />
+                },
+                { name: "Stack", icon: <StackClipIcon /> },
+                { name: "Telescope", icon: <TelescopeClipIcon /> }
+              ]}
+              onModeChange={(mode, index): void => {
+                setModeIndex(index);
+                updateCabWithClient({ userId, vampId, mode: modes[index] });
               }}
-            >
-              <i className={classNames("ri-skip-back-line", "ri-lg")}></i>
-            </VampToggleButton>
+            ></MultiModeButton>
           </div>
           <img
             className={styles["recordIcon"]}

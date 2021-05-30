@@ -19,6 +19,7 @@ import {
 import { SchedulerInstance } from "../scheduler";
 import { useIsEmpty } from "../../component/workspace/hooks/use-is-empty";
 import { MetronomeContext } from "../../component/workspace/context/metronome-context";
+import { useCabLoops } from "../../component/workspace/hooks/use-cab-loops";
 
 interface RecordAdapterProps {
   scheduler: typeof SchedulerInstance;
@@ -39,7 +40,6 @@ const RECORD_ADAPTER_QUERY = gql`
       cab {
         start
         duration
-        loops
       }
       prefs {
         latencyCompensation
@@ -82,7 +82,6 @@ const UPDATE_CAB_MUTATION = gql`
     $vampId: ID!
     $start: Float
     $duration: Float
-    $loops: Boolean
   ) {
     updateUserInVamp(
       update: {
@@ -90,7 +89,6 @@ const UPDATE_CAB_MUTATION = gql`
         vampId: $vampId
         cabStart: $start
         cabDuration: $duration
-        cabLoops: $loops
       }
     ) {
       id
@@ -115,13 +113,15 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
         countOff: { duration: countOffDuration }
       },
       userInVamp: {
-        cab: { start: cabStart, duration: cabDuration, loops: cabLoops },
+        cab: { start: cabStart, duration: cabDuration },
         prefs: { latencyCompensation }
       }
     }
   } = useQuery<RecordAdapterQuery>(RECORD_ADAPTER_QUERY, {
     variables: { userId, vampId }
   });
+
+  const cabLoops = useCabLoops();
 
   const [currentRecordingId, setCurrentRecordingId] = useState<string>(null);
 

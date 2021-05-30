@@ -1,0 +1,76 @@
+@import "../../../constants/gradients.less";
+
+.multi-mode-button {
+  display: flex;
+  height: 33px;
+  line-height: 33px;
+}
+
+.multi-mode-button-button {
+  display: flex;
+  margin: 0;
+  padding: 0;
+
+  border: none;
+  border-radius: 2px;
+
+  -moz-box-shadow: inset 0 2px 4px #00000040;
+  -webkit-box-shadow: inset 0 2px 4px #00000040;
+  box-shadow: inset 0 2px 4px #00000040;
+
+  -webkit-transition: box-shadow 0.1s linear;
+  -moz-transition: box-shadow 0.1s linear;
+  transition: box-shadow 0.1s linear;
+
+  width: 33px;
+  height: 33px;
+
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+
+    -moz-filter: drop-shadow(0px 2px 2px #00000080);
+    -webkit-filter: drop-shadow(0px 2px 2px #00000080);
+    filter: drop-shadow(0px 2px 2px #00000080);
+
+    -webkit-transition: filter 0.1s linear;
+    -moz-transition: filter 0.1s linear;
+    transition: filter 0.1s linear;
+  }
+
+  &:hover {
+    -moz-box-shadow: inset 0 4px 4px #00000040;
+    -webkit-box-shadow: inset 0 4px 4px #00000040;
+    box-shadow: inset 0 4px 4px #00000040;
+  }
+
+  &:hover img {
+    -moz-filter: drop-shadow(0px 4px 2px #00000080);
+    -webkit-filter: drop-shadow(0px 4px 2px #00000080);
+    filter: drop-shadow(0px 4px 2px #00000080);
+  }
+
+  &::after {
+    width: 5px;
+  }
+}
+
+.button-option-1 {
+  background: @grass-vertical;
+}
+
+.button-option-2 {
+  background: @timepiece-vertical;
+}
+
+.button-option-3 {
+  background: @vibes-vertical;
+}
+
+.multi-mode-button-text {
+  margin-left: 5px;
+  font-size: 16pt;
+  color: #00000080;
+}
