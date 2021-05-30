@@ -3,19 +3,19 @@ import { gql } from "@apollo/client";
 export const USER_IN_VAMP_CLIENT = gql`
   query UserInVampClient($vampId: ID!, $userId: ID!) {
     userInVamp(vampId: $vampId, userId: $userId) @client {
-      id @client
-      user @client {
-        id @client
+      id
+      user {
+        id
       }
-      vamp @client {
-        id @client
+      vamp {
+        id
       }
-      cab @client {
-        user @client {
-          id @client
+      cab {
+        user {
+          id
         }
-        start @client
-        duration @client
+        start
+        duration
       }
     }
   }
@@ -24,11 +24,10 @@ export const USER_IN_VAMP_CLIENT = gql`
 export const CAB_CLIENT = gql`
   query CabClient($vampId: ID!, $userId: ID!) {
     userInVamp(vampId: $vampId, userId: $userId) @client {
-      id @client
-      cab @client {
-        start @client
-        duration @client
-        loops @client
+      id
+      cab {
+        start
+        duration
       }
     }
   }

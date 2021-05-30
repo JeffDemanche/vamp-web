@@ -15,7 +15,6 @@ const UPDATE_CAB_MUTATION = gql`
     $vampId: ID!
     $start: Float
     $duration: Float
-    $loops: Boolean
   ) {
     updateUserInVamp(
       update: {
@@ -23,7 +22,6 @@ const UPDATE_CAB_MUTATION = gql`
         vampId: $vampId
         cabStart: $start
         cabDuration: $duration
-        cabLoops: $loops
       }
     ) {
       id
@@ -52,7 +50,7 @@ export const EmptyVampAdapter: React.FC<{}> = () => {
     if (empty && !prevEmpty) {
       seek(0);
       updateCab({
-        variables: { userId, vampId, start: 0, loops: false }
+        variables: { userId, vampId, start: 0 }
       });
     }
   }, [cache, empty, prevEmpty, seek, updateCab, userId, vampId]);
