@@ -35,7 +35,7 @@ const WORKSPACE_AUDIO_CLIENT = gql`
       beatsPerBar
       playing
       metronomeSound
-      playStartTime
+      playPosition
 
       start
       end
@@ -69,31 +69,6 @@ const WORKSPACE_AUDIO_CLIENT = gql`
         duration
         latencyCompensation
       }
-
-      sections {
-        id
-        name
-        bpm
-        beatsPerBar
-        metronomeSound
-        startMeasure
-        repetitions
-        subSections {
-          id
-        }
-      }
-
-      forms {
-        preSection {
-          id
-        }
-        insertedSections {
-          id
-        }
-        postSection {
-          id
-        }
-      }
     }
     userInVamp(vampId: $vampId, userId: $userId) @client {
       id
@@ -125,7 +100,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   // State query for clientside Vamp playback info.
   const {
     data: {
-      vamp: { playing, clips, clientClips, playStartTime, sections, forms },
+      vamp: { playing, clips, clientClips, playPosition },
       userInVamp: {
         cab: { start: cabStart, duration: cabDuration, loops: cabLoops }
       }
@@ -196,7 +171,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
    * Handles changes to form.
    */
   useEffect(() => {
-    scheduler.updateMetronome(getMeasureMap, playStartTime);
+    scheduler.updateMetronome(getMeasureMap, playPosition);
   }, [scheduler, getMeasureMap]);
 
   /**

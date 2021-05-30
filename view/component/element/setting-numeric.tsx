@@ -90,6 +90,8 @@ const SettingNumeric: React.FunctionComponent<SettingNumeric> = ({
       <div className={styles["setting-numeric"]}>
         <input
           ref={wrapperRef}
+          autoFocus
+          defaultValue={value}
           type="text"
           onKeyPress={(e): void => {
             if (e.which == 13) {

@@ -121,10 +121,10 @@ class MetronomeScheduler {
   };
 
   private firstLoadedTick = (): LoadedTick =>
-    this.loadedTicks[this._firstLoadedTickCode];
+    this._firstLoadedTickCode && this.loadedTicks[this._firstLoadedTickCode];
 
   private lastLoadedTick = (): LoadedTick =>
-    this.loadedTicks[this._lastLoadedTickCode];
+    this._lastLoadedTickCode && this.loadedTicks[this._lastLoadedTickCode];
 
   /**
    * 1 if code1 comes after code2, 0 if they're equal, -1 if code1 comes before
@@ -167,7 +167,6 @@ class MetronomeScheduler {
     if (this.firstLoadedTick() && end < this.firstLoadedTick().time) {
       end = this.firstLoadedTick().time;
     }
-
     const measureMap = this._getMeasureMap({ start, end });
 
     const keys = Object.keys(measureMap).map(Number);
