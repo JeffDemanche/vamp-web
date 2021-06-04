@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useContext } from "react";
 import { SchedulerInstance } from "../scheduler";
 import { useMutation, useQuery } from "@apollo/client";
 import { RecordAdapter } from "../adapter/record-adapter";
@@ -17,6 +16,7 @@ jest.mock("../../util/client-clip-state-hooks");
 jest.mock("../../component/workspace/hooks/use-is-empty", () => ({
   useIsEmpty: jest.fn()
 }));
+jest.mock("../../component/workspace/hooks/use-cab-loops");
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
   useContext: jest.fn(() => ({
@@ -52,7 +52,7 @@ describe("Record Adapter", () => {
             }
           },
           userInVamp: {
-            cab: { start: 0, duration: 4, loops: true },
+            cab: { start: 0, duration: 4 },
             prefs: { latencyCompensation: 0 }
           }
         }
@@ -67,7 +67,7 @@ describe("Record Adapter", () => {
             }
           },
           userInVamp: {
-            cab: { start: 0, duration: 4, loops: true },
+            cab: { start: 0, duration: 4 },
             prefs: { latencyCompensation: 0 }
           }
         }
@@ -104,7 +104,7 @@ describe("Record Adapter", () => {
             }
           },
           userInVamp: {
-            cab: { start: 0, duration: 4, loops: true },
+            cab: { start: 0, duration: 4 },
             prefs: { latencyCompensation: 0 }
           }
         }
@@ -119,7 +119,7 @@ describe("Record Adapter", () => {
             }
           },
           userInVamp: {
-            cab: { start: 0, duration: 4, loops: true },
+            cab: { start: 0, duration: 4 },
             prefs: { latencyCompensation: 0 }
           }
         }
@@ -156,7 +156,7 @@ describe("Record Adapter", () => {
             }
           },
           userInVamp: {
-            cab: { start: 0, duration: 4, loops: true },
+            cab: { start: 0, duration: 4 },
             prefs: { latencyCompensation: 0 }
           }
         }
@@ -171,7 +171,7 @@ describe("Record Adapter", () => {
             }
           },
           userInVamp: {
-            cab: { start: 0, duration: 4, loops: true },
+            cab: { start: 0, duration: 4 },
             prefs: { latencyCompensation: 0 }
           }
         }
@@ -186,7 +186,7 @@ describe("Record Adapter", () => {
             }
           },
           userInVamp: {
-            cab: { start: 0, duration: 4, loops: true },
+            cab: { start: 0, duration: 4 },
             prefs: { latencyCompensation: 0 }
           }
         }

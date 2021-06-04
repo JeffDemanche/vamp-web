@@ -12,19 +12,21 @@ import { useEffect } from "react";
 import { useTrueTime, useCurrentVampId } from "../util/react-hooks";
 import { useIsEmpty } from "../util/workspace-hooks";
 import { useSeek } from "../util/vamp-state-hooks";
+import { useCabLoops } from "../component/workspace/hooks/use-cab-loops";
 
 interface LooperProps {
   start: number;
   end: number;
   playing: boolean;
-  loops: boolean;
 }
 
-const Looper = ({ start, end, playing, loops }: LooperProps): JSX.Element => {
+const Looper = ({ start, end, playing }: LooperProps): JSX.Element => {
   const vampId = useCurrentVampId();
 
   // If empty we render in the "new Vamp" layout.
   const empty = useIsEmpty(vampId);
+
+  const cabLoops = useCabLoops();
 
   // TODO If there's lag on playback this is a potential source.
   const TIME_UPDATE_FREQ_MS = 5;
@@ -37,7 +39,7 @@ const Looper = ({ start, end, playing, loops }: LooperProps): JSX.Element => {
     // looping is enabled. Once that mutation happens, the next state update
     // should trigger the actual seeking behavior that's defined in
     // vamp-audio.tsx
-    if (playing && loops && end > start && trueTime >= end && !empty) {
+    if (playing && cabLoops && end > start && trueTime >= end && !empty) {
       apolloSeek(start);
     }
   }, [trueTime]);

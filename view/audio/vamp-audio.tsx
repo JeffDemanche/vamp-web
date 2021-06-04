@@ -25,6 +25,7 @@ import { PlayStopAdapter } from "./adapter/play-stop-adapter";
 import { RecordAdapter } from "./adapter/record-adapter";
 import { EmptyVampAdapter } from "./adapter/empty-vamp-adapter";
 import { MetronomeContext } from "../component/workspace/context/metronome-context";
+import { useCabLoops } from "../component/workspace/hooks/use-cab-loops";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!, $userId: ID!) {
@@ -75,7 +76,6 @@ const WORKSPACE_AUDIO_CLIENT = gql`
       cab {
         start
         duration
-        loops
       }
     }
   }
@@ -102,12 +102,14 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     data: {
       vamp: { playing, clips, clientClips, playPosition },
       userInVamp: {
-        cab: { start: cabStart, duration: cabDuration, loops: cabLoops }
+        cab: { start: cabStart, duration: cabDuration }
       }
     }
   } = useQuery<WorkspaceAudioClient>(WORKSPACE_AUDIO_CLIENT, {
     variables: { vampId, userId }
   });
+
+  const cabLoops = useCabLoops();
 
   const setLoop = useSetLoop();
 
@@ -207,7 +209,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       <Looper
         start={cabStart}
         end={cabDuration + cabStart}
-        loops={cabLoops}
         playing={playing}
       ></Looper>
       <RecordAdapter scheduler={scheduler} context={context}></RecordAdapter>

@@ -65,7 +65,6 @@ export interface EmptyVampAdapterUpdateCabVariables {
   vampId: string;
   start?: number | null;
   duration?: number | null;
-  loops?: boolean | null;
 }
 
 /* tslint:disable */
@@ -127,7 +126,6 @@ export interface RecordAdapterQuery_userInVamp_cab {
   __typename: "Cab";
   start: number;
   duration: number;
-  loops: boolean;
 }
 
 export interface RecordAdapterQuery_userInVamp_prefs {
@@ -210,7 +208,6 @@ export interface RecordAdapterUpdateCabVariables {
   vampId: string;
   start?: number | null;
   duration?: number | null;
-  loops?: boolean | null;
 }
 
 /* tslint:disable */
@@ -385,7 +382,6 @@ export interface WorkspaceAudioClient_userInVamp_cab {
   __typename: "Cab";
   start: number;
   duration: number;
-  loops: boolean;
 }
 
 export interface WorkspaceAudioClient_userInVamp {
@@ -465,7 +461,7 @@ export interface CabMainQuery_userInVamp_cab {
   user: CabMainQuery_userInVamp_cab_user;
   start: number;
   duration: number;
-  loops: boolean;
+  mode: CabMode;
 }
 
 export interface CabMainQuery_userInVamp {
@@ -509,7 +505,7 @@ export interface UpdateCabVariables {
   vampId: string;
   start?: number | null;
   duration?: number | null;
-  loops?: boolean | null;
+  mode?: CabMode | null;
 }
 
 /* tslint:disable */
@@ -622,6 +618,37 @@ export interface FloorOverlayWrapper {
 
 export interface FloorOverlayWrapperVariables {
   vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: UseCabLoops
+// ====================================================
+
+export interface UseCabLoops_userInVamp_cab {
+  __typename: "Cab";
+  mode: CabMode;
+}
+
+export interface UseCabLoops_userInVamp {
+  __typename: "UserInVamp";
+  cab: UseCabLoops_userInVamp_cab;
+}
+
+export interface UseCabLoops {
+  /**
+   * Tries to find a UserInVamp, or adds one if not found.
+   */
+  userInVamp: UseCabLoops_userInVamp;
+}
+
+export interface UseCabLoopsVariables {
+  vampId: string;
+  userId: string;
 }
 
 /* tslint:disable */
@@ -1016,7 +1043,7 @@ export interface GetUserInVamp_userInVamp_cab {
   user: GetUserInVamp_userInVamp_cab_user;
   start: number;
   duration: number;
-  loops: boolean;
+  mode: CabMode;
   countdown: number;
 }
 
@@ -1075,7 +1102,7 @@ export interface UserInVampSubscription_subUserInVamp_cab {
   user: UserInVampSubscription_subUserInVamp_cab_user;
   start: number;
   duration: number;
-  loops: boolean;
+  mode: CabMode;
   countdown: number;
 }
 
@@ -1720,7 +1747,6 @@ export interface CabClient_userInVamp_cab {
   __typename: "Cab";
   start: number;
   duration: number;
-  loops: boolean;
 }
 
 export interface CabClient_userInVamp {
@@ -2154,6 +2180,15 @@ export interface ClientClipRealClipId {
 //==============================================================
 // START Enums and Input Objects
 //==============================================================
+
+/**
+ * How the cab handles looping logic
+ */
+export enum CabMode {
+  INFINITE = "INFINITE",
+  STACK = "STACK",
+  TELESCOPE = "TELESCOPE",
+}
 
 /**
  * The type of content contained in a clip
