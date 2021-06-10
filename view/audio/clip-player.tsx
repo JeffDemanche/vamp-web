@@ -45,15 +45,20 @@ interface ClipPlayerProps {
 
 const createContentEvent = ({
   id,
-  start,
+  clipStart,
+  contentStart,
   duration,
   storeKey
 }: {
   id: string;
-  start: number;
+  clipStart: number;
+  contentStart: number;
   duration?: number;
   storeKey: string;
 }): SchedulerEvent => {
+  // Will be negative if content starts before clip.
+  const contentOffset = contentStart - clipStart;
+  const start = contentOffset < 0 ? clipStart : contentStart;
   return {
     id,
     start,
@@ -84,13 +89,23 @@ const createContentEvent = ({
 
       const contextDiff = context.currentTime - startTime;
 
+      // If the content has a negative start time relative to the clip (i.e. the
+      // content starts earlier than the clip does), contentOffset gives us
+      // a positive value to add to the event dispatch offset, so we start the
+      // content that far into it.
+      const timeIntoContentToStart = contentOffset < 0 ? -contentOffset : 0;
+
       // The WAA start function takes different params for delaying the
       // start of a node (when) and playing the node from a point other
       // than the start (offset).
       const whenVal = (offset < 0 ? -offset : 0) + (when ?? 0);
       const offsetVal = offset > 0 ? offset : 0;
 
-      source.start(startTime + whenVal, offsetVal + contextDiff, duration);
+      source.start(
+        startTime + whenVal,
+        offsetVal + contextDiff + timeIntoContentToStart,
+        duration
+      );
 
       return source;
     }
@@ -98,7 +113,9 @@ const createContentEvent = ({
 };
 
 /**
- * Calculates the real scheduler start time for a piece of clip content.
+ * Calculates the real scheduler start time for a piece of clip content. If this
+ * is negative, the negative portion of the content should not be played. This
+ * is handled in `createContentEvent`.
  */
 const calcContentStart = (
   clip: Clip,
@@ -108,12 +125,22 @@ const calcContentStart = (
 
 /**
  * Calculates how long clip content should play for, respecting that it might
- * get cut off if the clip ends before it does.
+ * get cut off if the clip ends before it does and also that it might start
+ * before the clip starts (so this returns the number of seconds after the audio
+ * begins that it should stop).
  */
 const calcContentDuration = (
   clip: Clip,
   clipContent: Clip["content"][number]
-): number => Math.min(clipContent.duration, clip.duration - clipContent.start);
+): number => {
+  const contentStart = calcContentStart(clip, clipContent);
+  let contentStartInClip = contentStart - clip.start;
+  if (contentStartInClip < 0) contentStartInClip = 0;
+  return Math.min(
+    clipContent.duration - contentStartInClip,
+    clip.duration - contentStartInClip
+  );
+};
 
 /**
  * Called for every clip addition in cache.
@@ -125,7 +152,8 @@ const onClipAdded = (clip: Clip, scheduler: Scheduler): void => {
         scheduler.addEvent(
           createContentEvent({
             id: content.id,
-            start: calcContentStart(clip, content),
+            clipStart: clip.start,
+            contentStart: calcContentStart(clip, content),
             duration: calcContentDuration(clip, content),
             storeKey: content.audio.id
           })
@@ -173,7 +201,8 @@ const onClipContentAdded = (
     scheduler.addEvent(
       createContentEvent({
         id: clipContent.id,
-        start: calcContentStart(clip, clipContent),
+        clipStart: clip.start,
+        contentStart: calcContentStart(clip, clipContent),
         duration: calcContentDuration(clip, clipContent),
         storeKey: clipContent.audio.id
       })
@@ -195,7 +224,8 @@ const onClipContentChanged = (
     scheduler.addEvent(
       createContentEvent({
         id: clipContent.id,
-        start: calcContentStart(clip, clipContent),
+        clipStart: clip.start,
+        contentStart: calcContentStart(clip, clipContent),
         duration: calcContentDuration(clip, clipContent),
         storeKey: clipContent.audio.id
       })
@@ -216,8 +246,10 @@ const onClipContentChanged = (
   if (
     prevClip.start !== clip.start ||
     prevClipContent.start !== clipContent.start
-  )
-    eventUpdate.start = calcContentStart(clip, clipContent);
+  ) {
+    const contentStart = calcContentStart(clip, clipContent);
+    eventUpdate.start = clipContent.start >= 0 ? contentStart : clip.start;
+  }
 
   if (
     prevClip.duration !== clip.duration ||
@@ -324,7 +356,8 @@ const onClientClipChanged = (
     scheduler.addEvent(
       createContentEvent({
         id: clientClip.audioStoreKey,
-        start:
+        clipStart: clientClip.start,
+        contentStart:
           clientClip.start - clientClip.latencyCompensation - countOffDuration,
         storeKey: clientClip.audioStoreKey
       })
