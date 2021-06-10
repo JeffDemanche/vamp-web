@@ -9,6 +9,7 @@ import { useCurrentVampId } from "../../../util/react-hooks";
 import { MutableRefObject } from "react";
 import { Metronome } from "./metronome/metronome";
 import { useIsEmpty } from "../hooks/use-is-empty";
+import { GuidelineOverlay } from "../guidelines/guideline-overlay";
 
 const TIMELINE_CLIENT = gql`
   query TimelineClient($vampId: ID!) {
@@ -98,7 +99,12 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
     </>
   );
 
-  return <div className={styles["timeline"]}>{timelineContent}</div>;
+  return (
+    <div className={styles["timeline-and-guidelines"]}>
+      <GuidelineOverlay></GuidelineOverlay>
+      <div className={styles["timeline"]}>{timelineContent}</div>
+    </div>
+  );
 };
 
 export default Timeline;
