@@ -467,19 +467,30 @@ class Scheduler {
     const currentVampTime =
       this._idleTime + (contextTime - this._audioContextPlayStart);
 
-    // We use idleTime if all events are being dispatched at the same time, and
-    // we use the current calculated Vamp time if this method is being called by
-    // an event update while playing.
+    // We base offset times for events on idleTime if all events are being
+    // dispatched at the same time, and we use the current calculated Vamp time
+    // if this method is being called by an event update while playing. This
+    // will be negative if the event plays some time in the future, positive if
+    // it should be started somewhere in the middle.
     const eventOffset = startWhilePlaying
       ? currentVampTime - event.start
       : this._idleTime - event.start;
+
+    // event.duration doesn't account for where playback starts. This will clamp
+    // the *duration* of the dispatched event based on if the playback starts
+    // after the event ended (*0*), before the event begins (*event.duration*),
+    // or somewhere during the event (*the remaining event duration*).
+    const durationAfterPlayhead = Math.min(
+      Math.max(event.duration - (currentVampTime - event.start), 0),
+      event.duration
+    );
 
     const node = await event.dispatch({
       context: this._context,
       startTime: startWhilePlaying ? contextTime : this._audioContextPlayStart,
       when: after,
       offset: eventOffset,
-      duration: event.duration
+      duration: durationAfterPlayhead
     });
     if (node) this._dispatchedAudioNodes[eventId] = node;
   };
@@ -606,8 +617,8 @@ class Scheduler {
   ): void => {
     if (_.isEmpty({ start, duration })) return;
 
-    start && (this._events[eventId].start = start);
-    duration && (this._events[eventId].duration = duration);
+    start !== undefined && (this._events[eventId].start = start);
+    duration !== undefined && (this._events[eventId].duration = duration);
     if (this._dispatchedAudioNodes[eventId]) {
       this._dispatchedAudioNodes[eventId]?.disconnect();
       this._dispatchedAudioNodes[eventId]?.stop(0);
