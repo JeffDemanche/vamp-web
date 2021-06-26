@@ -4,7 +4,7 @@ import styles = require("./timeline.less");
 import Clip from "../clip/clip";
 import Track from "./track";
 import { useContext, useEffect, useMemo, useState } from "react";
-import { DropZone, DropZonesContext } from "../workspace-drop-zones";
+import { DraggableContext, Dropzone } from "../context/draggable-context";
 
 interface TimelineClipsProps {
   tracks: { id: string }[];
@@ -43,7 +43,7 @@ const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({
   clips,
   tracksRef
 }: TimelineClipsProps) => {
-  const { setTrackDropZones } = useContext(DropZonesContext);
+  const { registerDropzones } = useContext(DraggableContext);
   const [tracksMarkup, setTracksMarkup] = useState<JSX.Element[]>([]);
 
   // This listens to changes to the tracks data and then 1. updates the markup
@@ -56,16 +56,16 @@ const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({
   useEffect(() => {
     const markup: JSX.Element[] = [];
 
-    const dzs: DropZone<{ index: number }>[] = [];
+    const dzs: Dropzone[] = [];
 
     if (tracks) {
       tracks.forEach((track, trackIndex) => {
         const ref = React.createRef<HTMLDivElement>();
         dzs.push({
-          class: "Track",
+          type: "Track",
           id: track.id,
           ref,
-          metadata: { index: trackIndex }
+          trackIndex
         });
 
         markup.push(
@@ -82,7 +82,7 @@ const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({
     }
 
     setTracksMarkup(markup);
-    setTrackDropZones(dzs);
+    registerDropzones(dzs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracks]);
 

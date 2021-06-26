@@ -14,9 +14,8 @@ import {
   useWorkspaceDuration,
   useWorkspaceTime
 } from "../../../util/workspace-hooks";
-import MovableComponent from "../../element/movable-component";
 import Playhead from "../../element/playhead";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import {
   useCountOff,
   useRecord,
@@ -29,6 +28,12 @@ import { InfiniteClipIcon } from "../../element/icon/infinite-clip-icon";
 import { StackClipIcon } from "../../element/icon/stack-clip-icon";
 import { TelescopeClipIcon } from "../../element/icon/telescope-clip-icon";
 import { useCabLoops } from "../hooks/use-cab-loops";
+import { TimelineDraggable } from "../timeline/timeline-draggable";
+import {
+  HorizontalPosContext,
+  TemporalZoomContext
+} from "../workspace-content";
+import { MetronomeContext } from "../context/metronome-context";
 
 export const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
@@ -63,7 +68,11 @@ const UPDATE_CAB = gql`
         cabMode: $mode
       }
     ) {
-      id
+      cab {
+        start
+        duration
+        mode
+      }
     }
   }
 `;
@@ -79,10 +88,15 @@ const CabMain: React.FC = () => {
   const userId = useCurrentUserId();
 
   const widthFn = useWorkspaceWidth();
-  const positionFn = useWorkspaceLeft();
+  const leftFn = useWorkspaceLeft();
 
   const durationFn = useWorkspaceDuration();
   const timeFn = useWorkspaceTime();
+
+  const horizontalPos = useContext(HorizontalPosContext);
+  const prevHorizontalPos = usePrevious(horizontalPos);
+  const temporalZoom = useContext(TemporalZoomContext);
+  const prevTemporalZoom = usePrevious(temporalZoom);
 
   const [adjusting, setAdjusting] = useState(false);
 
@@ -93,19 +107,19 @@ const CabMain: React.FC = () => {
   const countOff = useCountOff();
   const seek = useSeek();
 
-  const { data, loading, error } = useQuery<CabMainQuery>(CAB_MAIN_QUERY, {
+  const {
+    data: {
+      userInVamp: {
+        cab: { start, duration, mode }
+      }
+    },
+    loading,
+    error
+  } = useQuery<CabMainQuery>(CAB_MAIN_QUERY, {
     variables: { vampId, userId }
   });
 
   if (error) console.error(error);
-
-  const {
-    userInVamp: {
-      cab: { start, duration, mode }
-    }
-  } = data || {
-    userInVamp: { id: "", cab: { start: 0, duration: 0 } }
-  };
 
   const loops = useCabLoops();
 
@@ -119,6 +133,39 @@ const CabMain: React.FC = () => {
 
   const modes = [CabMode.INFINITE, CabMode.STACK, CabMode.TELESCOPE];
   const [modeIndex, setModeIndex] = useState(modes.indexOf(mode));
+
+  // deltaLeft and deltaWidth are values that come from dragging, which we add
+  // to left and width to get the temporary dimensions while dragging is taking
+  // place.
+  const [left, setLeft] = useState(0);
+  useEffect(() => {
+    if (prevStart !== start || horizontalPos !== prevHorizontalPos) {
+      setLeft(leftFn(start));
+    }
+  }, [horizontalPos, leftFn, prevHorizontalPos, prevStart, start]);
+  const [deltaLeft, setDeltaLeft] = useState(0);
+
+  const { snapToBeat } = useContext(MetronomeContext);
+
+  // TimelineDraggable accepts an arbitrary snap function that transforms a
+  // delta into a "snapped delta". We have to some timeline transformations to
+  // get that to actually snap to the beats.
+  const snapFn = useCallback(
+    (deltaX: number): number => {
+      return leftFn(snapToBeat(timeFn(left + deltaX))) - left;
+    },
+    [left, leftFn, snapToBeat, timeFn]
+  );
+
+  const prevDuration = usePrevious(duration);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    if (prevDuration !== duration || temporalZoom !== prevTemporalZoom) {
+      if (loops) setWidth(widthFn(duration));
+      else setWidth(undefined);
+    }
+  }, [duration, loops, prevDuration, prevTemporalZoom, temporalZoom, widthFn]);
+  const [deltaWidth, setDeltaWidth] = useState(0);
 
   /**
    * updateCab does not update the local cache, so we're doing it manually here.
@@ -142,34 +189,60 @@ const CabMain: React.FC = () => {
     });
   };
 
-  const playhead = adjusting ? null : <Playhead containerStart={start} />;
+  const playhead = adjusting ? null : (
+    <Playhead containerStart={timeFn(left + deltaLeft)} />
+  );
 
-  if (loading || !data) {
+  if (loading) {
     return null;
   } else {
     return (
-      <MovableComponent
-        initialWidth={loops ? widthFn(duration) : undefined}
+      <TimelineDraggable
+        id="cabmain"
+        left={`${left + deltaLeft}px`}
         height={"125px"}
-        initialLeft={positionFn(start)}
+        width={loops ? `${width + deltaWidth}px` : "inherit"}
         style={loops ? undefined : { right: "0px" }}
-        onWidthChanged={(newWidth): void => {
-          updateCabWithClient({
-            userId,
-            vampId,
-            duration: durationFn(newWidth),
-            start
-          });
-        }}
-        onLeftChanged={(newLeft): void => {
-          const start = timeFn(newLeft);
-          updateCabWithClient({ userId, vampId, duration, start });
-        }}
-        onAdjust={(active): void => {
-          setAdjusting(active);
-        }}
+        snapFn={snapFn}
         onClick={(): void => {
           countOff(true);
+        }}
+        onDragBegin={(): void => {
+          setAdjusting(true);
+        }}
+        onDragDelta={([x], handle): void => {
+          if (handle === "move") {
+            setDeltaLeft(x);
+          }
+          if (handle === "right") {
+            setDeltaWidth(x);
+          }
+          if (handle === "left") {
+            setDeltaLeft(x);
+            setDeltaWidth(-x);
+          }
+        }}
+        onDragEnd={(): void => {
+          const duration = durationFn(width + deltaWidth);
+          if (duration <= 0) {
+            // Invalid case.
+            setDeltaLeft(0);
+            setDeltaWidth(0);
+          } else {
+            // Do server update.
+            updateCabWithClient({
+              userId,
+              vampId,
+              duration,
+              start: timeFn(left + deltaLeft)
+            });
+          }
+
+          setLeft(left + deltaLeft);
+          setWidth(width + deltaWidth);
+          setDeltaLeft(0);
+          setDeltaWidth(0);
+          setAdjusting(false);
         }}
       >
         <div
@@ -201,7 +274,7 @@ const CabMain: React.FC = () => {
             src={require("../../../img/vector/record.svg")}
           />
         </div>
-      </MovableComponent>
+      </TimelineDraggable>
     );
   }
 };

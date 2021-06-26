@@ -9,14 +9,25 @@ import {
 } from "../../../util/workspace-hooks";
 import Playhead from "../../element/playhead";
 import TrashButton from "./trash-button";
-import MovableComponent from "../../element/movable-component";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import { gql, useMutation } from "@apollo/client";
 import { UpdateClip } from "../../../state/apollotypes";
-import { useCurrentVampId } from "../../../util/react-hooks";
+import { useCurrentVampId, usePrevious } from "../../../util/react-hooks";
 import { FailureOverlay } from "./failure-overlay";
-import { DropZone } from "../workspace-drop-zones";
 import { ClipContentAudio } from "./content/clip-content-audio";
+import { TimelineDraggable } from "../timeline/timeline-draggable";
+import {
+  HorizontalPosContext,
+  TemporalZoomContext
+} from "../workspace-content";
+import { MetronomeContext } from "../context/metronome-context";
 
 const UPDATE_CLIP = gql`
   mutation UpdateClip($clipUpdate: UpdateClipInput!) {
@@ -68,6 +79,11 @@ const Clip: React.FunctionComponent<ClipProps> = ({
   const leftFn = useWorkspaceLeft();
   const timeFn = useWorkspaceTime();
 
+  const horizontalPos = useContext(HorizontalPosContext);
+  const prevHorizontalPos = usePrevious(horizontalPos);
+  const temporalZoom = useContext(TemporalZoomContext);
+  const prevTemporalZoom = usePrevious(temporalZoom);
+
   const clipRef = useRef<HTMLDivElement>();
   const clipHeight = clipRef.current ? clipRef.current.clientHeight : 0;
 
@@ -91,12 +107,44 @@ const Clip: React.FunctionComponent<ClipProps> = ({
     .map(content => content.audio.error)
     .filter(error => error !== null);
 
-  const left =
-    clip.draggingInfo.dragging || clip.draggingInfo.track
-      ? leftFn(clip.draggingInfo.position)
-      : leftFn(clip.start);
+  const prevClipStart = usePrevious(clip.start);
+  const [left, setLeft] = useState(0);
+  useEffect(() => {
+    if (prevClipStart !== clip.start || horizontalPos !== prevHorizontalPos) {
+      setLeft(leftFn(clip.start));
+    }
+  }, [clip.start, horizontalPos, leftFn, prevClipStart, prevHorizontalPos]);
+  const [deltaLeft, setDeltaLeft] = useState(0);
 
-  const width = widthFn(clip.duration);
+  const { snapToBeat } = useContext(MetronomeContext);
+
+  // TimelineDraggable accepts an arbitrary snap function that transforms a
+  // delta into a "snapped delta". We have to some timeline transformations to
+  // get that to actually snap to the beats.
+  const snapFn = useCallback(
+    (deltaX: number): number => {
+      return leftFn(snapToBeat(timeFn(left + deltaX))) - left;
+    },
+    [left, leftFn, snapToBeat, timeFn]
+  );
+
+  const prevClipDuration = usePrevious(clip.duration);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    if (
+      prevClipDuration !== clip.duration ||
+      temporalZoom !== prevTemporalZoom
+    ) {
+      setWidth(widthFn(clip.duration));
+    }
+  }, [
+    clip.duration,
+    prevClipDuration,
+    prevTemporalZoom,
+    temporalZoom,
+    widthFn
+  ]);
+  const [deltaWidth, setDeltaWidth] = useState(0);
 
   const boxShadow = raised ? "2px 2px rgba(0, 0, 0, 0.2)" : undefined;
 
@@ -113,55 +161,63 @@ const Clip: React.FunctionComponent<ClipProps> = ({
   }, [clip.content]);
 
   return (
-    <MovableComponent
-      initialWidth={width}
-      height={"100%"}
-      initialLeft={left}
-      initialMoving={clip.draggingInfo.dragging}
-      className={styles["clip-movable"]}
-      dropZonesFilter={(dropZone): boolean => dropZone.class === "Track"}
-      onChangeZone={(zone: DropZone<{ index: number }>): void => {
-        setTrackIndexState(zone.metadata.index);
-      }}
-      onDrop={(zone: DropZone<{ index: number }>): void => {
-        if (audioErrors.length === 0)
-          updateClip({
-            variables: {
-              clipUpdate: {
-                vampId,
-                clipId: clip.id,
-                trackIndex: zone.metadata.index
-              }
-            }
-          });
-      }}
-      onWidthChanged={(newWidth): void => {
-        if (audioErrors.length === 0)
-          updateClip({
-            variables: {
-              clipUpdate: {
-                vampId,
-                clipId: clip.id,
-                duration: durationFn(newWidth)
-              }
-            }
-          });
-      }}
-      onLeftChanged={(newLeft): void => {
-        if (audioErrors.length === 0)
-          updateClip({
-            variables: {
-              clipUpdate: { vampId, clipId: clip.id, start: timeFn(newLeft) }
-            }
-          });
-      }}
-      onAdjust={(moving, resizing): void => {
-        setRaised(moving);
-      }}
-      onClick={(click): void => {}}
+    <TimelineDraggable
+      id={`clip${clip.id}`}
+      left={`${left + deltaLeft}px`}
+      width={`${width + deltaWidth}px`}
+      height="100%"
       style={{
         gridRowStart: trackIndexState + 1,
         gridRowEnd: trackIndexState + 1
+      }}
+      className={styles["clip-movable"]}
+      dropzoneTypes={["Track"]}
+      snapFn={snapFn}
+      onDragBegin={(): void => {
+        setRaised(true);
+      }}
+      onDragDelta={([x], handle): void => {
+        if (handle === "move") {
+          setDeltaLeft(x);
+        }
+        if (handle === "left") {
+          setDeltaLeft(x);
+          setDeltaWidth(-x);
+        }
+        if (handle === "right") {
+          setDeltaWidth(x);
+        }
+      }}
+      onDragEnd={(pos, zones, handle): void => {
+        const trackIndex =
+          handle === "move"
+            ? zones.find(zone => zone.type === "Track")?.trackIndex
+            : undefined;
+
+        if (audioErrors.length === 0) {
+          updateClip({
+            variables: {
+              clipUpdate: {
+                vampId,
+                clipId: clip.id,
+                start: timeFn(left + deltaLeft),
+                duration: durationFn(width + deltaWidth),
+                trackIndex: trackIndex
+              }
+            }
+          }).then(() => {
+            setRaised(false);
+          });
+
+          setLeft(left + deltaLeft);
+          setWidth(width + deltaWidth);
+          setDeltaLeft(0);
+          setDeltaWidth(0);
+        }
+      }}
+      onDragIntoZone={(zone, handle): void => {
+        if (zone.type === "Track" && handle === "move")
+          setTrackIndexState(zone.trackIndex);
       }}
     >
       <div className={styles["clip"]} ref={clipRef} style={{ boxShadow }}>
@@ -169,7 +225,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
           <TrashButton clipId={clip.id}></TrashButton>
         </div>
         <div className={styles["background"]} style={{ opacity }}>
-          <Playhead containerStart={clip.start} />
+          {!raised && <Playhead containerStart={clip.start} />}
           {audioErrors.length > 0 ? (
             <FailureOverlay
               // TODO this is currently just displaying the first error.
@@ -181,7 +237,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
           )}
         </div>
       </div>
-    </MovableComponent>
+    </TimelineDraggable>
   );
 };
 

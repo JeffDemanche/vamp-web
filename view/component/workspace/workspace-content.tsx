@@ -12,6 +12,7 @@ import { DropZonesProvider } from "./workspace-drop-zones";
 import { FloorOverlay } from "./floor/floor-overlay";
 import { MetronomeProvider } from "./context/metronome-context";
 import { GuidelineProvider } from "./context/guideline-context";
+import { DraggableProvider } from "./context/draggable-context";
 
 const TemporalZoomContext = React.createContext(100);
 const HorizontalPosContext = React.createContext(0);
@@ -42,7 +43,7 @@ const WorkspaceContent: React.FC = () => {
   });
   const tracks = data.vamp.tracks;
 
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
 
   const [trackRefTrigger, setTrackRefTrigger] = useState<boolean>(false);
 
@@ -175,21 +176,23 @@ const WorkspaceContent: React.FC = () => {
           <HorizontalPosContext.Provider
             value={horizontalPos + horizontalPosOffset}
           >
-            <DropZonesProvider>
-              <FloorOverlay></FloorOverlay>
-              <div className={styles["workspace"]} onWheel={onWheel}>
-                <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
-                <div className={styles["play-and-tracks"]}>
-                  <div className={styles["play-panel"]}>
-                    <PlayPanel></PlayPanel>
+            <DraggableProvider>
+              <DropZonesProvider>
+                <FloorOverlay></FloorOverlay>
+                <div className={styles["workspace"]} onWheel={onWheel}>
+                  <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
+                  <div className={styles["play-and-tracks"]}>
+                    <div className={styles["play-panel"]}>
+                      <PlayPanel></PlayPanel>
+                    </div>
+                    <Timeline
+                      offsetRef={offsetRef}
+                      tracksRef={trackRefUpdate}
+                    ></Timeline>
                   </div>
-                  <Timeline
-                    offsetRef={offsetRef}
-                    tracksRef={trackRefUpdate}
-                  ></Timeline>
                 </div>
-              </div>
-            </DropZonesProvider>
+              </DropZonesProvider>
+            </DraggableProvider>
           </HorizontalPosContext.Provider>
         </TemporalZoomContext.Provider>
       </GuidelineProvider>

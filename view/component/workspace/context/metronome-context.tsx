@@ -115,6 +115,12 @@ export interface MetronomeContextData {
    * closest previous beat marker to that time.
    */
   truncateEndOfRecording: (time: number, formIndex?: number) => number;
+
+  /**
+   * For a time in seconds, get the nearest beat in the specified form and
+   * return the time of that beat.
+   */
+  snapToBeat: (time: number, formIndex?: number) => number;
 }
 
 export const MetronomeContext = React.createContext<MetronomeContextData>(null);
@@ -397,17 +403,27 @@ export const MetronomeProvider: React.FC = ({
     [data.vamp.forms]
   );
 
+  /**
+   * Gets all the beat start times for a measure.
+   * @param measure The measure returned from a query for a measure map.
+   * @param includeLast If true we include the first beat of the measure after
+   * the one provided
+   */
+  const getMeasureBeats = useCallback(
+    (measure: Measure, includeLast?: boolean): number[] => {
+      const lastBeat = includeLast ? 1 : 0;
+
+      const beats = [];
+      for (let i = 0; i < measure.section.beatsPerBar + lastBeat; i++) {
+        beats.push(measure.timeStart + i * (60 / measure.section.bpm));
+      }
+      return beats;
+    },
+    []
+  );
+
   const truncateEndOfRecording = useCallback(
     (time: number, formIndex?: number) => {
-      // Gets all the beat start times for a measure.
-      const getMeasureBeats = (measure: Measure): number[] => {
-        const beats = [];
-        for (let i = 0; i < measure.section.beatsPerBar; i++) {
-          beats.push(measure.timeStart + i * (60 / measure.section.bpm));
-        }
-        return beats;
-      };
-
       const measureMap = getMeasureMap({ formIndex, start: time, end: time });
       const keys: number[] = Object.keys(measureMap).map(Number);
       let timeOfPreviousBeat = Number.NEGATIVE_INFINITY;
@@ -420,7 +436,26 @@ export const MetronomeProvider: React.FC = ({
       });
       return timeOfPreviousBeat;
     },
-    [getMeasureMap]
+    [getMeasureBeats, getMeasureMap]
+  );
+
+  const snapToBeat = useCallback(
+    (time: number, formIndex?: number) => {
+      const measureMap = getMeasureMap({ formIndex, start: time, end: time });
+      const keys: number[] = Object.keys(measureMap).map(Number);
+      let distToBeat = Number.POSITIVE_INFINITY;
+      let closestBeatTime = time;
+      keys.forEach(key => {
+        getMeasureBeats(measureMap[key], true).forEach(beatTime => {
+          if (Math.abs(beatTime - time) < distToBeat) {
+            distToBeat = Math.abs(beatTime - time);
+            closestBeatTime = beatTime;
+          }
+        });
+      });
+      return closestBeatTime;
+    },
+    [getMeasureBeats, getMeasureMap]
   );
 
   return (
@@ -430,7 +465,8 @@ export const MetronomeProvider: React.FC = ({
         getMeasureMap,
         getSectionMap,
         getSectionIds,
-        truncateEndOfRecording
+        truncateEndOfRecording,
+        snapToBeat
       }}
     >
       {children}
