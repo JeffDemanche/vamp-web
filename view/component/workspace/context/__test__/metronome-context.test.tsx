@@ -436,4 +436,65 @@ describe("Metronome Context", () => {
     expect(data.truncateEndOfRecording(4.5)).toBeCloseTo(4 + oneBeat);
     expect(data.truncateEndOfRecording(5)).toBeCloseTo(4 + 2 * oneBeat);
   });
+
+  it("gets snap to beat time", () => {
+    (useQuery as jest.Mock).mockImplementationOnce(() => ({
+      data: {
+        vamp: {
+          sections: [
+            {
+              id: "section1_id",
+              name: "section",
+              bpm: 120,
+              beatsPerBar: 4,
+              metronomeSound: "Hi-hat",
+              startMeasure: 0
+            },
+            {
+              id: "section2_id",
+              name: "section",
+              bpm: 140,
+              beatsPerBar: 4,
+              metronomeSound: "Hi-hat",
+              startMeasure: 2,
+              repetitions: 2
+            }
+          ],
+          forms: [
+            {
+              preSection: { id: "section1_id" },
+              insertedSections: [{ id: "section2_id" }]
+            }
+          ]
+        }
+      }
+    }));
+
+    let data: MetronomeContextData;
+
+    mount(
+      <MetronomeProvider>
+        <MetronomeContext.Consumer>
+          {(value): React.ReactNode => {
+            data = value;
+            return null;
+          }}
+        </MetronomeContext.Consumer>
+      </MetronomeProvider>
+    );
+
+    expect(data.snapToBeat(-1.1)).toEqual(-1);
+    expect(data.snapToBeat(0)).toEqual(0);
+    expect(data.snapToBeat(0.22)).toEqual(0);
+    expect(data.snapToBeat(-0.01)).toEqual(0);
+    expect(data.snapToBeat(-0.25)).toEqual(-0.5);
+    expect(data.snapToBeat(0.5)).toEqual(0.5);
+    expect(data.snapToBeat(0.48)).toEqual(0.5);
+
+    // after time change one beat is 0.42857142857 seconds
+    expect(data.snapToBeat(4)).toEqual(4);
+    expect(data.snapToBeat(4.3)).toBeCloseTo(4.42857142857);
+    expect(data.snapToBeat(4.5)).toBeCloseTo(4.42857142857);
+    expect(data.snapToBeat(4.8)).toBeCloseTo(4.85714285714);
+  });
 });
