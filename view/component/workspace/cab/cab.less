@@ -2,6 +2,13 @@
 @import "../../../constants/sizes.less";
 @import "../../../constants/transitions.less";
 
+@recordDropShadow: drop-shadow(0px 1px 1px #000000a0);
+@recordDropShadowHovered: drop-shadow(0px 3px 2px #000000a0);
+
+.cab-main-draggable:hover .recordIcon {
+  filter: @recordDropShadowHovered;
+}
+
 .cab-main {
   margin: auto;
   position: absolute;
@@ -14,17 +21,14 @@
   overflow: hidden;
 }
 
-.cab-main-infinite {
-  border-radius: 16px 0px 0px 16px;
-}
-
 .recordIcon {
   height: @play-control-height;
   margin-top: auto;
   margin-bottom: auto;
   left: 58px;
   position: relative;
-  filter: drop-shadow(0px 2px 2px #00000080);
+  transition: filter 0.2s linear;
+  filter: @recordDropShadow;
 }
 
 .track-bounds-controls {
@@ -60,13 +64,27 @@
   display: flex;
 }
 
-.cab-main-recording {
+.cab-main-recording-container {
+  position: absolute;
   height: 125px;
-  width: 0px;
+  width: 100%;
   margin: auto;
   border-radius: 16px;
-  background: @flamagra-vertical;
+  background: @passion-vertical;
   display: flex;
-  position: relative;
   float: left;
+  overflow: hidden;
+
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+}
+
+.cab-main-recording-foreground {
+  position: relative;
+  height: 100%;
+  background: @flamagra-vertical;
+}
+
+.cab-main-infinite {
+  border-radius: 16px 0px 0px 16px;
 }
