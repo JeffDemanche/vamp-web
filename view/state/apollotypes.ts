@@ -491,9 +491,16 @@ export interface CabMainQueryVariables {
 // GraphQL mutation operation: UpdateCab
 // ====================================================
 
+export interface UpdateCab_updateUserInVamp_cab {
+  __typename: "Cab";
+  start: number;
+  duration: number;
+  mode: CabMode;
+}
+
 export interface UpdateCab_updateUserInVamp {
   __typename: "UserInVamp";
-  id: string;
+  cab: UpdateCab_updateUserInVamp_cab;
 }
 
 export interface UpdateCab {

@@ -1,0 +1,50 @@
+@import "../../../constants/z-indices.less";
+@import "../../../constants/transitions.less";
+
+.draggable-container {
+  position: absolute;
+  float: left;
+
+  // Should be overwritten by inline
+  left: 0px;
+  width: 25px;
+  height: 25px;
+}
+
+.use-transitions {
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+}
+
+.handles-container {
+  position: absolute;
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.move-handle {
+  z-index: @draggable-handles;
+  flex: 1 1 auto;
+  cursor: pointer;
+}
+
+.resize-handle {
+  z-index: @draggable-handles;
+  height: 100%;
+  cursor: ew-resize;
+  flex: 0 0 auto;
+}
+
+.left-handle {
+  .resize-handle();
+}
+
+.right-handle {
+  .resize-handle();
+}
+
+.draggable-handles-overlay {
+  display: flex;
+  height: 100%;
+}
