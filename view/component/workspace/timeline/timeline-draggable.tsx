@@ -82,6 +82,9 @@ export const TimelineDraggable: React.FC<TimelineDraggableProps> = ({
       id,
       mouseUpListener: (): void => {
         setCurrentlyDragging("none");
+        if (!_.isEqual(dragStart, [NaN, NaN])) {
+          onDragEnd && onDragEnd(dragDelta, prevZones, currentlyDragging);
+        }
       },
       mouseMoveListener: (ev: MouseEvent): void => {
         const snap = ev.shiftKey;
@@ -92,7 +95,7 @@ export const TimelineDraggable: React.FC<TimelineDraggableProps> = ({
             onDragBegin([ev.clientX, ev.clientY], currentlyDragging);
           setDragStart([ev.clientX, ev.clientY]);
         }
-        // On finish drack
+        // On finish drag
         else if (
           currentlyDragging === "none" &&
           !_.isEqual(dragStart, [NaN, NaN])

@@ -28,6 +28,7 @@ import {
   TemporalZoomContext
 } from "../workspace-content";
 import { MetronomeContext } from "../context/metronome-context";
+import { GuidelineContext } from "../context/guideline-context";
 
 const UPDATE_CLIP = gql`
   mutation UpdateClip($clipUpdate: UpdateClipInput!) {
@@ -72,6 +73,8 @@ const Clip: React.FunctionComponent<ClipProps> = ({
   trackIndex,
   clip
 }: ClipProps) => {
+  const { setIsShowing, setStart, setEnd } = useContext(GuidelineContext);
+
   const vampId = useCurrentVampId();
 
   const widthFn = useWorkspaceWidth();
@@ -175,6 +178,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       snapFn={snapFn}
       onDragBegin={(): void => {
         setRaised(true);
+        setIsShowing(true);
       }}
       onDragDelta={([x], handle): void => {
         if (handle === "move") {
@@ -187,6 +191,9 @@ const Clip: React.FunctionComponent<ClipProps> = ({
         if (handle === "right") {
           setDeltaWidth(x);
         }
+
+        setStart(timeFn(left + deltaLeft));
+        setEnd(timeFn(left + deltaLeft) + durationFn(width + deltaWidth));
       }}
       onDragEnd={(pos, zones, handle): void => {
         const trackIndex =
@@ -208,6 +215,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
           }).then(() => {
             setRaised(false);
           });
+          setIsShowing(false);
 
           setLeft(left + deltaLeft);
           setWidth(width + deltaWidth);

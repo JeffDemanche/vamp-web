@@ -35,6 +35,13 @@ import {
 } from "../workspace-content";
 import { MetronomeContext } from "../context/metronome-context";
 
+import { GuidelineContext } from "../context/guideline-context";
+import {
+  DropZone,
+  DropZonesContext
+} from "../../workspace/workspace-drop-zones";
+import { drop } from "underscore";
+
 export const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
     userInVamp(vampId: $vampId, userId: $userId) @client {
@@ -84,6 +91,8 @@ const UPDATE_CAB = gql`
  * The cab will also mutate to the server.
  */
 const CabMain: React.FC = () => {
+  const { setIsShowing, setStart, setEnd } = useContext(GuidelineContext);
+
   const vampId = useCurrentVampId();
   const userId = useCurrentUserId();
 
@@ -209,6 +218,7 @@ const CabMain: React.FC = () => {
         }}
         onDragBegin={(): void => {
           setAdjusting(true);
+          setIsShowing(true);
         }}
         onDragDelta={([x], handle): void => {
           if (handle === "move") {
@@ -221,6 +231,8 @@ const CabMain: React.FC = () => {
             setDeltaLeft(x);
             setDeltaWidth(-x);
           }
+          setStart(timeFn(left + deltaLeft));
+          setEnd(timeFn(left + deltaLeft) + durationFn(width + deltaWidth));
         }}
         onDragEnd={(): void => {
           const duration = durationFn(width + deltaWidth);
@@ -237,6 +249,7 @@ const CabMain: React.FC = () => {
               start: timeFn(left + deltaLeft)
             });
           }
+          setIsShowing(false);
 
           setLeft(left + deltaLeft);
           setWidth(width + deltaWidth);
