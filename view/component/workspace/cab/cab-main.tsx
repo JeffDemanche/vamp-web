@@ -131,6 +131,7 @@ const CabMain: React.FC = () => {
   if (error) console.error(error);
 
   const loops = useCabLoops();
+  const prevLoops = usePrevious(loops);
 
   const prevStart = usePrevious(start);
 
@@ -168,12 +169,28 @@ const CabMain: React.FC = () => {
 
   const prevDuration = usePrevious(duration);
   const [width, setWidth] = useState(0);
+
+  // This is essentially eagerly determining cab position after a drag. We only
+  // update the width under certain conditions, otherwise the cab will jump
+  // after being dragged while it waits for a server response.
   useEffect(() => {
-    if (prevDuration !== duration || temporalZoom !== prevTemporalZoom) {
+    if (
+      prevDuration !== duration ||
+      temporalZoom !== prevTemporalZoom ||
+      loops !== prevLoops
+    ) {
       if (loops) setWidth(widthFn(duration));
       else setWidth(undefined);
     }
-  }, [duration, loops, prevDuration, prevTemporalZoom, temporalZoom, widthFn]);
+  }, [
+    duration,
+    loops,
+    prevDuration,
+    prevLoops,
+    prevTemporalZoom,
+    temporalZoom,
+    widthFn
+  ]);
   const [deltaWidth, setDeltaWidth] = useState(0);
 
   /**
@@ -212,6 +229,7 @@ const CabMain: React.FC = () => {
         height={"125px"}
         width={loops ? `${width + deltaWidth}px` : "inherit"}
         style={loops ? undefined : { right: "0px" }}
+        className={styles["cab-main-draggable"]}
         snapFn={snapFn}
         onClick={(): void => {
           countOff(true);
