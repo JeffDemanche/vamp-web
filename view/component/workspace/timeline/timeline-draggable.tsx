@@ -100,6 +100,7 @@ export const TimelineDraggable: React.FC<TimelineDraggableProps> = ({
           currentlyDragging === "none" &&
           !_.isEqual(dragStart, [NaN, NaN])
         ) {
+          onDragEnd && onDragEnd(dragDelta, prevZones, currentlyDragging);
           setDragStart([NaN, NaN]);
           setDragDelta([NaN, NaN]);
         }
