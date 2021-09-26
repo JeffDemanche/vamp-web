@@ -1,8 +1,8 @@
 import * as _ from "underscore";
 import ObjectID from "bson-objectid";
-import { CountOff } from "../util/count-off-hooks";
 import Recorder from "./recorder";
 import { MetronomeContextData } from "../component/workspace/context/metronome-context";
+import { CountOff } from "../component/workspace/context/recording/playback-context";
 
 class SchedulerEvent {
   readonly id: string;
@@ -381,7 +381,6 @@ class Scheduler {
   private _recorder: Recorder;
 
   private _recorderPrimed: boolean;
-  private _recorderStartTime: number;
   private _recordingId: string;
   private _onEndRecording: (file: Blob) => Promise<void>;
 
@@ -480,10 +479,12 @@ class Scheduler {
     // the *duration* of the dispatched event based on if the playback starts
     // after the event ended (*0*), before the event begins (*event.duration*),
     // or somewhere during the event (*the remaining event duration*).
-    const durationAfterPlayhead = Math.min(
-      Math.max(event.duration - (currentVampTime - event.start), 0),
-      event.duration
-    );
+    const durationAfterPlayhead = event.duration
+      ? Math.min(
+          Math.max(event.duration - (currentVampTime - event.start), 0),
+          event.duration
+        )
+      : undefined;
 
     const node = await event.dispatch({
       context: this._context,
@@ -495,16 +496,24 @@ class Scheduler {
     if (node) this._dispatchedAudioNodes[eventId] = node;
   };
 
-  primeRecorder = (
-    start: number,
-    onEndRecording?: (file: Blob) => Promise<void>
-  ): string => {
+  /**
+   * Notifies the scheduler to start recording next time `play` is called.
+   * @param onEndRecording This gets called with the final audio data when
+   * recording completes.
+   * @returns An ID that can be used to uniquely identify the recording.
+   */
+  primeRecorder = (onEndRecording?: (file: Blob) => Promise<void>): string => {
     this._recorderPrimed = true;
-    this._recorderStartTime = start;
     this._onEndRecording = onEndRecording;
     const recordingId = ObjectID.generate();
     this._recordingId = recordingId;
     return recordingId;
+  };
+
+  private unprimeRecorder = (): void => {
+    this._recorderPrimed = false;
+    this._onEndRecording = undefined;
+    this._recordingId = undefined;
   };
 
   private record = (): void => {
@@ -512,9 +521,9 @@ class Scheduler {
   };
 
   private stopRecording = (): void => {
-    this._recorderPrimed = false;
     this._recorder.stopRecording(500).then(blob => {
       this._onEndRecording(blob);
+      this.unprimeRecorder();
     });
   };
 
@@ -527,7 +536,7 @@ class Scheduler {
     this._isPlaying = true;
     this._context.suspend();
 
-    if (this._recorderPrimed) {
+    if (this._recorderPrimed && !this._recorder.isRecording()) {
       this.record();
     }
 

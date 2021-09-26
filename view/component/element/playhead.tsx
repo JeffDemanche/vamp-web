@@ -1,10 +1,9 @@
 import * as React from "react";
 import * as styles from "./playhead.less";
-import { useTrueTime, useCurrentVampId } from "../../util/react-hooks";
-import { PLAYING_CLIENT } from "../../state/queries/vamp-queries";
-import { PlayingClient } from "../../state/apollotypes";
-import { useQuery } from "@apollo/client";
+import { useTrueTime } from "../../util/react-hooks";
 import { useWorkspaceWidth } from "../../util/workspace-hooks";
+import { PlaybackContext } from "../workspace/context/recording/playback-context";
+import { useContext } from "react";
 
 interface PlayheadProps {
   containerStart: number;
@@ -19,18 +18,13 @@ const Playhead: React.FC<PlayheadProps> = ({
   containerStart,
   containerDuration
 }: PlayheadProps) => {
-  const vampId = useCurrentVampId();
   const trueTime = useTrueTime(100);
 
   const widthFn = useWorkspaceWidth();
 
   const playheadRelativeLeft = widthFn(trueTime - containerStart);
 
-  const {
-    data: {
-      vamp: { playing }
-    }
-  } = useQuery<PlayingClient>(PLAYING_CLIENT, { variables: { vampId } });
+  const { playing } = useContext(PlaybackContext);
 
   const shouldRender =
     containerDuration === undefined ||

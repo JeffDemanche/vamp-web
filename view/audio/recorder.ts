@@ -44,6 +44,8 @@ class Recorder {
     }
   };
 
+  isRecording = (): boolean => this._recording;
+
   /**
    * Checks to see if the media recorder is properly initialized. Reasons this
    * might not be true include the user not granting microphone permission, etc.
@@ -65,7 +67,6 @@ class Recorder {
     this._recording = true;
     this._currentAudioStoreKey = audioStoreKey;
 
-    console.time("record");
     this.mediaRecorderInitialized && this._mediaRecorder.start(500);
   };
 

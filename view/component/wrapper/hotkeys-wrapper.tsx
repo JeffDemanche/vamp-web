@@ -1,21 +1,8 @@
 import { configure, GlobalHotKeys } from "react-hotkeys";
 import * as React from "react";
-import { useQuery } from "@apollo/client";
-import {
-  PLAYING_CLIENT,
-  RECORDING_CLIENT
-} from "../../state/queries/vamp-queries";
-import { PlayingClient, RecordingClient } from "../../state/apollotypes";
-import { useCurrentVampId } from "../../util/react-hooks";
-import {
-  usePause,
-  usePlay,
-  useRecord,
-  useSeek,
-  useSetFloorOpen,
-  useStop
-} from "../../util/vamp-state-hooks";
-import { useEffect } from "react";
+import { useSetFloorOpen } from "../../util/vamp-state-hooks";
+import { useContext, useEffect } from "react";
+import { PlaybackContext } from "../workspace/context/recording/playback-context";
 
 interface HotKeysTypes {
   children: React.ReactNode;
@@ -24,8 +11,6 @@ interface HotKeysTypes {
 export const HotKeysWrapper: React.FC<HotKeysTypes> = (
   props: HotKeysTypes
 ): JSX.Element => {
-  const vampId = useCurrentVampId();
-
   useEffect(() => {
     configure({ allowCombinationSubmatches: true });
   }, []);
@@ -38,25 +23,15 @@ export const HotKeysWrapper: React.FC<HotKeysTypes> = (
     TOGGLE_FLOOR: "shift+f"
   };
 
-  const play = usePlay();
-  const pause = usePause();
-  const stop = useStop();
-  const record = useRecord();
-  const seek = useSeek();
-  const setFloorOpen = useSetFloorOpen();
+  const { playing, recording, play, stop, seek } = useContext(PlaybackContext);
 
-  const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
-    variables: { vampId }
-  });
-  const { data: recordingData } = useQuery<RecordingClient>(RECORDING_CLIENT, {
-    variables: { vampId }
-  });
+  const setFloorOpen = useSetFloorOpen();
 
   const handlers = {
     PLAY_STOP: (): void => {
-      const isPlaying = data.vamp.playing;
+      const isPlaying = playing;
       if (isPlaying) {
-        if (recordingData.vamp.recording) {
+        if (recording) {
           seek(0);
         } else {
           stop();

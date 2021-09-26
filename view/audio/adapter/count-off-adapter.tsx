@@ -1,28 +1,12 @@
-import { useQuery } from "@apollo/client";
 import _ from "underscore";
-import gql from "graphql-tag";
 import React, { useContext, useEffect, useMemo } from "react";
-import { CountOffAdapterQuery } from "../../state/apollotypes";
-import { CountOff, useUpdateCountOff } from "../../util/count-off-hooks";
-import { useCurrentVampId, usePrevious } from "../../util/react-hooks";
+import { usePrevious } from "../../util/react-hooks";
 import { SchedulerInstance } from "../scheduler";
 import { MetronomeContext } from "../../component/workspace/context/metronome-context";
-
-export const COUNT_OFF_ADAPTER_QUERY = gql`
-  query CountOffAdapterQuery($vampId: ID!) {
-    vamp(id: $vampId) @client {
-      id
-
-      playPosition
-
-      countOff {
-        duration
-      }
-      countingOff
-      countingOffStartTime
-    }
-  }
-`;
+import {
+  CountOff,
+  PlaybackContext
+} from "../../component/workspace/context/recording/playback-context";
 
 interface CountOffAdapterProps {
   scheduler: typeof SchedulerInstance;
@@ -35,17 +19,12 @@ interface CountOffAdapterProps {
 export const CountOffAdapter: React.FC<CountOffAdapterProps> = ({
   scheduler
 }: CountOffAdapterProps) => {
-  const vampId = useCurrentVampId();
-
   const {
-    data: {
-      vamp: { playPosition, countingOff, countingOffStartTime }
-    }
-  } = useQuery<CountOffAdapterQuery>(COUNT_OFF_ADAPTER_QUERY, {
-    variables: { vampId }
-  });
-
-  const updateCountOff = useUpdateCountOff();
+    playPosition,
+    updateCountOff,
+    countingOff,
+    countingOffStartTime
+  } = useContext(PlaybackContext);
 
   const { getMeasureMap } = useContext(MetronomeContext);
 

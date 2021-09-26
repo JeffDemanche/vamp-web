@@ -8,11 +8,11 @@
  * separate component seems to have solve that lag.
  */
 
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { useTrueTime, useCurrentVampId } from "../util/react-hooks";
 import { useIsEmpty } from "../util/workspace-hooks";
-import { useSeek } from "../util/vamp-state-hooks";
 import { useCabLoops } from "../component/workspace/hooks/use-cab-loops";
+import { PlaybackContext } from "../component/workspace/context/recording/playback-context";
 
 interface LooperProps {
   start: number;
@@ -23,6 +23,8 @@ interface LooperProps {
 const Looper = ({ start, end, playing }: LooperProps): JSX.Element => {
   const vampId = useCurrentVampId();
 
+  const { seek: apolloSeek } = useContext(PlaybackContext);
+
   // If empty we render in the "new Vamp" layout.
   const empty = useIsEmpty(vampId);
 
@@ -31,8 +33,6 @@ const Looper = ({ start, end, playing }: LooperProps): JSX.Element => {
   // TODO If there's lag on playback this is a potential source.
   const TIME_UPDATE_FREQ_MS = 5;
   const trueTime = useTrueTime(TIME_UPDATE_FREQ_MS);
-
-  const apolloSeek = useSeek();
 
   useEffect(() => {
     // Triggers the Apollo mutation that seeks to the beginning of the Vamp when

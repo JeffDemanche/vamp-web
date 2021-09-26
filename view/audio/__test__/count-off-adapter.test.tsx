@@ -1,21 +1,14 @@
 import * as React from "react";
-import { useContext } from "react";
 import { CountOffAdapter } from "../adapter/count-off-adapter";
 import { mount } from "enzyme";
-import { useQuery } from "@apollo/client";
 import { SchedulerInstance } from "../scheduler";
-import { useUpdateCountOff } from "../../util/count-off-hooks";
+import { MetronomeContext } from "../../component/workspace/context/metronome-context";
+import {
+  defaultPlaybackContext,
+  PlaybackContext
+} from "../../component/workspace/context/recording/playback-context";
 
 jest.mock("../../util/react-hooks");
-jest.mock("../../util/count-off-hooks");
-jest.mock("@apollo/client", () => ({
-  ...jest.requireActual("@apollo/client"),
-  useQuery: jest.fn()
-}));
-jest.mock("react", () => ({
-  ...jest.requireActual("react"),
-  useContext: jest.fn()
-}));
 jest.mock("../scheduler");
 
 const useMeasuresReturnFour = {
@@ -51,35 +44,42 @@ describe("Count Off Adapter", () => {
 
   it("calls scheduler countOff method when countOff becomes true in state", () => {
     const countOffSpy = jest.spyOn(SchedulerInstance, "countOff");
-    (useQuery as jest.Mock)
-      .mockImplementationOnce(() => ({
-        data: {
-          vamp: {
-            playPosition: 0,
-            countingOff: false,
-            countingOffStartTime: -1
-          }
-        }
-      }))
-      .mockImplementationOnce(() => ({
-        data: {
-          vamp: {
-            playPosition: 0,
-            countingOff: true,
-            countingOffStartTime: 1234
-          }
-        }
-      }));
-    (useContext as jest.Mock).mockImplementation(() => ({
-      getMeasureMap: (): unknown => useMeasuresReturnFour.measureMap
-    }));
+
+    const playbackVal = {
+      ...defaultPlaybackContext,
+      playPosition: 0,
+      updateCountOff: () => {},
+      countingOff: true,
+      countingOffStartTime: 0
+    };
 
     const component = mount(
-      <CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>
+      <PlaybackContext.Provider
+        value={{
+          ...playbackVal,
+          countingOff: false,
+          countingOffStartTime: -1
+        }}
+      >
+        <MetronomeContext.Provider
+          // @ts-ignore
+          value={{
+            getMeasureMap: (): any => useMeasuresReturnFour.measureMap
+          }}
+        >
+          <CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>
+        </MetronomeContext.Provider>
+      </PlaybackContext.Provider>
     );
 
     // Hacky way to make sure the second useQuery mock is used.
-    component.setProps({});
+    component.setProps({
+      value: {
+        ...playbackVal,
+        countingOff: true,
+        countingOffStartTime: 1234
+      }
+    });
 
     expect(countOffSpy).toBeCalled();
   });
@@ -87,23 +87,27 @@ describe("Count Off Adapter", () => {
   describe("CountOff Generation", () => {
     it("generates correct countOff on first render", () => {
       const updateCountOffFn = jest.fn();
-      (useUpdateCountOff as jest.Mock).mockImplementationOnce(
-        () => updateCountOffFn
-      );
-      (useQuery as jest.Mock).mockImplementationOnce(() => ({
-        data: {
-          vamp: {
+
+      mount(
+        <PlaybackContext.Provider
+          // @ts-ignore
+          value={{
             playPosition: 0,
+            updateCountOff: updateCountOffFn,
             countingOff: false,
             countingOffStartTime: -1
-          }
-        }
-      }));
-      (useContext as jest.Mock).mockImplementation(() => ({
-        getMeasureMap: (): unknown => useMeasuresReturnFour.measureMap
-      }));
-
-      mount(<CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>);
+          }}
+        >
+          <MetronomeContext.Provider
+            // @ts-ignore
+            value={{
+              getMeasureMap: (): any => useMeasuresReturnFour.measureMap
+            }}
+          >
+            <CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>
+          </MetronomeContext.Provider>
+        </PlaybackContext.Provider>
+      );
 
       expect(updateCountOffFn).toHaveBeenCalledWith({
         duration: 2,
@@ -115,23 +119,27 @@ describe("Count Off Adapter", () => {
 
     it("generates correct countOff when playPosition is into measure", () => {
       const updateCountOffFn = jest.fn();
-      (useUpdateCountOff as jest.Mock).mockImplementationOnce(
-        () => updateCountOffFn
-      );
-      (useQuery as jest.Mock).mockImplementationOnce(() => ({
-        data: {
-          vamp: {
+
+      mount(
+        <PlaybackContext.Provider
+          // @ts-ignore
+          value={{
             playPosition: 0.73,
+            updateCountOff: updateCountOffFn,
             countingOff: false,
             countingOffStartTime: -1
-          }
-        }
-      }));
-      (useContext as jest.Mock).mockImplementation(() => ({
-        getMeasureMap: (): unknown => useMeasuresReturnFour.measureMap
-      }));
-
-      mount(<CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>);
+          }}
+        >
+          <MetronomeContext.Provider
+            // @ts-ignore
+            value={{
+              getMeasureMap: (): any => useMeasuresReturnFour.measureMap
+            }}
+          >
+            <CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>
+          </MetronomeContext.Provider>
+        </PlaybackContext.Provider>
+      );
 
       expect(updateCountOffFn).toHaveBeenCalledWith({
         duration: 2.73,
@@ -144,23 +152,27 @@ describe("Count Off Adapter", () => {
 
     it("generates correct countOff when playPosition is negative", () => {
       const updateCountOffFn = jest.fn();
-      (useUpdateCountOff as jest.Mock).mockImplementationOnce(
-        () => updateCountOffFn
-      );
-      (useQuery as jest.Mock).mockImplementationOnce(() => ({
-        data: {
-          vamp: {
+
+      mount(
+        <PlaybackContext.Provider
+          // @ts-ignore
+          value={{
             playPosition: -0.5,
+            updateCountOff: updateCountOffFn,
             countingOff: false,
             countingOffStartTime: -1
-          }
-        }
-      }));
-      (useContext as jest.Mock).mockImplementation(() => ({
-        getMeasureMap: (): unknown => useMeasuresReturnFour.measureMap
-      }));
-
-      mount(<CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>);
+          }}
+        >
+          <MetronomeContext.Provider
+            // @ts-ignore
+            value={{
+              getMeasureMap: (): any => useMeasuresReturnFour.measureMap
+            }}
+          >
+            <CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>
+          </MetronomeContext.Provider>
+        </PlaybackContext.Provider>
+      );
 
       expect(updateCountOffFn).toHaveBeenCalledWith({
         duration: 3.5,
@@ -173,23 +185,27 @@ describe("Count Off Adapter", () => {
 
     it("generates correct countOff in three", () => {
       const updateCountOffFn = jest.fn();
-      (useUpdateCountOff as jest.Mock).mockImplementationOnce(
-        () => updateCountOffFn
-      );
-      (useQuery as jest.Mock).mockImplementationOnce(() => ({
-        data: {
-          vamp: {
+
+      mount(
+        <PlaybackContext.Provider
+          // @ts-ignore
+          value={{
             playPosition: 2,
+            updateCountOff: updateCountOffFn,
             countingOff: false,
             countingOffStartTime: -1
-          }
-        }
-      }));
-      (useContext as jest.Mock).mockImplementation(() => ({
-        getMeasureMap: (): unknown => useMeasuresReturnThree.measureMap
-      }));
-
-      mount(<CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>);
+          }}
+        >
+          <MetronomeContext.Provider
+            // @ts-ignore
+            value={{
+              getMeasureMap: (): any => useMeasuresReturnThree.measureMap
+            }}
+          >
+            <CountOffAdapter scheduler={SchedulerInstance}></CountOffAdapter>
+          </MetronomeContext.Provider>
+        </PlaybackContext.Provider>
+      );
 
       expect(updateCountOffFn).toHaveBeenCalledWith({
         duration: 2,

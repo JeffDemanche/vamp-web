@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useCountOffReverseCounter } from "../../../util/count-off-hooks";
+import { useCountOffReverseCounter } from "../context/recording/use-count-off-reverse-counter";
 import * as styles from "./timecode-countoff.less";
 
 export const TimecodeCountoff: React.FC<{}> = () => {

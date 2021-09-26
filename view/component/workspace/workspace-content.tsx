@@ -13,6 +13,7 @@ import { FloorOverlay } from "./floor/floor-overlay";
 import { MetronomeProvider } from "./context/metronome-context";
 import { GuidelineProvider } from "./context/guideline-context";
 import { DraggableProvider } from "./context/draggable-context";
+import { PlaybackProvider } from "./context/recording/playback-context";
 
 const TemporalZoomContext = React.createContext(100);
 const HorizontalPosContext = React.createContext(0);
@@ -178,19 +179,18 @@ const WorkspaceContent: React.FC = () => {
           >
             <DraggableProvider>
               <DropZonesProvider>
-                <FloorOverlay></FloorOverlay>
-                <div className={styles["workspace"]} onWheel={onWheel}>
-                  <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
-                  <div className={styles["play-and-tracks"]}>
-                    <div className={styles["play-panel"]}>
-                      <PlayPanel></PlayPanel>
+                <PlaybackProvider>
+                  <FloorOverlay></FloorOverlay>
+                  <div className={styles["workspace"]} onWheel={onWheel}>
+                    <WorkspaceAudio vampId={vampId}></WorkspaceAudio>
+                    <div className={styles["play-and-tracks"]}>
+                      <div className={styles["play-panel"]}>
+                        <PlayPanel></PlayPanel>
+                      </div>
+                      <Timeline tracksRef={trackRefUpdate}></Timeline>
                     </div>
-                    <Timeline
-                      offsetRef={offsetRef}
-                      tracksRef={trackRefUpdate}
-                    ></Timeline>
                   </div>
-                </div>
+                </PlaybackProvider>
               </DropZonesProvider>
             </DraggableProvider>
           </HorizontalPosContext.Provider>

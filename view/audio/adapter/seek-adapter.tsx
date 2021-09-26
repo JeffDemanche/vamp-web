@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
-import React, { useCallback, useEffect } from "react";
-import { useSeek } from "../../util/vamp-state-hooks";
+import React, { useCallback, useContext, useEffect } from "react";
+import { PlaybackContext } from "../../component/workspace/context/recording/playback-context";
 import {
   useCurrentUserId,
   useCurrentVampId,
@@ -11,12 +11,6 @@ import { SchedulerInstance } from "../scheduler";
 
 const SEEK_ADAPTER_QUERY = gql`
   query SeekAdapterQuery($vampId: ID!, $userId: ID!) {
-    vamp(id: $vampId) @client {
-      id
-      playing
-      playPosition
-      playStartTime
-    }
     userInVamp(vampId: $vampId, userId: $userId) @client {
       id
       cab {
@@ -42,14 +36,15 @@ export const SeekAdapter: React.FC<SeekAdapterProps> = ({
 
   const {
     data: {
-      vamp: { playing, playPosition, playStartTime },
       userInVamp: {
         cab: { start: cabStart }
       }
     }
   } = useQuery(SEEK_ADAPTER_QUERY, { variables: { vampId, userId } });
 
-  const apolloSeek = useSeek();
+  const { playing, playPosition, playStartTime, seek: apolloSeek } = useContext(
+    PlaybackContext
+  );
 
   const seek = useCallback(
     (time: number): void => {

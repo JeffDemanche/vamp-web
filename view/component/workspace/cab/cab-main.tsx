@@ -16,12 +16,6 @@ import {
 } from "../../../util/workspace-hooks";
 import Playhead from "../../element/playhead";
 import { useState, useEffect, useContext, useCallback } from "react";
-import {
-  useCountOff,
-  useRecord,
-  useSeek,
-  useStop
-} from "../../../util/vamp-state-hooks";
 import classNames from "classnames";
 import { MultiModeButton } from "../../element/multi-mode-button/multi-mode-button";
 import { InfiniteClipIcon } from "../../element/icon/infinite-clip-icon";
@@ -34,13 +28,9 @@ import {
   TemporalZoomContext
 } from "../workspace-content";
 import { MetronomeContext } from "../context/metronome-context";
+import { PlaybackContext } from "../context/recording/playback-context";
 
 import { GuidelineContext } from "../context/guideline-context";
-import {
-  DropZone,
-  DropZonesContext
-} from "../../workspace/workspace-drop-zones";
-import { drop } from "underscore";
 
 export const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
@@ -111,10 +101,7 @@ const CabMain: React.FC = () => {
 
   const [updateCab] = useMutation<UpdateCab>(UPDATE_CAB);
 
-  const stop = useStop();
-  const record = useRecord();
-  const countOff = useCountOff();
-  const seek = useSeek();
+  const { countOff, seek } = useContext(PlaybackContext);
 
   const {
     data: {

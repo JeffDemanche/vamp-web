@@ -1,13 +1,12 @@
 import * as React from "react";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { audioStore } from "./audio-store";
 import { SchedulerInstance, SchedulerEvent } from "./scheduler";
-import { useCurrentVampId, usePrevious } from "../util/react-hooks";
+import { usePrevious } from "../util/react-hooks";
 import * as _ from "underscore";
 import { useRemoveClientClip } from "../util/client-clip-state-hooks";
 import Clip from "../component/workspace/clip/clip";
-import { gql, useQuery } from "@apollo/client";
-import { ClipPlayerQuery } from "../state/apollotypes";
+import { PlaybackContext } from "../component/workspace/context/recording/playback-context";
 
 type Scheduler = typeof SchedulerInstance;
 
@@ -365,16 +364,6 @@ const onClientClipChanged = (
   }
 };
 
-const CLIP_PLAYER_QUERY = gql`
-  query ClipPlayerQuery($vampId: ID!) {
-    vamp(id: $vampId) @client {
-      countOff {
-        duration
-      }
-    }
-  }
-`;
-
 /**
  * This is a component that's used in the WorkspaceAudio component. This is
  * responsible for tracking clips in the Apollo cache and managing their
@@ -388,14 +377,10 @@ export const ClipPlayer: React.FC<ClipPlayerProps> = ({
   audioStore,
   scheduler
 }: ClipPlayerProps) => {
-  const vampId = useCurrentVampId();
-
   const prev = usePrevious({ clips, clientClips });
 
-  const { data } = useQuery<ClipPlayerQuery>(CLIP_PLAYER_QUERY, {
-    variables: { vampId }
-  });
-  const countOffDuration = data?.vamp?.countOff?.duration ?? 0;
+  const { countOffData } = useContext(PlaybackContext);
+  const countOffDuration = countOffData.duration ?? 0;
 
   const removeClientClip = useRemoveClientClip();
 

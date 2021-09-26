@@ -17,7 +17,6 @@ import { vampAudioContext } from "./vamp-audio-context";
 import { ClipPlayer } from "./clip-player";
 import Looper from "./looper";
 import { WorkspaceAudioClient } from "../state/apollotypes";
-import { useSetLoop } from "../util/vamp-state-hooks";
 import { FloorAdapter } from "./floor/floor-adapter";
 import { CountOffAdapter } from "./adapter/count-off-adapter";
 import { SeekAdapter } from "./adapter/seek-adapter";
@@ -26,6 +25,7 @@ import { RecordAdapter } from "./adapter/record-adapter";
 import { EmptyVampAdapter } from "./adapter/empty-vamp-adapter";
 import { MetronomeContext } from "../component/workspace/context/metronome-context";
 import { useCabLoops } from "../component/workspace/hooks/use-cab-loops";
+import { PlaybackContext } from "../component/workspace/context/recording/playback-context";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!, $userId: ID!) {
@@ -34,13 +34,7 @@ const WORKSPACE_AUDIO_CLIENT = gql`
 
       bpm
       beatsPerBar
-      playing
       metronomeSound
-      playPosition
-
-      start
-      end
-      loop
 
       clips {
         id
@@ -97,10 +91,12 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
 
   const userId = useCurrentUserId();
 
+  const { playing, playPosition, setBounds } = useContext(PlaybackContext);
+
   // State query for clientside Vamp playback info.
   const {
     data: {
-      vamp: { playing, clips, clientClips, playPosition },
+      vamp: { clips, clientClips },
       userInVamp: {
         cab: { start: cabStart, duration: cabDuration }
       }
@@ -111,7 +107,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
 
   const cabLoops = useCabLoops();
 
-  const setLoop = useSetLoop();
+  const { setLoop } = useContext(PlaybackContext);
 
   const apolloClient = useApolloClient();
   const [context] = useState(startAudioContext());
@@ -152,17 +148,8 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         }
       });
     });
-    apolloClient.cache.modify({
-      id: apolloClient.cache.identify({ __typename: "Vamp", id: vampId }),
-      fields: {
-        start(): number {
-          return start;
-        },
-        end(): number {
-          return end;
-        }
-      }
-    });
+
+    setBounds({ start, end });
   };
 
   const { getMeasureMap } = useContext(MetronomeContext);

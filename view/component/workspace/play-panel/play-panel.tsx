@@ -8,30 +8,14 @@ import { MetronomeSetting } from "./metronome-setting";
 
 import * as styles from "./play-panel.less";
 import Timecode from "./timecode";
-import { useCurrentVampId, useHover } from "../../../util/react-hooks";
-import { useEffect, useState } from "react";
+import { useHover } from "../../../util/react-hooks";
+import { useContext, useEffect, useState } from "react";
 import { TitleSetting } from "./title-setting";
-import gql from "graphql-tag";
-import { useQuery } from "@apollo/client";
 import { TimecodeCountoff } from "./timecode-countoff";
-import { PlayPanelQuery } from "../../../state/apollotypes";
-
-const PLAY_PANEL_QUERY = gql`
-  query PlayPanelQuery($vampId: ID!) {
-    vamp(id: $vampId) @client {
-      countingOff
-    }
-  }
-`;
+import { PlaybackContext } from "../context/recording/playback-context";
 
 const PlayPanel: React.FunctionComponent = () => {
-  const vampId = useCurrentVampId();
-
-  const {
-    data: {
-      vamp: { countingOff }
-    }
-  } = useQuery<PlayPanelQuery>(PLAY_PANEL_QUERY, { variables: { vampId } });
+  const { countingOff } = useContext(PlaybackContext);
 
   const [width, setWidth] = useState(-1);
 

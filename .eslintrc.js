@@ -38,7 +38,10 @@ module.exports = {
     "react-hooks/exhaustive-deps": "warn",
     "prettier/prettier": ["error"],
     "react/jsx-uses-react": 1,
-    "max-len": [2, { code: 80, comments: 120, tabWidth: 2 }],
+    "max-len": [
+      2,
+      { code: 80, comments: 120, tabWidth: 2, ignorePattern: "^import .*" }
+    ],
     "@typescript-eslint/no-empty-function": 0,
     "@typescript-eslint/camelcase": 0
   }
