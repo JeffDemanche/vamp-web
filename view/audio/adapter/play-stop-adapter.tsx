@@ -1,19 +1,7 @@
-import { useQuery } from "@apollo/client";
-import gql from "graphql-tag";
-import React, { useCallback, useEffect } from "react";
-import { PlayStopAdapterQuery } from "../../state/apollotypes";
-import { useCurrentVampId, usePrevious } from "../../util/react-hooks";
+import React, { useCallback, useContext, useEffect } from "react";
+import { PlaybackContext } from "../../component/workspace/context/recording/playback-context";
+import { usePrevious } from "../../util/react-hooks";
 import { SchedulerInstance } from "../scheduler";
-
-export const PLAY_STOP_ADAPTER_QUERY = gql`
-  query PlayStopAdapterQuery($vampId: ID!) {
-    vamp(id: $vampId) @client {
-      id
-      playing
-      countingOff
-    }
-  }
-`;
 
 interface PlayStopAdapterProps {
   scheduler: typeof SchedulerInstance;
@@ -25,15 +13,7 @@ interface PlayStopAdapterProps {
 export const PlayStopAdapter: React.FC<PlayStopAdapterProps> = ({
   scheduler
 }: PlayStopAdapterProps) => {
-  const vampId = useCurrentVampId();
-
-  const {
-    data: {
-      vamp: { playing, countingOff }
-    }
-  } = useQuery<PlayStopAdapterQuery>(PLAY_STOP_ADAPTER_QUERY, {
-    variables: { vampId }
-  });
+  const { playing, countingOff } = useContext(PlaybackContext);
 
   const prevData = usePrevious({ playing, countingOff });
 
@@ -50,7 +30,7 @@ export const PlayStopAdapter: React.FC<PlayStopAdapterProps> = ({
       // When countingOff was true, the scheduler count off sequent handles
       // playback automatically (for timing reasons) and we don't need to do it
       // from here.
-      if (!prevData.countingOff) {
+      if (!prevData.countingOff && !countingOff) {
         if (playing && !prevData.playing) {
           play();
         }
@@ -59,7 +39,7 @@ export const PlayStopAdapter: React.FC<PlayStopAdapterProps> = ({
         stop();
       }
     }
-  }, [play, playing, prevData, stop]);
+  }, [countingOff, play, playing, prevData, stop]);
 
   return null;
 };

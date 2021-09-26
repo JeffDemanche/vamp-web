@@ -8,6 +8,12 @@ import {
 } from "../../util/client-clip-state-hooks";
 import { useIsEmpty } from "../../component/workspace/hooks/use-is-empty";
 import { mount } from "enzyme";
+import {
+  defaultPlaybackContext,
+  PlaybackContext,
+  PlaybackContextData
+} from "../../component/workspace/context/recording/playback-context";
+import { MetronomeContext } from "../../component/workspace/context/metronome-context";
 
 jest.mock("../../util/react-hooks");
 jest.mock("../../util/vamp-state-hooks");
@@ -17,12 +23,6 @@ jest.mock("../../component/workspace/hooks/use-is-empty", () => ({
   useIsEmpty: jest.fn()
 }));
 jest.mock("../../component/workspace/hooks/use-cab-loops");
-jest.mock("react", () => ({
-  ...jest.requireActual("react"),
-  useContext: jest.fn(() => ({
-    truncateEndOfRecording: (time: number): number => time
-  }))
-}));
 jest.mock("@apollo/client", () => ({
   ...jest.requireActual("@apollo/client"),
   useQuery: jest.fn(),
@@ -41,48 +41,47 @@ describe("Record Adapter", () => {
     (useIsEmpty as jest.Mock).mockImplementation(() => true);
 
     const primeRecorderSpy = jest.spyOn(SchedulerInstance, "primeRecorder");
-    (useQuery as jest.Mock)
-      .mockImplementationOnce(() => ({
-        data: {
-          vamp: {
-            recording: false,
-            playPosition: 0,
-            countOff: {
-              duration: 2
-            }
-          },
-          userInVamp: {
-            cab: { start: 0, duration: 4 },
-            prefs: { latencyCompensation: 0 }
-          }
+    (useQuery as jest.Mock).mockImplementation(() => ({
+      data: {
+        userInVamp: {
+          cab: { start: 0, duration: 4 },
+          prefs: { latencyCompensation: 0 }
         }
-      }))
-      .mockImplementation(() => ({
-        data: {
-          vamp: {
-            recording: true,
-            playPosition: 0,
-            countOff: {
-              duration: 2
-            }
-          },
-          userInVamp: {
-            cab: { start: 0, duration: 4 },
-            prefs: { latencyCompensation: 0 }
-          }
-        }
-      }));
+      }
+    }));
+
+    const playbackVal: PlaybackContextData = {
+      ...defaultPlaybackContext,
+      recording: false,
+      playPosition: 0,
+      updateCountOff: () => {},
+      countOffData: {
+        measures: [],
+        duration: 2
+      },
+      countingOff: true,
+      countingOffStartTime: 0
+    };
 
     const component = mount(
-      <RecordAdapter
-        scheduler={SchedulerInstance}
-        context={null}
-      ></RecordAdapter>
+      <PlaybackContext.Provider value={playbackVal}>
+        <MetronomeContext.Provider
+          // @ts-ignore
+          value={{
+            truncateEndOfRecording: () => 0
+          }}
+        >
+          <RecordAdapter
+            scheduler={SchedulerInstance}
+            context={null}
+          ></RecordAdapter>
+        </MetronomeContext.Provider>
+      </PlaybackContext.Provider>
     );
 
-    component.setProps({});
+    component.setProps({ value: { ...playbackVal, recording: true } });
 
-    expect(primeRecorderSpy).toBeCalledWith(0, expect.anything());
+    expect(primeRecorderSpy).toHaveBeenCalled();
   });
 
   it("begins client clip when recording begins", () => {
@@ -93,46 +92,45 @@ describe("Record Adapter", () => {
       () => useBeginClientClipFn
     );
 
-    (useQuery as jest.Mock)
-      .mockImplementationOnce(() => ({
-        data: {
-          vamp: {
-            recording: false,
-            playPosition: 0,
-            countOff: {
-              duration: 2
-            }
-          },
-          userInVamp: {
-            cab: { start: 0, duration: 4 },
-            prefs: { latencyCompensation: 0 }
-          }
+    const playbackVal: PlaybackContextData = {
+      ...defaultPlaybackContext,
+      recording: false,
+      playPosition: 0,
+      updateCountOff: () => {},
+      countOffData: {
+        measures: [],
+        duration: 2
+      },
+      countingOff: true,
+      countingOffStartTime: 0
+    };
+
+    (useQuery as jest.Mock).mockImplementation(() => ({
+      data: {
+        userInVamp: {
+          cab: { start: 0, duration: 4 },
+          prefs: { latencyCompensation: 0 }
         }
-      }))
-      .mockImplementation(() => ({
-        data: {
-          vamp: {
-            recording: true,
-            playPosition: 0,
-            countOff: {
-              duration: 2
-            }
-          },
-          userInVamp: {
-            cab: { start: 0, duration: 4 },
-            prefs: { latencyCompensation: 0 }
-          }
-        }
-      }));
+      }
+    }));
 
     const component = mount(
-      <RecordAdapter
-        scheduler={SchedulerInstance}
-        context={null}
-      ></RecordAdapter>
+      <PlaybackContext.Provider value={playbackVal}>
+        <MetronomeContext.Provider
+          // @ts-ignore
+          value={{
+            truncateEndOfRecording: () => 0
+          }}
+        >
+          <RecordAdapter
+            scheduler={SchedulerInstance}
+            context={null}
+          ></RecordAdapter>
+        </MetronomeContext.Provider>
+      </PlaybackContext.Provider>
     );
 
-    component.setProps({});
+    component.setProps({ value: { ...playbackVal, recording: true } });
 
     expect(useBeginClientClipFn).toBeCalledWith(0, expect.anything(), 0);
   });
@@ -145,61 +143,46 @@ describe("Record Adapter", () => {
       () => useEndClientClipFn
     );
 
-    (useQuery as jest.Mock)
-      .mockImplementationOnce(() => ({
-        data: {
-          vamp: {
-            recording: false,
-            playPosition: 0,
-            countOff: {
-              duration: 2
-            }
-          },
-          userInVamp: {
-            cab: { start: 0, duration: 4 },
-            prefs: { latencyCompensation: 0 }
-          }
+    const playbackVal: PlaybackContextData = {
+      ...defaultPlaybackContext,
+      recording: false,
+      playPosition: 0,
+      updateCountOff: () => {},
+      countOffData: {
+        measures: [],
+        duration: 2
+      },
+      countingOff: true,
+      countingOffStartTime: 0
+    };
+
+    (useQuery as jest.Mock).mockImplementation(() => ({
+      data: {
+        userInVamp: {
+          cab: { start: 0, duration: 4 },
+          prefs: { latencyCompensation: 0 }
         }
-      }))
-      .mockImplementationOnce(() => ({
-        data: {
-          vamp: {
-            recording: true,
-            playPosition: 0,
-            countOff: {
-              duration: 2
-            }
-          },
-          userInVamp: {
-            cab: { start: 0, duration: 4 },
-            prefs: { latencyCompensation: 0 }
-          }
-        }
-      }))
-      .mockImplementation(() => ({
-        data: {
-          vamp: {
-            recording: false,
-            playPosition: 0,
-            countOff: {
-              duration: 2
-            }
-          },
-          userInVamp: {
-            cab: { start: 0, duration: 4 },
-            prefs: { latencyCompensation: 0 }
-          }
-        }
-      }));
+      }
+    }));
 
     const component = mount(
-      <RecordAdapter
-        scheduler={SchedulerInstance}
-        context={null}
-      ></RecordAdapter>
+      <PlaybackContext.Provider value={playbackVal}>
+        <MetronomeContext.Provider
+          // @ts-ignore
+          value={{
+            truncateEndOfRecording: () => 0
+          }}
+        >
+          <RecordAdapter
+            scheduler={SchedulerInstance}
+            context={null}
+          ></RecordAdapter>
+        </MetronomeContext.Provider>
+      </PlaybackContext.Provider>
     );
 
-    component.setProps({});
+    component.setProps({ value: { ...playbackVal, recording: true } });
+    component.setProps({ value: { ...playbackVal, recording: false } });
 
     expect(useEndClientClipFn).toBeCalledWith(expect.anything());
   });

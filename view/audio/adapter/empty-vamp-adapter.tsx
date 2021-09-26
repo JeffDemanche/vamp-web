@@ -1,13 +1,13 @@
 import { gql, useApolloClient, useMutation } from "@apollo/client";
 import * as React from "react";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
+import { PlaybackContext } from "../../component/workspace/context/recording/playback-context";
 import { useIsEmpty } from "../../component/workspace/hooks/use-is-empty";
 import {
   useCurrentUserId,
   useCurrentVampId,
   usePrevious
 } from "../../util/react-hooks";
-import { useSeek } from "../../util/vamp-state-hooks";
 
 const UPDATE_CAB_MUTATION = gql`
   mutation EmptyVampAdapterUpdateCab(
@@ -42,7 +42,7 @@ export const EmptyVampAdapter: React.FC<{}> = () => {
 
   const { cache } = useApolloClient();
 
-  const seek = useSeek();
+  const { seek } = useContext(PlaybackContext);
 
   const [updateCab] = useMutation(UPDATE_CAB_MUTATION);
 

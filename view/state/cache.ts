@@ -23,28 +23,6 @@ export const cache = new InMemoryCache({
           read: (tracks = []) => tracks,
           merge: (existing, incoming) => incoming
         },
-
-        playing: (playing = false): boolean => playing,
-        playPosition: (playPosition = 0): number => playPosition,
-        playStartTime: (playStartTime = 0): number => playStartTime,
-        start: (start = 0): number => start,
-        end: (end = 0): number => end,
-        loop: (loop = true): boolean => loop,
-        recording: (recording = false): boolean => recording,
-        countingOff: (countingOff = false): boolean => countingOff,
-        countOff: (
-          countOff = { duration: 0, measures: [] }
-        ): {
-          duration: number;
-          measures: {
-            repetitions: number;
-            bpm: number;
-            beats: number;
-            metronomeSound: string;
-          }[];
-        } => countOff,
-        countingOffStartTime: (countingOffStartTime = 0): number =>
-          countingOffStartTime,
         floorOpen: (floorOpen = false): boolean => floorOpen,
         clientClips: {
           read: (clientClips = []) => clientClips,

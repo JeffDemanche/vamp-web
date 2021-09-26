@@ -74,24 +74,6 @@ const VAMP_QUERY = gql`
           id
         }
       }
-      playing @client
-      playPosition @client
-      playStartTime @client
-      start @client
-      end @client
-      loop @client
-      recording @client
-      countingOff @client
-      countOff @client {
-        duration
-        measures {
-          repetitions
-          bpm
-          beats
-          metronomeSound
-        }
-      }
-      countingOffStartTime @client
       floorOpen @client
       clientClips @client {
         audioStoreKey
@@ -164,24 +146,6 @@ const VAMP_SUBSCRIPTION = gql`
             id
           }
         }
-        playing @client
-        playPosition @client
-        playStartTime @client
-        start @client
-        end @client
-        loop @client
-        recording @client
-        countingOff @client
-        countOff @client {
-          duration
-          measures {
-            repetitions
-            bpm
-            beats
-            metronomeSound
-          }
-        }
-        countingOffStartTime @client
         floorOpen @client
         clientClips @client {
           audioStoreKey

@@ -5,13 +5,13 @@ import * as React from "react";
 import * as io from "socket.io-client";
 import * as Peer from "simple-peer";
 import { gql, useQuery } from "@apollo/client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 
-import { TrueTimeClient } from "../state/apollotypes";
 import { audioStore } from "../audio/audio-store";
 import { vampAudioContext } from "../audio/vamp-audio-context";
 import { vampAudioStream } from "../audio/vamp-audio-stream";
 import { loadedVampIdVar } from "../state/cache";
+import { PlaybackContext } from "../component/workspace/context/recording/playback-context";
 
 export const useCurrentVampId = (): string => {
   return loadedVampIdVar();
@@ -54,25 +54,12 @@ export const usePrevious = <T>(value: T): T => {
  * Returns true time in seconds.
  */
 export const useTrueTime = (updateFreqMs: number): number => {
-  const vampId = useCurrentVampId();
   const {
-    data: {
-      vamp: { start, end, playing, playPosition, playStartTime }
-    }
-  } = useQuery<TrueTimeClient>(
-    gql`
-      query TrueTimeClient($vampId: ID!) {
-        vamp(id: $vampId) @client {
-          playing @client
-          playPosition @client
-          playStartTime @client
-          start @client
-          end @client
-        }
-      }
-    `,
-    { variables: { vampId } }
-  );
+    playing,
+    playPosition,
+    playStartTime,
+    bounds: { start, end }
+  } = useContext(PlaybackContext);
 
   // This "local state" time is initially set to the playPosition from the
   // Apollo Cache.

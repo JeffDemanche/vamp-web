@@ -1,10 +1,9 @@
 import { gql, useQuery } from "@apollo/client";
-import { METRONOME_INFO_CLIENT } from "../state/queries/vamp-queries";
 import {
   ViewBoundsDataClient,
   GetClientClipsClient,
   GetClipsClient,
-  MetronomeInfoClient
+  UseSnapToBeatClient
 } from "../state/apollotypes";
 import { useCurrentVampId, useCurrentUserId } from "./react-hooks";
 import { useState, useEffect, useContext } from "react";
@@ -179,12 +178,22 @@ export const useViewBounds = (): { start: number; end: number } => {
  * TODO liable to change with more complex metronome implementation.
  */
 export const useSnapToBeat = (): ((time: number) => number) => {
+  const USE_SNAP_TO_BEAT_QUERY = gql`
+    query UseSnapToBeatClient($vampId: ID!) {
+      vamp(id: $vampId) @client {
+        bpm
+        beatsPerBar
+        metronomeSound
+      }
+    }
+  `;
+
   const vampId = useCurrentVampId();
   const {
     data: {
       vamp: { bpm }
     }
-  } = useQuery<MetronomeInfoClient>(METRONOME_INFO_CLIENT, {
+  } = useQuery<UseSnapToBeatClient>(USE_SNAP_TO_BEAT_QUERY, {
     variables: { vampId }
   });
 

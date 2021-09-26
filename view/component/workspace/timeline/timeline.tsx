@@ -3,13 +3,13 @@ import { gql, useQuery } from "@apollo/client";
 import * as styles from "./timeline.less";
 import { Cab } from "../cab/cab";
 import TimelineClips from "./timeline-clips";
-import { RECORDING_CLIENT } from "../../../state/queries/vamp-queries";
-import { RecordingClient, TimelineClient } from "../../../state/apollotypes";
+import { TimelineClient } from "../../../state/apollotypes";
 import { useCurrentVampId } from "../../../util/react-hooks";
-import { MutableRefObject } from "react";
+import { useContext } from "react";
 import { Metronome } from "./metronome/metronome";
 import { useIsEmpty } from "../hooks/use-is-empty";
 import { GuidelineOverlay } from "../guidelines/guideline-overlay";
+import { PlaybackContext } from "../context/recording/playback-context";
 
 const TIMELINE_CLIENT = gql`
   query TimelineClient($vampId: ID!) {
@@ -49,7 +49,6 @@ const TIMELINE_CLIENT = gql`
 `;
 
 interface TimelineProps {
-  offsetRef: MutableRefObject<HTMLDivElement>;
   // See workspace-content.tsx for how this works.
   tracksRef: (node: HTMLDivElement) => void;
 }
@@ -58,17 +57,13 @@ interface TimelineProps {
  * Timeline is everything below the play panel.
  */
 const Timeline: React.FunctionComponent<TimelineProps> = ({
-  offsetRef,
   tracksRef
 }: TimelineProps) => {
   const vampId = useCurrentVampId();
 
-  // Queries the cache to update state based on whether the client is recording.
-  const { data: recordingData } = useQuery<RecordingClient>(RECORDING_CLIENT, {
-    variables: { vampId }
-  });
+  const { recording } = useContext(PlaybackContext);
 
-  const { data, loading, error } = useQuery<TimelineClient>(TIMELINE_CLIENT, {
+  const { data, loading } = useQuery<TimelineClient>(TIMELINE_CLIENT, {
     variables: { vampId }
   });
 
@@ -80,7 +75,7 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
   }
 
   const timelineContent = empty ? (
-    <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
+    <Cab empty={empty} recording={recording}></Cab>
   ) : (
     <>
       <div className={styles["top-cell"]}>
@@ -94,7 +89,7 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
         ></TimelineClips>
       </div>
       <div className={styles["bottom-cell"]}>
-        <Cab empty={empty} recording={recordingData.vamp.recording}></Cab>
+        <Cab empty={empty} recording={recording}></Cab>
       </div>
     </>
   );

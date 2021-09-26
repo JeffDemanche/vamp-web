@@ -8,10 +8,6 @@ import { SchedulerInstance } from "../scheduler";
 
 jest.mock("../../util/client-clip-state-hooks");
 jest.mock("../../util/react-hooks");
-jest.mock("@apollo/client", () => ({
-  ...jest.requireActual("@apollo/client"),
-  useQuery: jest.fn(() => ({ data: { vamp: { countOff: { duration: 2 } } } }))
-}));
 
 const clipMocks = [
   {

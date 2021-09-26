@@ -1,8 +1,6 @@
 import * as React from "react";
 import * as styles from "./metronome-bar.less";
-import { useQuery } from "@apollo/client";
-import { METRONOME_INFO_CLIENT } from "../../../../state/queries/vamp-queries";
-import { MetronomeInfoClient } from "../../../../state/apollotypes";
+import { gql, useQuery } from "@apollo/client";
 import { useCurrentVampId } from "../../../../util/react-hooks";
 import {
   useWorkspaceWidth,
@@ -10,6 +8,17 @@ import {
   useWorkspaceLeft,
   useViewBounds
 } from "../../../../util/workspace-hooks";
+import { MetronomeBarClient } from "../../../../state/apollotypes";
+
+const METRONOME_BAR_QUERY = gql`
+  query MetronomeBarClient($vampId: ID!) {
+    vamp(id: $vampId) @client {
+      bpm
+      beatsPerBar
+      metronomeSound
+    }
+  }
+`;
 
 interface MetronomeMeasureProps {
   measureNo: number;
@@ -108,7 +117,7 @@ const MetronomeBar: React.FC = () => {
     data: {
       vamp: { bpm, beatsPerBar }
     }
-  } = useQuery<MetronomeInfoClient>(METRONOME_INFO_CLIENT, {
+  } = useQuery<MetronomeBarClient>(METRONOME_BAR_QUERY, {
     variables: { vampId }
   });
 

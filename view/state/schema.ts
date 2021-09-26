@@ -37,40 +37,6 @@ export const typeDefs = gql`
   }
 
   extend type Vamp {
-    playing: Boolean
-
-    """
-    The position in seconds of the current position before play was pressed.
-    """
-    playPosition: Float
-
-    """
-    The Date.now() value of the instant when playing began, or -1 if not
-    playing. The true current time when playing will be playPosition +
-    (Date.now() - playStartTime) / 1000.
-    """
-    playStartTime: Int
-    start: Float
-    end: Float
-    loop: Boolean
-    recording: Boolean
-
-    """
-    Is the "count off" currently in process. This happens before playing, etc.
-    get changed in state.
-    """
-    countingOff: Boolean
-
-    """
-    Contains the data about the count off
-    """
-    countOff: CountOff
-
-    """
-    Date.now() of when countdown began (see playStartTime, which is similar).
-    """
-    countingOffStartTime: Int
-
     """
     Is the floor open in the workspace or not.
     """
@@ -78,16 +44,8 @@ export const typeDefs = gql`
     clientClips: [ClientClip]
   }
 
-  input ClipDraggingInfo {
-    dragging: Boolean
-    track: ID
-    position: Float
-    downPosX: Int
-  }
-
   extend type Clip {
     referenceId: ID
-    draggingInfo: ClipDraggingInfo
   }
 
   """
@@ -100,21 +58,6 @@ export const typeDefs = gql`
     duration: Float!
     inProgress: Boolean!
     latencyCompensation: Float
-  }
-
-  """
-  The format of the count off
-  """
-  type CountOff {
-    duration: Float!
-    measures: [CountOffMeasure!]!
-  }
-
-  type CountOffMeasure {
-    repetitions: Int!
-    bpm: Int!
-    beats: Int!
-    metronomeSound: String!
   }
 `;
 

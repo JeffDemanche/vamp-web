@@ -1,20 +1,7 @@
 import * as React from "react";
-import { useQuery } from "@apollo/client";
-import {
-  PLAYING_CLIENT,
-  RECORDING_CLIENT
-} from "../state/queries/vamp-queries";
-import { PlayingClient, RecordingClient } from "../state/apollotypes";
-import { useCurrentVampId } from "../util/react-hooks";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { vampSpeechRecognizer } from "./vamp-speech-recognizer";
-import {
-  usePause,
-  usePlay,
-  useRecord,
-  useSeek,
-  useStop
-} from "../util/vamp-state-hooks";
+import { PlaybackContext } from "../component/workspace/context/recording/playback-context";
 
 interface SpeechControlTypes {
   children: React.ReactNode;
@@ -34,20 +21,7 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
 
   const recognition = startSpeechRecognition();
 
-  const vampId = useCurrentVampId();
-
-  const play = usePlay();
-  const pause = usePause();
-  const stop = useStop();
-  const record = useRecord();
-  const seek = useSeek();
-
-  const { data, loading, error } = useQuery<PlayingClient>(PLAYING_CLIENT, {
-    variables: { vampId }
-  });
-  const { data: recordingData } = useQuery<RecordingClient>(RECORDING_CLIENT, {
-    variables: { vampId }
-  });
+  const { playing, recording, play, stop, seek } = useContext(PlaybackContext);
 
   const [isListening, setIsListening] = useState(false);
 
@@ -77,12 +51,12 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
       to an API to do that
       */
     if (transcript.includes("play")) {
-      if (!data.vamp.playing) {
+      if (!playing) {
         play();
       }
     } else if (transcript.includes("stop")) {
-      if (data.vamp.playing) {
-        if (recordingData.vamp.recording) {
+      if (playing) {
+        if (recording) {
           seek(0);
         } else {
           stop();
@@ -97,6 +71,8 @@ export const SpeechControl: React.FC<SpeechControlTypes> = (
 
   // the recognition occurs here
   const handleSpeech = (): void => {
+    if (!recognition) return;
+
     recognition.onnomatch = (): void => {
       console.log("sorry I didn't get that");
     };

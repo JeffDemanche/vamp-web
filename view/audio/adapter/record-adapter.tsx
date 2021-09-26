@@ -10,7 +10,6 @@ import {
   useBeginClientClip,
   useEndClientClip
 } from "../../util/client-clip-state-hooks";
-import { useStop } from "../../util/vamp-state-hooks";
 import {
   useCurrentUserId,
   useCurrentVampId,
@@ -20,6 +19,7 @@ import { SchedulerInstance } from "../scheduler";
 import { useIsEmpty } from "../../component/workspace/hooks/use-is-empty";
 import { MetronomeContext } from "../../component/workspace/context/metronome-context";
 import { useCabLoops } from "../../component/workspace/hooks/use-cab-loops";
+import { PlaybackContext } from "../../component/workspace/context/recording/playback-context";
 
 interface RecordAdapterProps {
   scheduler: typeof SchedulerInstance;
@@ -28,13 +28,6 @@ interface RecordAdapterProps {
 
 const RECORD_ADAPTER_QUERY = gql`
   query RecordAdapterQuery($userId: ID!, $vampId: ID!) {
-    vamp(id: $vampId) @client {
-      recording
-      playPosition
-      countOff {
-        duration
-      }
-    }
     userInVamp(userId: $userId, vampId: $vampId) @client {
       id
       cab {
@@ -106,12 +99,13 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
   const empty = useIsEmpty();
 
   const {
+    recording,
+    playPosition,
+    countOffData: { duration: countOffDuration }
+  } = useContext(PlaybackContext);
+
+  const {
     data: {
-      vamp: {
-        recording,
-        playPosition,
-        countOff: { duration: countOffDuration }
-      },
       userInVamp: {
         cab: { start: cabStart, duration: cabDuration },
         prefs: { latencyCompensation }
@@ -131,7 +125,7 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
   const [addClip] = useMutation<AddClipMutation>(ADD_CLIP_MUTATION);
   const [updateCab] = useMutation<RecordAdapterUpdateCab>(UPDATE_CAB_MUTATION);
 
-  const apolloStop = useStop();
+  const { stop: apolloStop } = useContext(PlaybackContext);
 
   const { truncateEndOfRecording } = useContext(MetronomeContext);
 
@@ -141,58 +135,52 @@ export const RecordAdapter: React.FC<RecordAdapterProps> = ({
     if (prevData) {
       if (recording && !prevData.recording) {
         if (scheduler.recorder.mediaRecorderInitialized()) {
-          const recordingId = scheduler.primeRecorder(
-            prevData.playPosition,
-            async file => {
-              const dataArrBuff = await file.arrayBuffer();
-              const audioDuration = (await context.decodeAudioData(dataArrBuff))
-                .duration;
+          const recordingId = scheduler.primeRecorder(async file => {
+            const dataArrBuff = await file.arrayBuffer();
+            const audioDuration = (await context.decodeAudioData(dataArrBuff))
+              .duration;
 
-              const truncatedEndOfRecordingTime = truncateEndOfRecording(
-                cabStart +
-                  audioDuration -
-                  countOffDuration -
-                  latencyCompensation
-              );
-              const emptyDuration =
-                truncatedEndOfRecordingTime === 0
-                  ? audioDuration - countOffDuration - latencyCompensation
-                  : truncatedEndOfRecordingTime;
-              const cabLoopsDuration = cabDuration;
-              const noLoopDuration = audioDuration;
+            const truncatedEndOfRecordingTime = truncateEndOfRecording(
+              cabStart + audioDuration - countOffDuration - latencyCompensation
+            );
+            const emptyDuration =
+              truncatedEndOfRecordingTime === 0
+                ? audioDuration - countOffDuration - latencyCompensation
+                : truncatedEndOfRecordingTime;
+            const cabLoopsDuration = cabDuration;
+            const noLoopDuration = audioDuration;
 
-              let duration = emptyDuration;
-              if (!empty) {
-                if (cabLoops) duration = cabLoopsDuration;
-                else duration = noLoopDuration;
-              }
+            let duration = emptyDuration;
+            if (!empty) {
+              if (cabLoops) duration = cabLoopsDuration;
+              else duration = noLoopDuration;
+            }
 
-              const audioStart = -countOffDuration;
+            const audioStart = -countOffDuration;
 
-              if (empty) {
-                updateCab({
-                  variables: {
-                    userId,
-                    vampId,
-                    duration,
-                    loops: true
-                  }
-                });
-              }
-              addClip({
+            if (empty) {
+              updateCab({
                 variables: {
-                  start: prevData.playPosition,
-                  duration,
-                  vampId,
                   userId,
-                  file,
-                  contentStart: audioStart,
-                  latencyCompensation,
-                  referenceId: recordingId
+                  vampId,
+                  duration,
+                  loops: true
                 }
               });
             }
-          );
+            addClip({
+              variables: {
+                start: prevData.playPosition,
+                duration,
+                vampId,
+                userId,
+                file,
+                contentStart: audioStart,
+                latencyCompensation,
+                referenceId: recordingId
+              }
+            });
+          });
 
           if (currentRecordingId !== null)
             throw new Error("Current recording ID already set.");
