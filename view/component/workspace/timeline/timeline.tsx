@@ -38,11 +38,6 @@ const TIMELINE_CLIENT = gql`
             error
           }
         }
-        draggingInfo {
-          dragging
-          track
-          position
-        }
       }
     }
   }

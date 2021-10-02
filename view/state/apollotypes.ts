@@ -32,24 +32,6 @@ export interface EmptyVampAdapterUpdateCabVariables {
 // GraphQL query operation: RecordAdapterQuery
 // ====================================================
 
-export interface RecordAdapterQuery_vamp_countOff {
-  __typename: "CountOff";
-  duration: number;
-}
-
-export interface RecordAdapterQuery_vamp {
-  __typename: "Vamp";
-  recording: boolean | null;
-  /**
-   * The position in seconds of the current position before play was pressed.
-   */
-  playPosition: number | null;
-  /**
-   * Contains the data about the count off
-   */
-  countOff: RecordAdapterQuery_vamp_countOff | null;
-}
-
 export interface RecordAdapterQuery_userInVamp_cab {
   __typename: "Cab";
   start: number;
@@ -69,7 +51,6 @@ export interface RecordAdapterQuery_userInVamp {
 }
 
 export interface RecordAdapterQuery {
-  vamp: RecordAdapterQuery_vamp | null;
   /**
    * Tries to find a UserInVamp, or adds one if not found.
    */
@@ -176,36 +157,6 @@ export interface SeekAdapterQueryVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: ClipPlayerQuery
-// ====================================================
-
-export interface ClipPlayerQuery_vamp_countOff {
-  __typename: "CountOff";
-  duration: number;
-}
-
-export interface ClipPlayerQuery_vamp {
-  __typename: "Vamp";
-  /**
-   * Contains the data about the count off
-   */
-  countOff: ClipPlayerQuery_vamp_countOff | null;
-}
-
-export interface ClipPlayerQuery {
-  vamp: ClipPlayerQuery_vamp | null;
-}
-
-export interface ClipPlayerQueryVariables {
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
 // GraphQL query operation: FloorAdapter
 // ====================================================
 
@@ -277,9 +228,6 @@ export interface WorkspaceAudioClient_vamp {
   bpm: number;
   beatsPerBar: number;
   metronomeSound: string;
-  start: number | null;
-  end: number | null;
-  loop: boolean | null;
   clips: WorkspaceAudioClient_vamp_clips[];
   clientClips: (WorkspaceAudioClient_vamp_clientClips | null)[] | null;
 }
@@ -547,47 +495,6 @@ export interface PlaybackProviderQueryVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: CountOffReverseCounterQuery
-// ====================================================
-
-export interface CountOffReverseCounterQuery_vamp_countOff_measures {
-  __typename: "CountOffMeasure";
-  repetitions: number;
-  beats: number;
-  bpm: number;
-}
-
-export interface CountOffReverseCounterQuery_vamp_countOff {
-  __typename: "CountOff";
-  measures: CountOffReverseCounterQuery_vamp_countOff_measures[];
-}
-
-export interface CountOffReverseCounterQuery_vamp {
-  __typename: "Vamp";
-  /**
-   * Date.now() of when countdown began (see playStartTime, which is similar).
-   */
-  countingOffStartTime: number | null;
-  /**
-   * Contains the data about the count off
-   */
-  countOff: CountOffReverseCounterQuery_vamp_countOff | null;
-}
-
-export interface CountOffReverseCounterQuery {
-  vamp: CountOffReverseCounterQuery_vamp | null;
-}
-
-export interface CountOffReverseCounterQueryVariables {
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
 // GraphQL query operation: FloorOverlayWrapper
 // ====================================================
 
@@ -663,6 +570,39 @@ export interface UseIsEmpty {
 
 export interface UseIsEmptyVariables {
   vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: UseLoopPointsQuery
+// ====================================================
+
+export interface UseLoopPointsQuery_userInVamp_cab {
+  __typename: "Cab";
+  start: number;
+  duration: number;
+  mode: CabMode;
+}
+
+export interface UseLoopPointsQuery_userInVamp {
+  __typename: "UserInVamp";
+  cab: UseLoopPointsQuery_userInVamp_cab;
+}
+
+export interface UseLoopPointsQuery {
+  /**
+   * Tries to find a UserInVamp, or adds one if not found.
+   */
+  userInVamp: UseLoopPointsQuery_userInVamp;
+}
+
+export interface UseLoopPointsQueryVariables {
+  vampId: string;
+  userId: string;
 }
 
 /* tslint:disable */
@@ -875,32 +815,6 @@ export interface UpdateMetronomeSoundVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: PlayPanelQuery
-// ====================================================
-
-export interface PlayPanelQuery_vamp {
-  __typename: "Vamp";
-  /**
-   * Is the "count off" currently in process. This happens before playing, etc.
-   * get changed in state.
-   */
-  countingOff: boolean | null;
-}
-
-export interface PlayPanelQuery {
-  vamp: PlayPanelQuery_vamp | null;
-}
-
-export interface PlayPanelQueryVariables {
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
 // GraphQL query operation: NameClient
 // ====================================================
 
@@ -1008,7 +922,6 @@ export interface TimelineClient_vamp_clips {
   duration: number;
   track: TimelineClient_vamp_clips_track | null;
   content: TimelineClient_vamp_clips_content[];
-  draggingInfo: ClipDraggingInfo | null;
 }
 
 export interface TimelineClient_vamp {
@@ -1239,20 +1152,6 @@ export interface GetVamp_vamp_forms {
   postSection: GetVamp_vamp_forms_postSection | null;
 }
 
-export interface GetVamp_vamp_countOff_measures {
-  __typename: "CountOffMeasure";
-  repetitions: number;
-  bpm: number;
-  beats: number;
-  metronomeSound: string;
-}
-
-export interface GetVamp_vamp_countOff {
-  __typename: "CountOff";
-  duration: number;
-  measures: GetVamp_vamp_countOff_measures[];
-}
-
 export interface GetVamp_vamp_clientClips {
   __typename: "ClientClip";
   audioStoreKey: string;
@@ -1269,34 +1168,6 @@ export interface GetVamp_vamp {
   clips: GetVamp_vamp_clips[];
   sections: GetVamp_vamp_sections[];
   forms: GetVamp_vamp_forms[];
-  playing: boolean | null;
-  /**
-   * The position in seconds of the current position before play was pressed.
-   */
-  playPosition: number | null;
-  /**
-   * The Date.now() value of the instant when playing began, or -1 if not
-   * playing. The true current time when playing will be playPosition +
-   * (Date.now() - playStartTime) / 1000.
-   */
-  playStartTime: number | null;
-  start: number | null;
-  end: number | null;
-  loop: boolean | null;
-  recording: boolean | null;
-  /**
-   * Is the "count off" currently in process. This happens before playing, etc.
-   * get changed in state.
-   */
-  countingOff: boolean | null;
-  /**
-   * Contains the data about the count off
-   */
-  countOff: GetVamp_vamp_countOff | null;
-  /**
-   * Date.now() of when countdown began (see playStartTime, which is similar).
-   */
-  countingOffStartTime: number | null;
   /**
    * Is the floor open in the workspace or not.
    */
@@ -1411,20 +1282,6 @@ export interface VampSubscription_subVamp_vampPayload_forms {
   postSection: VampSubscription_subVamp_vampPayload_forms_postSection | null;
 }
 
-export interface VampSubscription_subVamp_vampPayload_countOff_measures {
-  __typename: "CountOffMeasure";
-  repetitions: number;
-  bpm: number;
-  beats: number;
-  metronomeSound: string;
-}
-
-export interface VampSubscription_subVamp_vampPayload_countOff {
-  __typename: "CountOff";
-  duration: number;
-  measures: VampSubscription_subVamp_vampPayload_countOff_measures[];
-}
-
 export interface VampSubscription_subVamp_vampPayload_clientClips {
   __typename: "ClientClip";
   audioStoreKey: string;
@@ -1441,34 +1298,6 @@ export interface VampSubscription_subVamp_vampPayload {
   clips: VampSubscription_subVamp_vampPayload_clips[];
   sections: VampSubscription_subVamp_vampPayload_sections[];
   forms: VampSubscription_subVamp_vampPayload_forms[];
-  playing: boolean | null;
-  /**
-   * The position in seconds of the current position before play was pressed.
-   */
-  playPosition: number | null;
-  /**
-   * The Date.now() value of the instant when playing began, or -1 if not
-   * playing. The true current time when playing will be playPosition +
-   * (Date.now() - playStartTime) / 1000.
-   */
-  playStartTime: number | null;
-  start: number | null;
-  end: number | null;
-  loop: boolean | null;
-  recording: boolean | null;
-  /**
-   * Is the "count off" currently in process. This happens before playing, etc.
-   * get changed in state.
-   */
-  countingOff: boolean | null;
-  /**
-   * Contains the data about the count off
-   */
-  countOff: VampSubscription_subVamp_vampPayload_countOff | null;
-  /**
-   * Date.now() of when countdown began (see playStartTime, which is similar).
-   */
-  countingOffStartTime: number | null;
   /**
    * Is the floor open in the workspace or not.
    */
@@ -1646,7 +1475,6 @@ export interface GetClipsClient_vamp_clips {
    * Gets the first audio on this clip's content array.
    */
   audio: GetClipsClient_vamp_clips_audio;
-  draggingInfo: ClipDraggingInfo | null;
 }
 
 export interface GetClipsClient_vamp {
@@ -2013,13 +1841,6 @@ export enum CabMode {
  */
 export enum ClipContentType {
   AUDIO = "AUDIO",
-}
-
-export interface ClipDraggingInfo {
-  dragging?: boolean | null;
-  track?: string | null;
-  position?: number | null;
-  downPosX?: number | null;
 }
 
 export interface UpdateClipInput {

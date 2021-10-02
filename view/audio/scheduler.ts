@@ -3,6 +3,7 @@ import ObjectID from "bson-objectid";
 import Recorder from "./recorder";
 import { MetronomeContextData } from "../component/workspace/context/metronome-context";
 import { CountOff } from "../component/workspace/context/recording/playback-context";
+import { CabMode } from "../state/apollotypes";
 
 class SchedulerEvent {
   readonly id: string;
@@ -365,6 +366,11 @@ class CountOffMetronomeScheduler {
   public getCountOff = (): CountOff => this._countOff;
 }
 
+interface NewRecordingMetaData {
+  afterLoop: boolean;
+  afterStop: boolean;
+}
+
 /**
  * The scheduler tracks `SchedulerEvents`, which are any kind of dispatchable
  * audio, and handles playing those events through the Web Audio API. This
@@ -382,7 +388,23 @@ class Scheduler {
 
   private _recorderPrimed: boolean;
   private _recordingId: string;
-  private _onEndRecording: (file: Blob) => Promise<void>;
+
+  /**
+   * Fires when recording data becomes available.
+   * @param metaData Data about the context of the new recording.
+   */
+  private _onNewRecording: (
+    file: Blob,
+    metaData: NewRecordingMetaData
+  ) => Promise<void>;
+
+  /**
+   * Tuple: looping will occur at the second value in seconds, and loop back to
+   * the first value in seconds. Doesn't loop if second entry is undefined.
+   */
+  private _loopPoints: [number, number];
+
+  private _loopMode: CabMode;
 
   /**
    * An object that handles dispatching metronome events.
@@ -421,6 +443,7 @@ class Scheduler {
     this._recorderPrimed = false;
     this._dispatchedAudioNodes = {};
     this._idleTime = 0;
+    this._loopPoints = [0, undefined];
     this._isPlaying = false;
     this._audioContextPlayStart = 0;
     this._metronomeScheduler = new MetronomeScheduler();
@@ -498,13 +521,18 @@ class Scheduler {
 
   /**
    * Notifies the scheduler to start recording next time `play` is called.
-   * @param onEndRecording This gets called with the final audio data when
+   * @param onNewRecording This gets called with the final audio data when
    * recording completes.
    * @returns An ID that can be used to uniquely identify the recording.
    */
-  primeRecorder = (onEndRecording?: (file: Blob) => Promise<void>): string => {
+  primeRecorder = (
+    onNewRecording?: (
+      file: Blob,
+      metaData: NewRecordingMetaData
+    ) => Promise<void>
+  ): string => {
     this._recorderPrimed = true;
-    this._onEndRecording = onEndRecording;
+    this._onNewRecording = onNewRecording;
     const recordingId = ObjectID.generate();
     this._recordingId = recordingId;
     return recordingId;
@@ -512,7 +540,7 @@ class Scheduler {
 
   private unprimeRecorder = (): void => {
     this._recorderPrimed = false;
-    this._onEndRecording = undefined;
+    this._onNewRecording = undefined;
     this._recordingId = undefined;
   };
 
@@ -522,7 +550,7 @@ class Scheduler {
 
   private stopRecording = (): void => {
     this._recorder.stopRecording(500).then(blob => {
-      this._onEndRecording(blob);
+      this._onNewRecording(blob, { afterLoop: false, afterStop: true });
       this.unprimeRecorder();
     });
   };
@@ -680,12 +708,28 @@ class Scheduler {
     this._countOffMetronomeScheduler.setCountOff(countOff);
   };
 
+  setLoopPoints = (loopPoints: [number, number]): void => {
+    if (loopPoints[0] === undefined)
+      throw new Error("Loop point A must be defined.");
+    if (loopPoints[1] && loopPoints[0] > loopPoints[1])
+      throw new Error("Loop point A must come before loop point B");
+    this._loopPoints = loopPoints;
+  };
+
+  setLoopMode = (loopMode: CabMode): void => {
+    this._loopMode = loopMode;
+  };
+
   get recorder(): Recorder {
     return this._recorder;
   }
 
   get events(): { [id: string]: SchedulerEvent } {
     return this._events;
+  }
+
+  get playing(): boolean {
+    return this._isPlaying;
   }
 }
 
