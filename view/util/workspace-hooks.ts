@@ -15,6 +15,7 @@ import {
   GET_CLIENT_CLIPS_CLIENT,
   GET_CLIPS_CLIENT
 } from "../state/queries/clips-queries";
+import { isNaN } from "underscore";
 
 /**
  * Returns a function that will determine width for a duration, which should be
@@ -23,8 +24,10 @@ import {
  */
 export const useWorkspaceWidth = (): ((duration: number) => number) => {
   const temporalZoom = useContext(TemporalZoomContext);
-
-  const width = (duration: number): number => 100 * duration * temporalZoom;
+  const width = (duration: number): number => {
+    if (duration === undefined || isNaN(duration)) return undefined;
+    return 100 * duration * temporalZoom;
+  };
   return width;
 };
 
@@ -35,7 +38,10 @@ export const useWorkspaceWidth = (): ((duration: number) => number) => {
 export const useWorkspaceDuration = (): ((width: number) => number) => {
   const temporalZoom = useContext(TemporalZoomContext);
 
-  const duration = (width: number): number => width / (100 * temporalZoom);
+  const duration = (width: number): number => {
+    if (width === undefined || isNaN(width)) return undefined;
+    return width / (100 * temporalZoom);
+  };
   return duration;
 };
 
@@ -49,8 +55,10 @@ export const useWorkspaceLeft = (): ((time: number) => number) => {
   const temporalZoom = useContext(TemporalZoomContext);
   const horizontalPos = useContext(HorizontalPosContext);
 
-  const left = (time: number): number =>
-    100 * time * temporalZoom + horizontalPos;
+  const left = (time: number): number => {
+    if (time === undefined || isNaN(time)) return undefined;
+    return 100 * time * temporalZoom + horizontalPos;
+  };
   return left;
 };
 
@@ -62,8 +70,10 @@ export const useWorkspaceTime = (): ((left: number) => number) => {
   const temporalZoom = useContext(TemporalZoomContext);
   const horizontalPos = useContext(HorizontalPosContext);
 
-  const time = (left: number): number =>
-    (left - horizontalPos) / (100 * temporalZoom);
+  const time = (left: number): number => {
+    if (left === undefined || isNaN(left)) return undefined;
+    return (left - horizontalPos) / (100 * temporalZoom);
+  };
   return time;
 };
 

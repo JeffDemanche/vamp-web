@@ -232,24 +232,8 @@ export interface WorkspaceAudioClient_vamp {
   clientClips: (WorkspaceAudioClient_vamp_clientClips | null)[] | null;
 }
 
-export interface WorkspaceAudioClient_userInVamp_cab {
-  __typename: "Cab";
-  start: number;
-  duration: number;
-}
-
-export interface WorkspaceAudioClient_userInVamp {
-  __typename: "UserInVamp";
-  id: string;
-  cab: WorkspaceAudioClient_userInVamp_cab;
-}
-
 export interface WorkspaceAudioClient {
   vamp: WorkspaceAudioClient_vamp | null;
-  /**
-   * Tries to find a UserInVamp, or adds one if not found.
-   */
-  userInVamp: WorkspaceAudioClient_userInVamp;
 }
 
 export interface WorkspaceAudioClientVariables {
@@ -305,6 +289,16 @@ export interface CabMainRecordingVariables {
 // GraphQL query operation: CabMainQuery
 // ====================================================
 
+export interface CabMainQuery_userInVamp_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface CabMainQuery_userInVamp_vamp {
+  __typename: "Vamp";
+  id: string;
+}
+
 export interface CabMainQuery_userInVamp_cab_user {
   __typename: "User";
   id: string;
@@ -320,7 +314,8 @@ export interface CabMainQuery_userInVamp_cab {
 
 export interface CabMainQuery_userInVamp {
   __typename: "UserInVamp";
-  id: string;
+  user: CabMainQuery_userInVamp_user;
+  vamp: CabMainQuery_userInVamp_vamp;
   cab: CabMainQuery_userInVamp_cab;
 }
 
@@ -345,6 +340,16 @@ export interface CabMainQueryVariables {
 // GraphQL mutation operation: UpdateCab
 // ====================================================
 
+export interface UpdateCab_updateUserInVamp_user {
+  __typename: "User";
+  id: string;
+}
+
+export interface UpdateCab_updateUserInVamp_vamp {
+  __typename: "Vamp";
+  id: string;
+}
+
 export interface UpdateCab_updateUserInVamp_cab {
   __typename: "Cab";
   start: number;
@@ -354,6 +359,8 @@ export interface UpdateCab_updateUserInVamp_cab {
 
 export interface UpdateCab_updateUserInVamp {
   __typename: "UserInVamp";
+  user: UpdateCab_updateUserInVamp_user;
+  vamp: UpdateCab_updateUserInVamp_vamp;
   cab: UpdateCab_updateUserInVamp_cab;
 }
 

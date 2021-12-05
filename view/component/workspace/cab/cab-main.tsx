@@ -15,7 +15,7 @@ import {
   useWorkspaceTime
 } from "../../../util/workspace-hooks";
 import Playhead from "../../element/playhead";
-import { useState, useEffect, useContext, useCallback } from "react";
+import { useState, useEffect, useContext, useCallback, useMemo } from "react";
 import classNames from "classnames";
 import { MultiModeButton } from "../../element/multi-mode-button/multi-mode-button";
 import { InfiniteClipIcon } from "../../element/icon/infinite-clip-icon";
@@ -26,10 +26,6 @@ import {
   CurrentlyDragging,
   TimelineDraggable
 } from "../timeline/timeline-draggable";
-import {
-  HorizontalPosContext,
-  TemporalZoomContext
-} from "../workspace-content";
 import { MetronomeContext } from "../context/metronome-context";
 import { PlaybackContext } from "../context/recording/playback-context";
 
@@ -38,7 +34,12 @@ import { GuidelineContext } from "../context/guideline-context";
 export const CAB_MAIN_QUERY = gql`
   query CabMainQuery($vampId: ID!, $userId: ID!) {
     userInVamp(vampId: $vampId, userId: $userId) @client {
-      id
+      user {
+        id
+      }
+      vamp {
+        id
+      }
       cab {
         user {
           id
@@ -68,6 +69,12 @@ const UPDATE_CAB = gql`
         cabMode: $mode
       }
     ) {
+      user {
+        id
+      }
+      vamp {
+        id
+      }
       cab {
         start
         duration
@@ -95,16 +102,12 @@ const CabMain: React.FC = () => {
   const durationFn = useWorkspaceDuration();
   const timeFn = useWorkspaceTime();
 
-  const horizontalPos = useContext(HorizontalPosContext);
-  const prevHorizontalPos = usePrevious(horizontalPos);
-  const temporalZoom = useContext(TemporalZoomContext);
-  const prevTemporalZoom = usePrevious(temporalZoom);
-
   const [adjusting, setAdjusting] = useState(false);
 
-  const [updateCab] = useMutation<UpdateCab>(UPDATE_CAB);
-
   const { countOff, seek } = useContext(PlaybackContext);
+
+  const [deltaLeft, setDeltaLeft] = useState(0);
+  const [deltaWidth, setDeltaWidth] = useState(0);
 
   const {
     data: {
@@ -121,34 +124,40 @@ const CabMain: React.FC = () => {
   if (error) console.error(error);
 
   const loops = useCabLoops();
-  const prevLoops = usePrevious(loops);
 
   const prevStart = usePrevious(start);
+  const prevDuration = usePrevious(duration);
 
   useEffect(() => {
     if (prevStart !== undefined && prevStart !== start) {
       seek(start);
+
+      setDeltaLeft(0);
+      setAdjusting(false);
     }
   }, [prevStart, seek, start]);
 
-  const modes = [CabMode.INFINITE, CabMode.STACK, CabMode.TELESCOPE];
-  const [modeIndex, setModeIndex] = useState(modes.indexOf(mode));
+  useEffect(() => {
+    if (prevDuration !== undefined && prevDuration !== duration) {
+      setDeltaWidth(0);
+      setAdjusting(false);
+    }
+  }, [duration, prevDuration]);
+
+  const modes = useMemo(
+    () => [CabMode.INFINITE, CabMode.STACK, CabMode.TELESCOPE],
+    []
+  );
+  const modeIndex = useMemo(() => modes.indexOf(mode), [modes, mode]);
 
   // deltaLeft and deltaWidth are values that come from dragging, which we add
   // to left and width to get the temporary dimensions while dragging is taking
   // place.
-  const [left, setLeft] = useState(0);
-  useEffect(() => {
-    if (prevStart !== start || horizontalPos !== prevHorizontalPos) {
-      setLeft(leftFn(start));
-    }
-  }, [horizontalPos, leftFn, prevHorizontalPos, prevStart, start]);
-  const [deltaLeft, setDeltaLeft] = useState(0);
+  const left = useMemo(() => leftFn(start), [leftFn, start]);
 
   const { snapToBeat } = useContext(MetronomeContext);
 
-  const prevDuration = usePrevious(duration);
-  const [width, setWidth] = useState(0);
+  const width = useMemo(() => widthFn(duration), [widthFn, duration]);
 
   // TimelineDraggable accepts an arbitrary snap function that transforms a
   // delta into a "snapped delta". We have to some timeline transformations to
@@ -161,46 +170,7 @@ const CabMain: React.FC = () => {
     [left, leftFn, snapToBeat, timeFn, width]
   );
 
-  // This is essentially eagerly determining cab position after a drag. We only
-  // update the width under certain conditions, otherwise the cab will jump
-  // after being dragged while it waits for a server response.
-  useEffect(() => {
-    if (
-      prevDuration !== duration ||
-      temporalZoom !== prevTemporalZoom ||
-      loops !== prevLoops
-    ) {
-      if (loops) setWidth(widthFn(duration));
-      else setWidth(undefined);
-    }
-  }, [
-    duration,
-    loops,
-    prevDuration,
-    prevLoops,
-    prevTemporalZoom,
-    temporalZoom,
-    widthFn
-  ]);
-  const [deltaWidth, setDeltaWidth] = useState(0);
-
-  const updateCabWithClient = ({
-    userId,
-    vampId,
-    duration,
-    start,
-    mode
-  }: {
-    userId: string;
-    vampId: string;
-    duration?: number;
-    start?: number;
-    mode?: CabMode;
-  }): void => {
-    updateCab({
-      variables: { userId, vampId, duration, start, mode }
-    });
-  };
+  const [updateCab] = useMutation<UpdateCab>(UPDATE_CAB);
 
   const playhead = adjusting ? null : (
     <Playhead containerStart={timeFn(left + deltaLeft)} />
@@ -241,27 +211,24 @@ const CabMain: React.FC = () => {
         }}
         onDragEnd={(): void => {
           const duration = durationFn(width + deltaWidth);
-          console.log(duration);
           if (duration <= 0) {
             // Invalid case.
             setDeltaLeft(0);
             setDeltaWidth(0);
           } else {
             // Do server update.
-            updateCabWithClient({
-              userId,
-              vampId,
-              duration,
-              start: timeFn(left + deltaLeft)
+            updateCab({
+              variables: {
+                userId,
+                vampId,
+                duration,
+                start: timeFn(left + deltaLeft)
+              }
+            }).catch(err => {
+              console.error(err);
             });
           }
           setIsShowing(false);
-
-          setLeft(left + deltaLeft);
-          setWidth(width + deltaWidth);
-          setDeltaLeft(0);
-          setDeltaWidth(0);
-          setAdjusting(false);
         }}
       >
         <div
@@ -283,8 +250,9 @@ const CabMain: React.FC = () => {
                 { name: "Telescope", icon: <TelescopeClipIcon /> }
               ]}
               onModeChange={(mode, index): void => {
-                setModeIndex(index);
-                updateCabWithClient({ userId, vampId, mode: modes[index] });
+                updateCab({
+                  variables: { userId, vampId, mode: modes[index] }
+                });
               }}
             ></MultiModeButton>
           </div>
