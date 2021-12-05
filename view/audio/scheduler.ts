@@ -3,7 +3,6 @@ import ObjectID from "bson-objectid";
 import Recorder from "./recorder";
 import { MetronomeContextData } from "../component/workspace/context/metronome-context";
 import { CountOff } from "../component/workspace/context/recording/playback-context";
-import { CabMode } from "../state/apollotypes";
 
 class SchedulerEvent {
   readonly id: string;
@@ -20,13 +19,13 @@ class SchedulerEvent {
    *
    * @param context An AudioContext, in case it's not present in the dispatching
    * module.
-   * @param startTime The value of context.currentTime when play was started. If
-   * we get this directly from `context` we risk having variance in when things
-   * are dispatched.
-   * @param when Number of seconds between dispatch and when the event should
+   * @param startTime The value of context.currentTime to base this dispatch off
+   * of. For instance, if this is `2` and `when` is `0.5`, the event should
+   * be fired at AC-time `2.5`.
+   * @param when Number of seconds between `startTime` and when the event should
    * start playing.
    * @param offset Number of seconds into the event to begin playback at.
-   * @param duration After how many seconds to stop playing.
+   * @param duration How many seconds after starting to play to stop playing.
    */
   public dispatch: (args: {
     context: AudioContext;
@@ -35,12 +34,6 @@ class SchedulerEvent {
     offset?: number;
     duration?: number;
   }) => Promise<void | AudioScheduledSourceNode>;
-}
-
-interface LoadedTick {
-  time: number;
-  nextTickCode: string;
-  level: number;
 }
 
 const metronomeTick = (
@@ -63,229 +56,6 @@ const metronomeTick = (
     }
   }
 };
-
-/**
- * This is encapsulated within the `Scheduler` instance. There are a number of
- * tricky things involved with playing the metronome that this class tries to
- * solve in one place:
- *
- *  - Generating sheduled ticks based on the form model data.
- *  - Automatically loading ticks so that metronome can be played indefinitely.
- *  - Updating the form data when it gets changed in Apollo.
- *  - Seeking, playing, stopping, etc.
- */
-class MetronomeScheduler {
-  /**
-   * Roughly how many seconds out to preload metronome ticks into
-   * `loadedTicks`.
-   */
-  private _measureBatchDuration = 10;
-
-  private _context: AudioContext;
-
-  /**
-   * For concurrency reasons, we push values to here to ensure that every
-   * dispatch can be stopped.
-   */
-  private _isPlaying: boolean[];
-
-  /** The latest index of `_isPlaying` we use to stop the latest dispatch. */
-  private _latestPlaying: number;
-
-  /** We pass this into `processMetronome` which does most of the hard work. */
-  private _getMeasureMap: MetronomeContextData["getMeasureMap"];
-
-  private _activeTickNode: AudioScheduledSourceNode;
-
-  /** TODO Allow disable. */
-  public enabled: boolean;
-
-  private _firstLoadedTickCode: string;
-  private _lastLoadedTickCode: string;
-
-  /**
-   * As an example, `code` for the second tick of the measure 4 would be "4.1"
-   */
-  public loadedTicks: {
-    [code: string]: LoadedTick;
-  };
-
-  constructor() {
-    this.loadedTicks = {};
-    this.enabled = true;
-    this._isPlaying = [];
-    this.clear();
-  }
-
-  giveContext = (context: AudioContext): void => {
-    this._context = context;
-  };
-
-  private firstLoadedTick = (): LoadedTick =>
-    this._firstLoadedTickCode && this.loadedTicks[this._firstLoadedTickCode];
-
-  private lastLoadedTick = (): LoadedTick =>
-    this._lastLoadedTickCode && this.loadedTicks[this._lastLoadedTickCode];
-
-  /**
-   * 1 if code1 comes after code2, 0 if they're equal, -1 if code1 comes before
-   * code2.
-   */
-  private compareCodes = (code1: string, code2: string): number => {
-    const code1Nums = code1.split(".");
-    const code2Nums = code2.split(".");
-
-    const measure1 = parseInt(code1Nums[0]);
-    const measure2 = parseInt(code2Nums[0]);
-
-    if (measure1 > measure2) return 1;
-    else if (measure1 < measure2) return -1;
-    else {
-      const tick1 = parseInt(code1Nums[1]);
-      const tick2 = parseInt(code2Nums[1]);
-
-      if (tick1 > tick2) return 1;
-      else if (tick1 < tick2) return -1;
-      else return 0;
-    }
-  };
-
-  /**
-   * "Paginate" a batch of measures. This will load all measures in the given
-   * time range into the `loadedTicks` map, preserving any ticks that are
-   * already there.
-   */
-  private loadMeasures = (start: number, end: number): void => {
-    start = Math.floor(start);
-    if (!this._getMeasureMap)
-      throw new Error("No measure map function provided to metronome.");
-
-    // Ensures we load measures between the current range and where we're
-    // seeking to (to avoid gaps).
-    if (this.lastLoadedTick() && start > this.lastLoadedTick().time) {
-      start = this.lastLoadedTick().time;
-    }
-    if (this.firstLoadedTick() && end < this.firstLoadedTick().time) {
-      end = this.firstLoadedTick().time;
-    }
-    const measureMap = this._getMeasureMap({ start, end });
-
-    const keys = Object.keys(measureMap).map(Number);
-    keys.forEach(key => {
-      const measure = measureMap[key];
-      const measureBeatDuration = 1.0 / (measure.section.bpm / 60);
-      for (let tick = 0; tick < measure.section.beatsPerBar; tick++) {
-        const code = `${measure.num}.${tick}`;
-        const nextCode =
-          tick === measure.section.beatsPerBar - 1
-            ? `${measure.num + 1}.${0}`
-            : `${measure.num}.${tick + 1}`;
-        this.loadedTicks[code] = {
-          level: tick === 0 ? 0 : 1,
-          time: measure.timeStart + measureBeatDuration * tick,
-          nextTickCode: nextCode
-        };
-
-        if (
-          !this._firstLoadedTickCode ||
-          this.compareCodes(this._firstLoadedTickCode, code) === 1
-        ) {
-          this._firstLoadedTickCode = code;
-        }
-        if (
-          !this._lastLoadedTickCode ||
-          this.compareCodes(this._lastLoadedTickCode, code) === -1
-        ) {
-          this._lastLoadedTickCode = code;
-        }
-      }
-    });
-  };
-
-  public seek = (time: number): void => {
-    this.loadMeasures(time, time + this._measureBatchDuration);
-  };
-
-  /**
-   * Provides new form data from the server for the metronome to use.
-   */
-  public updateGetMeasureMap = (
-    getMeasureMap: MetronomeContextData["getMeasureMap"],
-    seekTo: number
-  ): void => {
-    this.clear();
-    this._getMeasureMap = getMeasureMap;
-    this.seek(seekTo);
-  };
-
-  /**
-   * Resets the tick map to be empty.
-   */
-  public clear = (): void => {
-    this.loadedTicks = {};
-    this._firstLoadedTickCode = undefined;
-    this._lastLoadedTickCode = undefined;
-  };
-
-  public dispatch = (
-    ctxStart: number,
-    idleTime: number,
-    after?: number
-  ): void => {
-    this._isPlaying.push(true);
-    this._latestPlaying = this._isPlaying.length - 1;
-    const playingIndex = this._latestPlaying;
-
-    let tickCode = this._firstLoadedTickCode;
-
-    // Skips over ticks that come before the starting tick.
-    while (this.loadedTicks && this.loadedTicks[tickCode].time < idleTime) {
-      tickCode = this.loadedTicks[tickCode].nextTickCode;
-    }
-
-    const playNextTick = (): void => {
-      if (!this._isPlaying[playingIndex]) {
-        return;
-      }
-
-      const nextTick = this.loadedTicks[tickCode];
-      if (!nextTick) throw new Error("Next tick wasn't loaded.");
-
-      if (
-        this.lastLoadedTick().time - nextTick.time <
-        this._measureBatchDuration
-      ) {
-        this.loadMeasures(
-          this.lastLoadedTick().time,
-          this.lastLoadedTick().time + this._measureBatchDuration
-        );
-      }
-
-      this._activeTickNode = metronomeTick(
-        this._context,
-        "Beep",
-        nextTick.level,
-        ctxStart + nextTick.time + (after ?? 0) - idleTime,
-        () => {
-          playNextTick();
-        }
-      );
-
-      tickCode = nextTick.nextTickCode;
-    };
-    playNextTick();
-  };
-
-  public stop = (): void => {
-    Object.keys(this._isPlaying)
-      .map(Number)
-      .forEach(k => {
-        this._isPlaying[k] = false;
-      });
-    this._activeTickNode?.disconnect();
-    this._activeTickNode?.stop(0);
-  };
-}
 
 /**
  * This is a separate class from `MetromeScheduler`, since that class has a lot
@@ -364,11 +134,54 @@ class CountOffMetronomeScheduler {
   };
 
   public getCountOff = (): CountOff => this._countOff;
+
+  accessPrivateFields(): {} {
+    return {};
+  }
 }
 
 interface NewRecordingMetaData {
   afterLoop: boolean;
   afterStop: boolean;
+}
+
+type SchedulerListenerType = "seek" | "play" | "pause" | "stop" | "jsClockTick";
+
+class SchedulerListeners {
+  private _listeners: {
+    id: string;
+    type: SchedulerListenerType;
+    callback: (time: number) => void;
+  }[];
+
+  constructor() {
+    this._listeners = [];
+  }
+
+  fire = (type: SchedulerListenerType, time: number): void => {
+    this._listeners.forEach(listener => {
+      if (listener.type === type) {
+        listener.callback(time);
+      }
+    });
+  };
+
+  addListener = (
+    type: SchedulerListenerType,
+    callback: (time: number) => void,
+    id?: string
+  ): string => {
+    if (id && this._listeners.filter(l => l.id === id)) {
+      this.removeListener(id);
+    }
+
+    this._listeners.push({ id, type, callback });
+    return id;
+  };
+
+  removeListener = (id: string): void => {
+    this._listeners = this._listeners.filter(listener => listener.id !== id);
+  };
 }
 
 /**
@@ -378,11 +191,13 @@ interface NewRecordingMetaData {
  * `playing` goes from false to true, we want `play` in this class to get
  * called).
  */
-class Scheduler {
+export class Scheduler {
   private _context: AudioContext;
 
   /** Dictionary of events that should be played. */
   private _events: { [id: string]: SchedulerEvent };
+
+  private _listeners: SchedulerListeners;
 
   private _recorder: Recorder;
 
@@ -399,17 +214,28 @@ class Scheduler {
   ) => Promise<void>;
 
   /**
-   * Tuple: looping will occur at the second value in seconds, and loop back to
-   * the first value in seconds. Doesn't loop if second entry is undefined.
+   * At this point in seconds, we will loop back to `_idleTime`.
    */
-  private _loopPoints: [number, number];
-
-  private _loopMode: CabMode;
+  private _loopPoint?: number;
 
   /**
-   * An object that handles dispatching metronome events.
+   * The number of seconds between the beginning and end of a loop period, i.e.
+   * events in one loop will start this many seconds after events in the loop
+   * before it.
    */
-  private _metronomeScheduler: MetronomeScheduler;
+  private _loopDispatchOffset: number;
+
+  /**
+   * If `play` is called after the (looping) scheduler is paused, this will get
+   * set to the number of seconds between the paused time and the end of the
+   * loop.
+   */
+  private _firstLoopDispatchOffset: number;
+
+  /**
+   * Holds the value returned by `setTimeout` for the JS timer.
+   */
+  private _jsClockTimeout: number;
 
   /**
    * A simpler object that handles dispatching the pre-play countoff.
@@ -422,10 +248,20 @@ class Scheduler {
    * more or less a list of all currently-playing source nodes. It gives us the
    * ability to stop the nodes from playing on command.
    */
-  private _dispatchedAudioNodes: { [id: string]: AudioScheduledSourceNode };
+  private _dispatchedAudioNodes: { [id: string]: AudioScheduledSourceNode[] };
 
-  /** The time code in seconds if paused or before play began. */
+  /**
+   * The time that the scheduler will return to when stopped, and will play
+   * from when played after being stopped.
+   */
   private _idleTime: number;
+
+  /**
+   * On `pause`, this is set to the Vamp time at which the scheduler is paused.
+   * It remains defined until `stop` is called, so that it can be referenced
+   * during playback.
+   */
+  private _pausedTime: number;
 
   /** Is the scheduler currently playing. */
   private _isPlaying: boolean;
@@ -438,15 +274,25 @@ class Scheduler {
    */
   private _audioContextPlayStart: number;
 
+  /**
+   * Similar to `_audioContextPlayStart`, but is updated when every loop is
+   * scheduled to keep track of the `AudioContext.currentTime` that marks that
+   * loop's precise start time.
+   */
+  private _audioContextLoopStart: number;
+
   constructor() {
     this._events = {};
+    this._listeners = new SchedulerListeners();
     this._recorderPrimed = false;
     this._dispatchedAudioNodes = {};
     this._idleTime = 0;
-    this._loopPoints = [0, undefined];
     this._isPlaying = false;
     this._audioContextPlayStart = 0;
-    this._metronomeScheduler = new MetronomeScheduler();
+    this._audioContextLoopStart = 0;
+    this._loopDispatchOffset = 0;
+    this._firstLoopDispatchOffset = 0;
+    // this._metronomeScheduler = new MetronomeScheduler();
     this._countOffMetronomeScheduler = new CountOffMetronomeScheduler();
   }
 
@@ -458,45 +304,60 @@ class Scheduler {
   giveContext = (context: AudioContext): void => {
     this._context = context;
     this._recorder = new Recorder(context);
-    this._metronomeScheduler.giveContext(context);
+    // this._metronomeScheduler.giveContext(context);
     this._countOffMetronomeScheduler.giveContext(context);
   };
 
   /**
    * Dispatches the event in the `_events` map for the given ID, then adds the
-   * resulting node to `_dispatchedAudioNodes` if it exists.
+   * resulting node to `_dispatchedAudioNodes` if it exists. Note that this
+   * dispatches the event *immediately*, implementations of that should handle
+   * timing.
    *
-   * @param startWhilePlaying If we press the play button, all scheduled events
-   * are dispatched with proper offsets relative to the idle time and
-   * AudioContext.currentTime *at the time when play was pressed*. Setting this
-   * param as true will calculate those offsets *at the time this method is
-   * called*, which is useful when events are updated during play.
+   * @param audioContextBasis Should be omitted if the event is being played
+   * on-the-fly (as in, dispatched while the scheduler is playing). In this
+   * case, the basis for timing dispatched nodes will default to
+   * `context.currentTime`. If provided, this value is the time in AC-space when
+   * audio context nodes should be played relative to. If this call happen when
+   * play first begins, this should be `this._audioContextPlayStart` or
+   * `this._audioContextLoopStart`.
    *
    * @param after Optionally, adds this many seconds offset to the event
    * dispatch.
    */
-  private playEvent = async (
-    eventId: string,
-    startWhilePlaying = false,
-    after?: number
-  ): Promise<void> => {
+  private playEvent = async ({
+    eventId,
+    audioContextBasis
+  }: {
+    eventId: string;
+    audioContextBasis?: number;
+  }): Promise<void> => {
     const event = this._events[eventId];
     if (!event) throw new Error("Tried to play event that wasn't registered.");
 
-    const contextTime = this._context.currentTime;
+    const dispatchedWhilePlaying = !audioContextBasis;
+    audioContextBasis = audioContextBasis ?? this._context.currentTime;
 
-    // The idle time plus how far has already been played.
-    const currentVampTime =
-      this._idleTime + (contextTime - this._audioContextPlayStart);
+    let playheadVampTime;
+    if (dispatchedWhilePlaying) playheadVampTime = this.timecode;
+    // This case only runs if we're dispatching events for the first time after
+    // playing from a paused state.
+    else if (
+      this._pausedTime !== undefined &&
+      this._firstLoopDispatchOffset === this._loopDispatchOffset
+    )
+      playheadVampTime = this._pausedTime;
+    else playheadVampTime = this._idleTime;
 
-    // We base offset times for events on idleTime if all events are being
-    // dispatched at the same time, and we use the current calculated Vamp time
-    // if this method is being called by an event update while playing. This
-    // will be negative if the event plays some time in the future, positive if
-    // it should be started somewhere in the middle.
-    const eventOffset = startWhilePlaying
-      ? currentVampTime - event.start
-      : this._idleTime - event.start;
+    // This will be negative if the event plays some time in the future,
+    // positive if it should be started somewhere in the middle.
+    const eventTimeFromPlayhead = playheadVampTime - event.start;
+
+    // (Non-negative) Time into event to start playing.
+    const offset = Math.max(0, eventTimeFromPlayhead);
+
+    // (Non-negative) Time *until* event should start playing.
+    const when = Math.max(0, -eventTimeFromPlayhead);
 
     // event.duration doesn't account for where playback starts. This will clamp
     // the *duration* of the dispatched event based on if the playback starts
@@ -504,19 +365,28 @@ class Scheduler {
     // or somewhere during the event (*the remaining event duration*).
     const durationAfterPlayhead = event.duration
       ? Math.min(
-          Math.max(event.duration - (currentVampTime - event.start), 0),
+          Math.max(event.duration - (playheadVampTime - event.start), 0),
           event.duration
         )
       : undefined;
 
+    // event.duration also doesn't account for the scheduler loop point.
+    let durationAfterPlayheadAndBeforeLoop = durationAfterPlayhead;
+    if (this.loops && durationAfterPlayhead) {
+      durationAfterPlayheadAndBeforeLoop = Math.min(
+        durationAfterPlayhead,
+        this.loopPoint - playheadVampTime - when
+      );
+    }
+
     const node = await event.dispatch({
       context: this._context,
-      startTime: startWhilePlaying ? contextTime : this._audioContextPlayStart,
-      when: after,
-      offset: eventOffset,
-      duration: durationAfterPlayhead
+      startTime: audioContextBasis,
+      when,
+      offset,
+      duration: durationAfterPlayheadAndBeforeLoop
     });
-    if (node) this._dispatchedAudioNodes[eventId] = node;
+    if (node) this.pushAudioNodeForEvent(eventId, node);
   };
 
   /**
@@ -558,31 +428,121 @@ class Scheduler {
   /**
    * Plays all scheduled events, starting at `_idleTime`.
    *
-   * @param after Specify to precisely delay playback by this many seconds.
+   * @param delay Specify to precisely delay playback by this many seconds.
    */
-  play = async (after?: number): Promise<void> => {
+  play = async (delay?: number): Promise<void> => {
+    delay = delay ?? 0;
+
+    const startingFrom = this.paused ? this._pausedTime : this._idleTime;
+
+    if (this._loopPoint && this._loopPoint <= startingFrom)
+      throw new Error("Loop point must be greater than play start time.");
+
     this._isPlaying = true;
-    this._context.suspend();
+
+    await this._context.suspend();
+
+    this.setLoopDispatchOffset(startingFrom, true);
 
     if (this._recorderPrimed && !this._recorder.isRecording()) {
       this.record();
     }
 
-    this._audioContextPlayStart = this._context.currentTime;
+    this._audioContextPlayStart = this._context.currentTime + delay;
+    this._audioContextLoopStart = this._audioContextPlayStart;
 
+    this.jsClockTick();
+
+    await this.dispatchAllEvents(this._audioContextPlayStart);
+
+    await this._context.resume();
+
+    this._listeners.fire("play", startingFrom);
+  };
+
+  /**
+   * Fires all events' `dispatch` calls, with scheduled start times of `atTime`.
+   */
+  private dispatchAllEvents = async (
+    audioContextBasis: number
+  ): Promise<void> => {
     const eventIds = Object.keys(this._events);
     for (let i = 0; i < eventIds.length; i++) {
       const eventId = eventIds[i];
-      await this.playEvent(eventId, false, after);
+      await this.playEvent({
+        audioContextBasis,
+        eventId
+      });
     }
+  };
 
-    this._metronomeScheduler.dispatch(
-      this._audioContextPlayStart,
-      this._idleTime,
-      after
-    );
+  /**
+   * All audio events are dispatched with precise timing using the Web Audio API
+   * timing mechanism. However, the API doesn't provide a way to time code
+   * execution using that mechanism. So *when* to call the code that dispatches
+   * events needs to take place using JS timers.
+   *
+   * This looping function in particular routinely checks whether we need to
+   * re-dispatch all events when the scheduler is set to loop.
+   *
+   * @see https://www.html5rocks.com/en/tutorials/audio/scheduling/
+   */
+  private jsClockTick = (): void => {
+    let nextLoopDispatched = false;
+    // This is in the future.
+    let nextLoopStart =
+      this._audioContextLoopStart + this._firstLoopDispatchOffset;
+    let isThisTheFirstLoop = true;
 
-    this._context.resume();
+    const clockTickRecur = (): void => {
+      // We try to dispatch the next loop of an event as soon as the previous loop
+      // begins as possible.
+      if (this._isPlaying) {
+        this._jsClockTimeout = setTimeout(() => {
+          if (this.loops) {
+            // This case dispatches events in the future.
+            if (!nextLoopDispatched) {
+              nextLoopStart =
+                this._audioContextLoopStart + this._loopDispatchOffset;
+
+              // Make sure we set the proper loop offset *before* dispatching to
+              // account for loop after a pause.
+              this.setLoopDispatchOffset(this._idleTime, false);
+              this.dispatchAllEvents(nextLoopStart);
+              nextLoopDispatched = true;
+            }
+
+            // This case is when we pass the next "loop point." Events for this
+            // point will have already been dispatched. When we reach the point
+            // we will need to signal that we're ready to dispatch events for
+            // the *subsequent* loop.
+            if (this._context.currentTime >= nextLoopStart) {
+              // Increment the field keeping track of when the current loop
+              // started.
+              this._audioContextLoopStart += isThisTheFirstLoop
+                ? this._firstLoopDispatchOffset
+                : this._loopDispatchOffset;
+              nextLoopDispatched = false;
+              isThisTheFirstLoop = false;
+            }
+          }
+
+          this._listeners.fire("jsClockTick", this.timecode);
+          clockTickRecur();
+        }, 200);
+      }
+    };
+    clockTickRecur();
+  };
+
+  private setLoopDispatchOffset = (from: number, firstLoop: boolean): void => {
+    if (this._loopPoint) {
+      if (this._loopPoint - from <= 0) {
+        throw new Error("Can't set loop dispatch offset to be non-positive");
+      }
+      this._loopDispatchOffset = this._loopPoint - from;
+      if (firstLoop) this._firstLoopDispatchOffset = this._loopDispatchOffset;
+    }
   };
 
   /**
@@ -592,6 +552,9 @@ class Scheduler {
    * call play() from the adapter.
    */
   countOff = (): void => {
+    // This is a pre-timed sequence. We know exactly how long the count off
+    // lasts, so we dispatch the count off and then the schedulder after that
+    // duration
     this._countOffMetronomeScheduler.dispatch(this._context.currentTime, 0);
     this.play(this._countOffMetronomeScheduler.getCountOff().duration);
   };
@@ -601,24 +564,58 @@ class Scheduler {
    * not. This will stop all events, seek the metronome scheduler, set the new
    * idle time, and then play.
    */
-  seek = (time: number): void => {
+  seek = async (time: number, loopPoint: number | undefined): Promise<void> => {
+    this._loopPoint = loopPoint;
+
+    if (loopPoint && loopPoint <= time)
+      throw new Error("Cannot seek with loop point before time");
+
     const playing = this._isPlaying;
-    if (playing) this.stop();
-    this._metronomeScheduler.seek(time);
+    if (playing) {
+      const currentTime = this.timecode;
+      if (currentTime >= time && (!loopPoint || currentTime < loopPoint)) {
+        this.pause();
+      } else {
+        this.stop();
+      }
+    }
     this._idleTime = time;
-    if (playing) this.play();
+    this.setLoopDispatchOffset(this._idleTime, !playing);
+    if (playing) await this.play();
+
+    this._listeners.fire("seek", time);
+  };
+
+  pause = (): void => {
+    this._pausedTime = this.timecode;
+    this._isPlaying = false;
+    clearTimeout(this._jsClockTimeout);
+    this.cancelDispatch();
+    this._audioContextPlayStart = this._audioContextLoopStart = 0;
+    if (this._recorderPrimed) {
+      this.stopRecording();
+    }
+
+    this._listeners.fire("pause", this._pausedTime);
   };
 
   /**
    * Stops all events from playing.
    */
   stop = (): void => {
+    const timecode = this.timecode;
     this._isPlaying = false;
+
+    this._pausedTime = undefined;
+    clearTimeout(this._jsClockTimeout);
     this.cancelDispatch();
-    this._metronomeScheduler.stop();
+    this._audioContextLoopStart = this._audioContextPlayStart = 0;
+    this._firstLoopDispatchOffset = this._loopDispatchOffset = 0;
     if (this._recorderPrimed) {
       this.stopRecording();
     }
+
+    this._listeners.fire("stop", timecode);
   };
 
   /**
@@ -626,10 +623,32 @@ class Scheduler {
    */
   private cancelDispatch = (): void => {
     Object.keys(this._dispatchedAudioNodes).forEach(nodeKey => {
-      this._dispatchedAudioNodes[nodeKey]?.disconnect();
-      this._dispatchedAudioNodes[nodeKey]?.stop(0);
-      delete this._dispatchedAudioNodes[nodeKey];
+      this.cancelEventDispatch(nodeKey);
     });
+  };
+
+  private cancelEventDispatch = (eventId: string): void => {
+    if (this._dispatchedAudioNodes[eventId]) {
+      this._dispatchedAudioNodes[eventId].forEach(node => {
+        node.disconnect();
+        node.stop(0);
+      });
+      delete this._dispatchedAudioNodes[eventId];
+    }
+  };
+
+  /**
+   * For an event, pushes a dispatched audio node to the map containing them.
+   */
+  private pushAudioNodeForEvent = (
+    eventId: string,
+    node: AudioScheduledSourceNode
+  ): void => {
+    if (this._dispatchedAudioNodes[eventId]) {
+      this._dispatchedAudioNodes[eventId].push(node);
+    } else {
+      this._dispatchedAudioNodes[eventId] = [node];
+    }
   };
 
   /**
@@ -640,7 +659,9 @@ class Scheduler {
     if (this._events[event.id]) this.removeEvent(event.id);
     this._events[event.id] = event;
     if (this._isPlaying) {
-      this.playEvent(event.id);
+      this.playEvent({
+        eventId: event.id
+      });
     }
   };
 
@@ -656,13 +677,13 @@ class Scheduler {
 
     start !== undefined && (this._events[eventId].start = start);
     duration !== undefined && (this._events[eventId].duration = duration);
-    if (this._dispatchedAudioNodes[eventId]) {
-      this._dispatchedAudioNodes[eventId]?.disconnect();
-      this._dispatchedAudioNodes[eventId]?.stop(0);
-      delete this._dispatchedAudioNodes[eventId];
-    }
+
+    this.cancelEventDispatch(eventId);
+
     if (this._isPlaying) {
-      this.playEvent(eventId, true);
+      this.playEvent({
+        eventId
+      });
     }
   };
 
@@ -670,10 +691,8 @@ class Scheduler {
    * Stops and removes an event.
    */
   removeEvent = (id: string, stopNode = true): void => {
-    if (stopNode && this._dispatchedAudioNodes[id]) {
-      this._dispatchedAudioNodes[id]?.disconnect();
-      this._dispatchedAudioNodes[id]?.stop(0);
-      delete this._dispatchedAudioNodes[id];
+    if (stopNode) {
+      this.cancelEventDispatch(id);
     }
     delete this._events[id];
   };
@@ -686,39 +705,15 @@ class Scheduler {
   };
 
   /**
-   * When the form model changes, the MetronomeContext changes, and when that
-   * happens, this provides that information to `_metronomeScheduler`.
-   *
-   * @param getMeasureMap This is a function that returns metronome measure data
-   * for a time range. This is defined in MetronomeProvider and changes whenever
-   * the form/section models change. When that happens, we call this function to
-   * update the metronome scheduler.
-   */
-  updateMetronome = (
-    getMeasureMap: MetronomeContextData["getMeasureMap"],
-    seekTo: number
-  ): void => {
-    this._metronomeScheduler.updateGetMeasureMap(getMeasureMap, seekTo);
-  };
-
-  /**
    * Updates the stored countOff configuration used to count off.
    */
   setCountOff = (countOff: CountOff): void => {
     this._countOffMetronomeScheduler.setCountOff(countOff);
   };
 
-  setLoopPoints = (loopPoints: [number, number]): void => {
-    if (loopPoints[0] === undefined)
-      throw new Error("Loop point A must be defined.");
-    if (loopPoints[1] && loopPoints[0] > loopPoints[1])
-      throw new Error("Loop point A must come before loop point B");
-    this._loopPoints = loopPoints;
-  };
-
-  setLoopMode = (loopMode: CabMode): void => {
-    this._loopMode = loopMode;
-  };
+  get listeners(): SchedulerListeners {
+    return this._listeners;
+  }
 
   get recorder(): Recorder {
     return this._recorder;
@@ -730,6 +725,82 @@ class Scheduler {
 
   get playing(): boolean {
     return this._isPlaying;
+  }
+
+  get paused(): boolean {
+    return !this.playing && this._pausedTime !== undefined;
+  }
+
+  get loops(): boolean {
+    return !!this._loopPoint;
+  }
+
+  get loopPoint(): number | undefined {
+    return this._loopPoint;
+  }
+
+  get idleTime(): number {
+    return this._idleTime;
+  }
+
+  get timecode(): number {
+    if (this.playing) {
+      const playStartTime = this._pausedTime ?? this._idleTime;
+      const totalTimeElapsed =
+        this._context.currentTime - this._audioContextPlayStart;
+
+      // Equivalent to "we're getting the timecode before the scheduler has
+      // reached its first loop point."
+      if (!this.loops || totalTimeElapsed < this._firstLoopDispatchOffset) {
+        return playStartTime + totalTimeElapsed;
+      }
+      // After a loop has occured, we do modulus arithmetic to figure out the
+      // timecode relative to the idle time.
+      else {
+        return (
+          this._idleTime +
+          ((totalTimeElapsed - this._firstLoopDispatchOffset) %
+            this._loopDispatchOffset)
+        );
+      }
+    } else if (this.paused) {
+      return this._pausedTime;
+    } else {
+      return this._idleTime;
+    }
+  }
+
+  /**
+   * Should only be used for testing purposes.
+   */
+  accessPrivateFields(): {
+    _isPlaying: Scheduler["_isPlaying"];
+    _events: Scheduler["_events"];
+    _context: Scheduler["_context"];
+    _idleTime: Scheduler["_idleTime"];
+    _loopPoint: Scheduler["_loopPoint"];
+    _loopDispatchOffset: Scheduler["_loopDispatchOffset"];
+    _firstLoopDispatchOffset: Scheduler["_firstLoopDispatchOffset"];
+    _dispatchedAudioNodes: Scheduler["_dispatchedAudioNodes"];
+    _countOffMetronomeScheduler: Scheduler["_countOffMetronomeScheduler"];
+    _audioContextPlayStart: Scheduler["_audioContextPlayStart"];
+    _audioContextLoopStart: Scheduler["_audioContextLoopStart"];
+    _pausedTime: Scheduler["_pausedTime"];
+  } {
+    return {
+      _isPlaying: this._isPlaying,
+      _events: this._events,
+      _context: this._context,
+      _idleTime: this._idleTime,
+      _loopPoint: this._loopPoint,
+      _loopDispatchOffset: this._loopDispatchOffset,
+      _firstLoopDispatchOffset: this._firstLoopDispatchOffset,
+      _dispatchedAudioNodes: this._dispatchedAudioNodes,
+      _countOffMetronomeScheduler: this._countOffMetronomeScheduler,
+      _audioContextPlayStart: this._audioContextPlayStart,
+      _audioContextLoopStart: this._audioContextLoopStart,
+      _pausedTime: this._pausedTime
+    };
   }
 }
 

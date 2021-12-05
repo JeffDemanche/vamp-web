@@ -14,7 +14,7 @@ interface TimelineDraggableProps {
 
   dropzoneTypes?: string[];
 
-  snapFn?: (deltaX: number) => number;
+  snapFn?: (deltaX: number, currentlyDragging: CurrentlyDragging) => number;
 
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 
@@ -36,7 +36,7 @@ interface TimelineDraggableProps {
   children: React.ReactChild | React.ReactChildren;
 }
 
-type CurrentlyDragging = "left" | "move" | "right" | "none";
+export type CurrentlyDragging = "left" | "move" | "right" | "none";
 
 /**
  * A wrapper component for clips and cabs that allows them to be dragged within
@@ -100,7 +100,6 @@ export const TimelineDraggable: React.FC<TimelineDraggableProps> = ({
           currentlyDragging === "none" &&
           !_.isEqual(dragStart, [NaN, NaN])
         ) {
-          onDragEnd && onDragEnd(dragDelta, prevZones, currentlyDragging);
           setDragStart([NaN, NaN]);
           setDragDelta([NaN, NaN]);
         }
@@ -108,7 +107,8 @@ export const TimelineDraggable: React.FC<TimelineDraggableProps> = ({
         // While dragging
         if (currentlyDragging !== "none") {
           const deltaX = ev.clientX - dragStart[0];
-          const snappedDeltaX = snapFn && snap ? snapFn(deltaX) : deltaX;
+          const snappedDeltaX =
+            snapFn && snap ? snapFn(deltaX, currentlyDragging) : deltaX;
           setDragDelta([snappedDeltaX, ev.clientY - dragStart[1]]);
 
           const zones = getHoveredDropzones(

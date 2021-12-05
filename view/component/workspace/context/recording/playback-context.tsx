@@ -2,6 +2,7 @@ import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import * as React from "react";
 import { useCallback, useState } from "react";
+import { SchedulerInstance } from "../../../../audio/scheduler";
 import {
   useCurrentUserId,
   useCurrentVampId
@@ -20,7 +21,6 @@ export interface CountOff {
 export interface PlaybackContextData {
   playing: boolean;
   playPosition: number;
-  playStartTime: number;
   loop: boolean;
   recording: boolean;
 
@@ -50,7 +50,6 @@ export interface PlaybackContextData {
 export const defaultPlaybackContext: PlaybackContextData = {
   playing: false,
   playPosition: 0,
-  playStartTime: 0,
   loop: false,
   recording: false,
 
@@ -109,7 +108,6 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
 
   const [playing, setPlaying] = useState(false);
   const [playPosition, setPlayPosition] = useState(0);
-  const [playStartTime, setPlayStartTime] = useState(0);
   const [loop, setLoop] = useState(true);
   const [recording, setRecording] = useState(false);
 
@@ -130,29 +128,23 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
 
   const play = useCallback(() => {
     setPlaying(true);
-    setPlayStartTime(Date.now());
   }, []);
 
   const pause = useCallback(() => {
     setRecording(false);
     setPlaying(false);
-    setPlayPosition(playPosition + (Date.now() - playStartTime) / 1000);
-  }, [playPosition, playStartTime]);
+    setPlayPosition(SchedulerInstance.timecode);
+  }, []);
 
-  const seek = useCallback(
-    (time: number) => {
-      setRecording(false);
-      setPlayPosition(time);
-      setPlayStartTime(playing ? Date.now() : -1);
-    },
-    [playing]
-  );
+  const seek = useCallback((time: number) => {
+    setRecording(false);
+    setPlayPosition(time);
+  }, []);
 
   const stop = useCallback(() => {
     setRecording(false);
     setPlaying(false);
     setPlayPosition(cab.start);
-    setPlayStartTime(-1);
 
     clearTimeout(countOffTimeout);
     setCountOffTimeout(undefined);
@@ -161,7 +153,6 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
   const record = useCallback(() => {
     setPlaying(true);
     setRecording(true);
-    setPlayStartTime(Date.now());
   }, []);
 
   const endCountOff = useCallback(() => {
@@ -177,7 +168,7 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
   const countOff = useCallback(
     (recordCountOff = false) => {
       const startTime = Date.now();
-      setPlayStartTime(startTime + countOffData.duration * 1000);
+
       setRecording(recordCountOff || recording);
       setCountingOff(true);
       setCountingOffStartTime(startTime);
@@ -207,7 +198,6 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
       value={{
         playing,
         playPosition,
-        playStartTime,
         loop,
         recording,
 

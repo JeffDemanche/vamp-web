@@ -2,6 +2,8 @@ import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import React, { useCallback, useContext, useEffect } from "react";
 import { PlaybackContext } from "../../component/workspace/context/recording/playback-context";
+import { useLoopPoints } from "../../component/workspace/hooks/use-loop-points";
+import { CabMode } from "../../state/apollotypes";
 import {
   useCurrentUserId,
   useCurrentVampId,
@@ -42,22 +44,23 @@ export const SeekAdapter: React.FC<SeekAdapterProps> = ({
     }
   } = useQuery(SEEK_ADAPTER_QUERY, { variables: { vampId, userId } });
 
-  const { playing, playPosition, playStartTime, seek: apolloSeek } = useContext(
-    PlaybackContext
-  );
+  const { seek: apolloSeek } = useContext(PlaybackContext);
+
+  const { mode, loopPoints } = useLoopPoints();
 
   const seek = useCallback(
-    (time: number): void => {
-      scheduler.seek(time);
+    (time: number, loopPoint): void => {
+      scheduler.seek(time, loopPoint);
     },
     [scheduler]
   );
 
+  const loopPointA = loopPoints[0];
+  const loopPointB = mode === CabMode.INFINITE ? undefined : loopPoints[1];
+
   const prevData = usePrevious({
-    playing,
-    playPosition,
-    playStartTime,
-    cabStart
+    loopPointA,
+    loopPointB
   });
 
   // Seeks to the current cab location on component load (essentially on page
@@ -68,24 +71,14 @@ export const SeekAdapter: React.FC<SeekAdapterProps> = ({
   }, []);
 
   useEffect(() => {
-    if (prevData) {
-      // Signals that some seek has occured while playing, such as restarting at
-      // the beginning during a loop.
-      if (
-        prevData &&
-        playing &&
-        prevData.playing &&
-        playStartTime != prevData.playStartTime
-      ) {
-        seek(cabStart);
-      }
-
-      // Signalled when when a seek occured while not playing.
-      if (!playing && playPosition != prevData.playPosition) {
-        seek(playPosition);
-      }
+    if (
+      !prevData ||
+      loopPointA !== prevData.loopPointA ||
+      loopPointB !== prevData.loopPointB
+    ) {
+      seek(loopPointA, loopPointB);
     }
-  }, [cabStart, playPosition, playStartTime, playing, prevData, seek]);
+  }, [loopPointA, loopPointB, prevData, seek]);
 
   return null;
 };

@@ -40,9 +40,25 @@ module.exports = {
     "react/jsx-uses-react": 1,
     "max-len": [
       2,
-      { code: 80, comments: 120, tabWidth: 2, ignorePattern: "^import .*" }
+      {
+        code: 80,
+        comments: 120,
+        tabWidth: 2,
+        ignorePattern: "^import .*",
+        ignoreStrings: true
+      }
     ],
     "@typescript-eslint/no-empty-function": 0,
     "@typescript-eslint/camelcase": 0
-  }
+  },
+  overrides: [
+    {
+      files: ["*.test.tsx", "*.test.ts"],
+      env: { jest: true },
+      plugins: ["jest"],
+      rules: {
+        "@typescript-eslint/ban-ts-ignore": "off"
+      }
+    }
+  ]
 };

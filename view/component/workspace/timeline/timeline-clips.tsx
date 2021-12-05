@@ -29,11 +29,6 @@ interface TimelineClipsProps {
         error: string | null;
       };
     }[];
-    draggingInfo: {
-      dragging?: boolean;
-      track?: string;
-      position?: number;
-    };
   }[];
   tracksRef: (node: HTMLDivElement) => void;
 }

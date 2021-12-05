@@ -1,15 +1,15 @@
 import * as React from "react";
 
 import * as styles from "./timecode.less";
-import { useTrueTime } from "../../../util/react-hooks";
+import { useSchedulerTime } from "../../../util/react-hooks";
 
 /**
  * The counter that displays the time.
  */
 const Timecode = (): JSX.Element => {
-  // Gets the current time and updates every 1/100 second. This should be
-  // adequate for a 1/100 second precision timer.
-  const trueTime = useTrueTime(100);
+  // Gets the current time and updates every 1/10 second. This should be
+  // adequate for a 1/10 second precision timer.
+  const trueTime = useSchedulerTime(100);
 
   const sign = trueTime < 0 ? "-" : "";
 

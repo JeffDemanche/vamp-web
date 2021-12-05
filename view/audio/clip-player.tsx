@@ -57,10 +57,10 @@ const createContentEvent = ({
 }): SchedulerEvent => {
   // Will be negative if content starts before clip.
   const contentOffset = contentStart - clipStart;
-  const start = contentOffset < 0 ? clipStart : contentStart;
+  const eventStartTime = contentOffset < 0 ? clipStart : contentStart;
   return {
     id,
-    start,
+    start: eventStartTime,
     duration,
     type: "Audio",
     dispatch: async ({
@@ -86,8 +86,6 @@ const createContentEvent = ({
       source.buffer = decodedData;
       source.connect(context.destination);
 
-      const contextDiff = context.currentTime - startTime;
-
       // If the content has a negative start time relative to the clip (i.e. the
       // content starts earlier than the clip does), contentOffset gives us
       // a positive value to add to the event dispatch offset, so we start the
@@ -97,12 +95,12 @@ const createContentEvent = ({
       // The WAA start function takes different params for delaying the
       // start of a node (when) and playing the node from a point other
       // than the start (offset).
-      const whenVal = (offset < 0 ? -offset : 0) + (when ?? 0);
+      const whenVal = when ?? 0;
       const offsetVal = offset > 0 ? offset : 0;
 
       source.start(
         startTime + whenVal,
-        offsetVal + contextDiff + timeIntoContentToStart,
+        offsetVal + timeIntoContentToStart,
         duration
       );
 

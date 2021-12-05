@@ -59,12 +59,6 @@ interface ClipProps {
         error: string | null;
       };
     }[];
-    draggingInfo: {
-      dragging?: boolean;
-      track?: string;
-      position?: number;
-      downPosX?: number;
-    };
   };
 }
 

@@ -12,6 +12,7 @@ import { vampAudioContext } from "../audio/vamp-audio-context";
 import { vampAudioStream } from "../audio/vamp-audio-stream";
 import { loadedVampIdVar } from "../state/cache";
 import { PlaybackContext } from "../component/workspace/context/recording/playback-context";
+import { SchedulerInstance } from "../audio/scheduler";
 
 export const useCurrentVampId = (): string => {
   return loadedVampIdVar();
@@ -47,57 +48,32 @@ export const usePrevious = <T>(value: T): T => {
 };
 
 /**
- * Returns a state value that can be used to track true time of the play
- * position down to a given accuracy, which is defined by the argument
- * updateFreqMs.
+ * Returns a state value that is regularly updated at the provided interval to
+ * get the current time of the workspace from the scheduler.
  *
- * Returns true time in seconds.
+ * @param updateFreqMs How frequently to poll the time from the scheduler (uses
+ * `setTimeout` so not super accurate but good enough for presentational
+ * components).
+ * @returns Current time in seconds from scheduler.
  */
-export const useTrueTime = (updateFreqMs: number): number => {
-  const {
-    playing,
-    playPosition,
-    playStartTime,
-    bounds: { start, end }
-  } = useContext(PlaybackContext);
+export const useSchedulerTime = (updateFreqMs: number): number => {
+  const [trueTime, setTrueTime] = useState(SchedulerInstance.timecode);
 
-  // This "local state" time is initially set to the playPosition from the
-  // Apollo Cache.
-  const [trueTime, setTrueTime] = useState(playPosition);
+  const { playing, playPosition } = useContext(PlaybackContext);
 
-  const prev = usePrevious({ playing, playStartTime, playPosition });
-
-  // The [playing] arg makes it so this hook is called when the playing prop
-  // changes. If it is, we begin a timeout interval chain which calculates the
-  // correct time every 100ms and sets the trueTime state, which is defined
-  // above. If it's not playing, we clear the interval so it stops updating and
-  // set the true time to the accurate paused value, given by playPosition from
-  // the store.
   useEffect(() => {
     let interval: NodeJS.Timeout = null;
 
-    const seek =
-      prev &&
-      end > start &&
-      playing &&
-      prev.playing &&
-      playStartTime != prev.playStartTime;
-
-    if (seek) {
-      clearTimeout(interval);
-      setTrueTime(playPosition);
-    }
-
     if (playing) {
       interval = global.setInterval(() => {
-        setTrueTime(playPosition + (Date.now() - playStartTime) / 1000);
+        setTrueTime(SchedulerInstance.timecode);
       }, updateFreqMs);
     } else {
       clearInterval(interval);
-      setTrueTime(playPosition);
+      setTrueTime(SchedulerInstance.timecode);
     }
     return (): void => clearInterval(interval);
-  }, [playing, playPosition, playStartTime]);
+  }, [playing, updateFreqMs, playPosition]);
 
   return trueTime;
 };

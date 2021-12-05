@@ -22,7 +22,10 @@ import { InfiniteClipIcon } from "../../element/icon/infinite-clip-icon";
 import { StackClipIcon } from "../../element/icon/stack-clip-icon";
 import { TelescopeClipIcon } from "../../element/icon/telescope-clip-icon";
 import { useCabLoops } from "../hooks/use-cab-loops";
-import { TimelineDraggable } from "../timeline/timeline-draggable";
+import {
+  CurrentlyDragging,
+  TimelineDraggable
+} from "../timeline/timeline-draggable";
 import {
   HorizontalPosContext,
   TemporalZoomContext
@@ -144,18 +147,19 @@ const CabMain: React.FC = () => {
 
   const { snapToBeat } = useContext(MetronomeContext);
 
+  const prevDuration = usePrevious(duration);
+  const [width, setWidth] = useState(0);
+
   // TimelineDraggable accepts an arbitrary snap function that transforms a
   // delta into a "snapped delta". We have to some timeline transformations to
   // get that to actually snap to the beats.
   const snapFn = useCallback(
-    (deltaX: number): number => {
-      return leftFn(snapToBeat(timeFn(left + deltaX))) - left;
+    (deltaX: number, currentlyDragging: CurrentlyDragging): number => {
+      const offset = currentlyDragging === "right" ? left + width : left;
+      return leftFn(snapToBeat(timeFn(offset + deltaX))) - offset;
     },
-    [left, leftFn, snapToBeat, timeFn]
+    [left, leftFn, snapToBeat, timeFn, width]
   );
-
-  const prevDuration = usePrevious(duration);
-  const [width, setWidth] = useState(0);
 
   // This is essentially eagerly determining cab position after a drag. We only
   // update the width under certain conditions, otherwise the cab will jump
@@ -180,10 +184,6 @@ const CabMain: React.FC = () => {
   ]);
   const [deltaWidth, setDeltaWidth] = useState(0);
 
-  /**
-   * updateCab does not update the local cache, so we're doing it manually here.
-   * There's probably a better way of doing this.
-   */
   const updateCabWithClient = ({
     userId,
     vampId,
@@ -241,6 +241,7 @@ const CabMain: React.FC = () => {
         }}
         onDragEnd={(): void => {
           const duration = durationFn(width + deltaWidth);
+          console.log(duration);
           if (duration <= 0) {
             // Invalid case.
             setDeltaLeft(0);

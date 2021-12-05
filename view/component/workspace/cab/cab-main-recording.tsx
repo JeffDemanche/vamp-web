@@ -3,8 +3,8 @@ import * as styles from "./cab.less";
 import { gql, useQuery } from "@apollo/client";
 import {
   useCurrentVampId,
-  useTrueTime,
-  useCurrentUserId
+  useCurrentUserId,
+  useSchedulerTime
 } from "../../../util/react-hooks";
 import { CabMainRecording } from "../../../state/apollotypes";
 import {
@@ -15,6 +15,7 @@ import {
 import { useCabLoops } from "../hooks/use-cab-loops";
 import Playhead from "../../element/playhead";
 import classNames from "classnames";
+import { SchedulerInstance } from "../../../audio/scheduler";
 
 const CAB_MAIN_RECORDING_QUERY = gql`
   query CabMainRecording($vampId: ID!, $userId: ID!) {
@@ -51,7 +52,7 @@ const CabMainRecording: React.FC = () => {
 
   const loops = useCabLoops();
 
-  const trueTime = useTrueTime(100);
+  const trueTime = useSchedulerTime(100);
 
   const totalWidth = widthFn(cab.duration);
   const recordedWidth = widthFn(trueTime - cab.start);

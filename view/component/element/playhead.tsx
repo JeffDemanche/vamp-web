@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as styles from "./playhead.less";
-import { useTrueTime } from "../../util/react-hooks";
+import { useSchedulerTime } from "../../util/react-hooks";
 import { useWorkspaceWidth } from "../../util/workspace-hooks";
 import { PlaybackContext } from "../workspace/context/recording/playback-context";
 import { useContext } from "react";
@@ -18,7 +18,7 @@ const Playhead: React.FC<PlayheadProps> = ({
   containerStart,
   containerDuration
 }: PlayheadProps) => {
-  const trueTime = useTrueTime(100);
+  const trueTime = useSchedulerTime(100);
 
   const widthFn = useWorkspaceWidth();
 

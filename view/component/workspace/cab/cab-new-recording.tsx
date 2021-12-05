@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import * as styles from "./cab.less";
-import { useTrueTime } from "../../../util/react-hooks";
+import { useSchedulerTime } from "../../../util/react-hooks";
 import { useWorkspaceWidth } from "../../../util/workspace-hooks";
 
 /*
@@ -10,7 +10,7 @@ import { useWorkspaceWidth } from "../../../util/workspace-hooks";
 const CabNewRecording = (): JSX.Element => {
   // This is the same method used in timecode.tsx, see there for info. Basically
   // updates the true time and redraws the component every so often.
-  const trueTime = useTrueTime(200);
+  const trueTime = useSchedulerTime(200);
 
   const widthFn = useWorkspaceWidth();
   const width = widthFn(trueTime);
