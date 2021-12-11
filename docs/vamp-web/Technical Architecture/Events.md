@@ -1,0 +1,4 @@
+# Events
+Events represent audio (or potentially other media types) that are scheduled to begin playback at a given time in the context of a timeline.
+
+The [[Scheduler]] *pre-schedules* [[Events]], which are objects which contain a `dispatch` function and some useful data that tells the `dispatch` function when to schedule audio nodes through the [[Web Audio API]]. It's important to recognize that `dispatch` on events is not called *when the events begin playing*, but *when the scheduler starts playing*. Events can also be added during playback, in which case `dispatch` gets called immediately after the event is added.

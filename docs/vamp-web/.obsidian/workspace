@@ -1,0 +1,97 @@
+{
+  "main": {
+    "id": "67e7f68b645b5ecd",
+    "type": "split",
+    "children": [
+      {
+        "id": "cec3e8dd1d00f93d",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Technical Architecture/Scheduler.md",
+            "mode": "source"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "95ac685f447755bf",
+    "type": "split",
+    "children": [
+      {
+        "id": "3890785ebd9f594f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "2882ce364cddfc82",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "7320222ff5361c6a",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "89eb07fad3f982fb",
+    "type": "split",
+    "children": [
+      {
+        "id": "3221ce32a96cae4e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "aed9330ca6665b84",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Technical Architecture/Scheduler.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "cec3e8dd1d00f93d",
+  "lastOpenFiles": [
+    "Technical Architecture/Scheduler.md",
+    "Technical Architecture/Refactor.md",
+    "Technical Architecture/Events.md",
+    "Technical Architecture/Web Audio API.md",
+    "Documentation Overview.md"
+  ]
+}
