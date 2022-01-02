@@ -1,6 +1,6 @@
 import { Scheduler, SchedulerInstance } from "../scheduler";
 import { AudioContext, registrar } from "standardized-audio-context-mock";
-import { MetronomeScheduler2 } from "../metronome-scheduler";
+import { MetronomeScheduler } from "../metronome-scheduler";
 import {
   Measure,
   MeasureSection
@@ -10,7 +10,7 @@ import { advanceTimers } from "./scheduler-test-utils";
 
 describe("MetronomeScheduler", () => {
   let TestScheduler: typeof SchedulerInstance;
-  let TestMetronomeScheduler: MetronomeScheduler2;
+  let TestMetronomeScheduler: MetronomeScheduler;
   let mockAudioContext: AudioContext;
   let mockAudioContextCurrentTime: DeLorean;
 
@@ -115,13 +115,12 @@ describe("MetronomeScheduler", () => {
       }
     };
 
-    TestMetronomeScheduler = new MetronomeScheduler2(
+    TestMetronomeScheduler = new MetronomeScheduler(
       // @ts-ignore
       mockAudioContext,
       TestScheduler,
       () => mockMeasureMap1
     );
-    TestScheduler.updateMetronome(() => mockMeasureMap1, 0);
     TestMetronomeScheduler.updateGetMeasureMap(() => mockMeasureMap1);
   });
 
@@ -190,7 +189,6 @@ describe("MetronomeScheduler", () => {
     });
 
     it("schedules correct ticks for a different time signature", () => {
-      TestScheduler.updateMetronome(() => mockMeasureMap2, 0);
       TestMetronomeScheduler.updateGetMeasureMap(() => mockMeasureMap2);
 
       TestScheduler.seek(0, 5);
@@ -212,7 +210,7 @@ describe("MetronomeScheduler", () => {
 
   describe("tick scheduling during infinity (non-looping) mode", () => {
     beforeEach(() => {
-      expect(MetronomeScheduler2.TICK_BATCH_DURATION).toEqual(4);
+      expect(MetronomeScheduler.TICK_BATCH_DURATION).toEqual(4);
     });
 
     it("schedules a single batch of clicks before scheduler play", () => {
@@ -228,7 +226,7 @@ describe("MetronomeScheduler", () => {
       );
       expect(
         TestMetronomeScheduler.accessPrivateFields()._scheduledTicksTimeRange
-      ).toEqual([0, MetronomeScheduler2.TICK_BATCH_DURATION]);
+      ).toEqual([0, MetronomeScheduler.TICK_BATCH_DURATION]);
     });
 
     it("schedules second batch of clicks shortly after playback begins", async () => {
@@ -254,7 +252,7 @@ describe("MetronomeScheduler", () => {
       );
       expect(
         TestMetronomeScheduler.accessPrivateFields()._scheduledTicksTimeRange
-      ).toEqual([0, MetronomeScheduler2.TICK_BATCH_DURATION * 2]);
+      ).toEqual([0, MetronomeScheduler.TICK_BATCH_DURATION * 2]);
     });
 
     it("schedules third batch of clicks once timecode reaches second batch", async () => {
@@ -270,7 +268,7 @@ describe("MetronomeScheduler", () => {
       expect(TestMetronomeScheduler.scheduledTickIds.length).toEqual(24);
       expect(
         TestMetronomeScheduler.accessPrivateFields()._scheduledTicksTimeRange
-      ).toEqual([0, MetronomeScheduler2.TICK_BATCH_DURATION * 3]);
+      ).toEqual([0, MetronomeScheduler.TICK_BATCH_DURATION * 3]);
     });
   });
 

@@ -13,21 +13,20 @@ import { useContext, useEffect, useState } from "react";
 import { gql, useApolloClient, useQuery } from "@apollo/client";
 import { useCurrentUserId } from "../util/react-hooks";
 import { audioStore } from "./audio-store";
-import { vampAudioContext } from "./vamp-audio-context";
 import { ClipPlayer } from "./clip-player";
 import { WorkspaceAudioClient } from "../state/apollotypes";
 import { FloorAdapter } from "./floor/floor-adapter";
 import { CountOffAdapter } from "./adapter/count-off-adapter";
 import { SeekAdapter } from "./adapter/seek-adapter";
 import { PlayStopAdapter } from "./adapter/play-stop-adapter";
-import { RecordAdapter } from "./adapter/record-adapter";
 import { EmptyVampAdapter } from "./adapter/empty-vamp-adapter";
 import { MetronomeContext } from "../component/workspace/context/metronome-context";
 import { PlaybackContext } from "../component/workspace/context/recording/playback-context";
-import { MetronomeScheduler2 } from "./metronome-scheduler";
+import { MetronomeScheduler } from "./metronome-scheduler";
+import { useVampAudioContext } from "./hooks/use-vamp-audio-context";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
-  query WorkspaceAudioClient($vampId: ID!, $userId: ID!) {
+  query WorkspaceAudioClient($vampId: ID!) {
     vamp(id: $vampId) @client {
       id
 
@@ -44,11 +43,11 @@ const WORKSPACE_AUDIO_CLIENT = gql`
           type
           start
           duration
+          offset
           audio {
             id
             filename
             localFilename
-            latencyCompensation
             storedLocally
             duration
           }
@@ -72,14 +71,7 @@ interface WorkspaceAudioProps {
 }
 
 const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
-  const startAudioContext = (): AudioContext => {
-    try {
-      return vampAudioContext.getAudioContext();
-    } catch (e) {
-      // TODO error handling.
-      alert("Web audio not supported in this browser (TODO)");
-    }
-  };
+  const context = useVampAudioContext();
 
   const userId = useCurrentUserId();
 
@@ -97,12 +89,11 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   const { setLoop } = useContext(PlaybackContext);
 
   const apolloClient = useApolloClient();
-  const [context] = useState(startAudioContext());
   const [scheduler] = useState(SchedulerInstance);
 
   const { getMeasureMap } = useContext(MetronomeContext);
   const [metronomeScheduler] = useState(
-    () => new MetronomeScheduler2(context, scheduler, getMeasureMap)
+    () => new MetronomeScheduler(context, scheduler, getMeasureMap)
   );
   const [store] = useState(audioStore);
 
@@ -183,7 +174,6 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
         audioStore={store}
         scheduler={scheduler}
       ></ClipPlayer>
-      <RecordAdapter scheduler={scheduler} context={context}></RecordAdapter>
       <PlayStopAdapter scheduler={scheduler}></PlayStopAdapter>
       <CountOffAdapter scheduler={scheduler}></CountOffAdapter>
       <SeekAdapter scheduler={scheduler}></SeekAdapter>

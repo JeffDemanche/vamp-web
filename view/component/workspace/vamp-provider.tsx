@@ -40,10 +40,10 @@ const VAMP_QUERY = gql`
           type
           start
           duration
+          offset
           audio {
             id
             filename
-            latencyCompensation
             storedLocally @client
             localFilename @client
             duration @client
@@ -112,10 +112,10 @@ const VAMP_SUBSCRIPTION = gql`
             type
             start
             duration
+            offset
             audio {
               id
               filename
-              latencyCompensation
               storedLocally @client
               localFilename @client
               duration @client

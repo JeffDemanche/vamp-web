@@ -5,7 +5,9 @@ import { PlaybackContext } from "../context/recording/playback-context";
 import { useContext } from "react";
 
 const PlayStopButton: React.FunctionComponent = () => {
-  const { playing, recording, play, stop, seek } = useContext(PlaybackContext);
+  const { playing, recording, play, stop, stopRecording } = useContext(
+    PlaybackContext
+  );
 
   const image = playing
     ? require("../../../img/vector/stop.svg")
@@ -14,7 +16,7 @@ const PlayStopButton: React.FunctionComponent = () => {
   const handleClick = (): void => {
     if (playing) {
       if (recording) {
-        seek(0);
+        stopRecording();
       } else {
         stop();
       }

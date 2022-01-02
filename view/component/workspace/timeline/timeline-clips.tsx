@@ -18,13 +18,13 @@ interface TimelineClipsProps {
     content: {
       start: number;
       duration: number;
+      offset: number;
       type: string;
       audio: {
         id: string;
         filename: string;
         storedLocally: boolean;
         localFilename: string;
-        latencyCompensation: number;
         duration: number;
         error: string | null;
       };

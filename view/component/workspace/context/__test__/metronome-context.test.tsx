@@ -8,7 +8,7 @@ import {
 import { useQuery } from "@apollo/client";
 
 jest.mock("@apollo/client", () => ({
-  ...jest.requireActual("@apollo/client"),
+  ...(jest.requireActual("@apollo/client") as object),
   useQuery: jest.fn()
 }));
 

@@ -27,13 +27,13 @@ const TIMELINE_CLIENT = gql`
         content {
           start
           duration
+          offset
           type
           audio {
             id
             filename
             localFilename
             storedLocally
-            latencyCompensation
             duration
             error
           }

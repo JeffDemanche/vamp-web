@@ -20,9 +20,9 @@ const clipMocks = [
         type: "audio",
         start: 0,
         duration: 2,
+        offset: 0,
         audio: {
           id: "audio1id",
-          latencyCompensation: 0.16,
           storedLocally: true
         }
       }
@@ -87,7 +87,6 @@ describe("Clip Player (Scheduler adapter)", () => {
             duration: 2.5,
             audio: {
               id: "audio2id",
-              latencyCompensation: 0.16,
               storedLocally: true
             }
           }
@@ -98,7 +97,7 @@ describe("Clip Player (Scheduler adapter)", () => {
 
       expect(Object.keys(SchedulerInstance.events).length).toEqual(2);
       expect(SchedulerInstance.events["content1id"].start).toBeCloseTo(0);
-      expect(SchedulerInstance.events["content2id"].start).toBeCloseTo(0.34);
+      expect(SchedulerInstance.events["content2id"].start).toBeCloseTo(0.5);
     });
 
     it("adds clip content to scheduler when new content is added", () => {
@@ -122,7 +121,6 @@ describe("Clip Player (Scheduler adapter)", () => {
         duration: 6,
         audio: {
           id: "audio2id",
-          latencyCompensation: 0.16,
           storedLocally: true
         }
       });
@@ -131,7 +129,7 @@ describe("Clip Player (Scheduler adapter)", () => {
 
       expect(Object.keys(SchedulerInstance.events).length).toEqual(2);
       expect(SchedulerInstance.events["content2id"]).toBeDefined();
-      expect(SchedulerInstance.events["content2id"].start).toBeCloseTo(1.34);
+      expect(SchedulerInstance.events["content2id"].start).toBeCloseTo(1.5);
       expect(SchedulerInstance.events["content1id"]).toBeDefined();
       expect(SchedulerInstance.events["content1id"].start).toBeCloseTo(0);
     });
@@ -150,9 +148,9 @@ describe("Clip Player (Scheduler adapter)", () => {
                   type: "audio",
                   start: 0,
                   duration: 2,
+                  offset: 0,
                   audio: {
                     id: "audio1id",
-                    latencyCompensation: 0.16,
                     storedLocally: true
                   }
                 }
@@ -183,9 +181,9 @@ describe("Clip Player (Scheduler adapter)", () => {
                   type: "audio",
                   start: -2.16,
                   duration: 5,
+                  offset: 0,
                   audio: {
                     id: "audio1id",
-                    latencyCompensation: 0.16,
                     storedLocally: true
                   }
                 }
@@ -226,7 +224,6 @@ describe("Clip Player (Scheduler adapter)", () => {
             duration: 2.5,
             audio: {
               id: "audio2id",
-              latencyCompensation: 0.16,
               storedLocally: true
             }
           }
@@ -280,7 +277,6 @@ describe("Clip Player (Scheduler adapter)", () => {
         duration: 6,
         audio: {
           id: "audio2id",
-          latencyCompensation: 0.16,
           storedLocally: true
         }
       });
@@ -289,16 +285,16 @@ describe("Clip Player (Scheduler adapter)", () => {
 
       expect(SchedulerInstance.events["content1id"].start).toBeCloseTo(0);
       expect(SchedulerInstance.events["content1id"].duration).toBeCloseTo(2);
-      expect(SchedulerInstance.events["content2id"].start).toBeCloseTo(1.34);
-      expect(SchedulerInstance.events["content2id"].duration).toBeCloseTo(0.66);
+      expect(SchedulerInstance.events["content2id"].start).toBeCloseTo(1.5);
+      expect(SchedulerInstance.events["content2id"].duration).toBeCloseTo(0.5);
 
       const newClipMocks2 = JSON.parse(JSON.stringify(newClipMocks));
       newClipMocks2[0].start = 1;
 
       clipPlayer.setProps({ clips: newClipMocks2 });
 
-      expect(SchedulerInstance.events["content1id"].start).toBeCloseTo(0.84);
-      expect(SchedulerInstance.events["content2id"].start).toBeCloseTo(2.34);
+      expect(SchedulerInstance.events["content1id"].start).toBeCloseTo(1);
+      expect(SchedulerInstance.events["content2id"].start).toBeCloseTo(2.5);
     });
 
     it("updates scheduler events for all content when clip duration is changed", () => {
@@ -355,6 +351,39 @@ describe("Clip Player (Scheduler adapter)", () => {
       newClipMocks2[0].content[0].duration = 3;
       clipPlayer.setProps({ clips: newClipMocks2 });
       expect(SchedulerInstance.events["content1id"].duration).toEqual(2);
+    });
+
+    it("on being added, scheduler event reflects content offset value when content start isn't negative", () => {
+      const newClipMocks = JSON.parse(JSON.stringify(clipMocks));
+      newClipMocks[0].content[0].offset = 1;
+
+      mount(
+        <ClipPlayer
+          clips={newClipMocks}
+          clientClips={[]}
+          audioStore={audioStore}
+          scheduler={SchedulerInstance}
+        ></ClipPlayer>
+      );
+
+      expect(SchedulerInstance.events["content1id"].offset).toEqual(1);
+    });
+
+    it("on being changed, scheduler event reflects content offset value when content start isn't negative", () => {
+      const clipPlayer = mount(
+        <ClipPlayer
+          clips={clipMocks}
+          clientClips={[]}
+          audioStore={audioStore}
+          scheduler={SchedulerInstance}
+        ></ClipPlayer>
+      );
+
+      const newClipMocks = JSON.parse(JSON.stringify(clipMocks));
+      newClipMocks[0].content[0].offset = 1;
+      clipPlayer.setProps({ clips: newClipMocks });
+
+      expect(SchedulerInstance.events["content1id"].offset).toEqual(1);
     });
   });
 

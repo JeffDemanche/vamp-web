@@ -19,9 +19,9 @@ interface Clip {
     type: string;
     start: number;
     duration: number;
+    offset: number;
     audio: {
       id: string;
-      latencyCompensation: number;
       storedLocally: boolean;
     };
   }[];
@@ -46,22 +46,38 @@ const createContentEvent = ({
   id,
   clipStart,
   contentStart,
+  contentOffset,
   duration,
   storeKey
 }: {
   id: string;
   clipStart: number;
   contentStart: number;
+  contentOffset: number;
   duration?: number;
   storeKey: string;
 }): SchedulerEvent => {
+  if (contentOffset < 0) {
+    throw new Error("Invariant: content offset should be non-negative.");
+  }
+
   // Will be negative if content starts before clip.
-  const contentOffset = contentStart - clipStart;
-  const eventStartTime = contentOffset < 0 ? clipStart : contentStart;
+  const contentStartRelative = contentStart - clipStart;
+
+  const contentStartsBeforeClip = contentStartRelative < 0;
+
+  const eventStartTime = contentStartsBeforeClip ? clipStart : contentStart;
+
+  // Start playing content this many seconds into audio.
+  const timeIntoContentToStart = contentStartsBeforeClip
+    ? Math.max(-contentStartRelative, contentOffset)
+    : contentOffset;
+
   return {
     id,
     start: eventStartTime,
     duration,
+    offset: timeIntoContentToStart,
     type: "Audio",
     dispatch: async ({
       context,
@@ -86,23 +102,9 @@ const createContentEvent = ({
       source.buffer = decodedData;
       source.connect(context.destination);
 
-      // If the content has a negative start time relative to the clip (i.e. the
-      // content starts earlier than the clip does), contentOffset gives us
-      // a positive value to add to the event dispatch offset, so we start the
-      // content that far into it.
-      const timeIntoContentToStart = contentOffset < 0 ? -contentOffset : 0;
-
-      // The WAA start function takes different params for delaying the
-      // start of a node (when) and playing the node from a point other
-      // than the start (offset).
-      const whenVal = when ?? 0;
       const offsetVal = offset > 0 ? offset : 0;
 
-      source.start(
-        startTime + whenVal,
-        offsetVal + timeIntoContentToStart,
-        duration
-      );
+      source.start(startTime + when, offsetVal, duration);
 
       return source;
     }
@@ -117,8 +119,7 @@ const createContentEvent = ({
 const calcContentStart = (
   clip: Clip,
   clipContent: Clip["content"][number]
-): number =>
-  clip.start - clipContent.audio.latencyCompensation + clipContent.start;
+): number => clip.start + clipContent.start;
 
 /**
  * Calculates how long clip content should play for, respecting that it might
@@ -151,6 +152,7 @@ const onClipAdded = (clip: Clip, scheduler: Scheduler): void => {
             id: content.id,
             clipStart: clip.start,
             contentStart: calcContentStart(clip, content),
+            contentOffset: content.offset,
             duration: calcContentDuration(clip, content),
             storeKey: content.audio.id
           })
@@ -200,6 +202,7 @@ const onClipContentAdded = (
         id: clipContent.id,
         clipStart: clip.start,
         contentStart: calcContentStart(clip, clipContent),
+        contentOffset: clipContent.offset,
         duration: calcContentDuration(clip, clipContent),
         storeKey: clipContent.audio.id
       })
@@ -223,6 +226,7 @@ const onClipContentChanged = (
         id: clipContent.id,
         clipStart: clip.start,
         contentStart: calcContentStart(clip, clipContent),
+        contentOffset: clipContent.offset,
         duration: calcContentDuration(clip, clipContent),
         storeKey: clipContent.audio.id
       })
@@ -238,7 +242,7 @@ const onClipContentChanged = (
 
   // Updates to content caused by updates to containing clip or by updates to
   // the content itself.
-  const eventUpdate: Partial<{ start: number; duration: number }> = {};
+  const eventUpdate: Partial<Parameters<Scheduler["updateEvent"]>[1]> = {};
 
   if (
     prevClip.start !== clip.start ||
@@ -253,6 +257,13 @@ const onClipContentChanged = (
     prevClipContent.duration !== clipContent.duration
   )
     eventUpdate.duration = calcContentDuration(clip, clipContent);
+
+  if (
+    prevClipContent.start !== clipContent.start ||
+    prevClipContent.offset !== clipContent.offset
+  ) {
+    eventUpdate.offset = Math.max(-clipContent.start, clipContent.offset);
+  }
 
   if (!_.isEmpty(eventUpdate)) {
     scheduler.updateEvent(clipContent.id, eventUpdate);
@@ -356,6 +367,7 @@ const onClientClipChanged = (
         clipStart: clientClip.start,
         contentStart:
           clientClip.start - clientClip.latencyCompensation - countOffDuration,
+        contentOffset: 0,
         storeKey: clientClip.audioStoreKey
       })
     );

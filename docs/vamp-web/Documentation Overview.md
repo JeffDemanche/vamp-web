@@ -1,2 +1,0 @@
-# Vamp Web docs entry point
-This is sort of an experiment. Rather than just writing Markdown files, this folder contains notes on the project using [Obsidian](https://obsidian.md/) to better link concepts together.

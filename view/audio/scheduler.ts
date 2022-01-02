@@ -1,7 +1,4 @@
 import * as _ from "underscore";
-import ObjectID from "bson-objectid";
-import Recorder from "./recorder";
-import { MetronomeContextData } from "../component/workspace/context/metronome-context";
 import { CountOff } from "../component/workspace/context/recording/playback-context";
 
 class SchedulerEvent {
@@ -10,6 +7,8 @@ class SchedulerEvent {
   public start: number;
 
   public duration?: number;
+
+  public offset?: number;
 
   public type: "Audio";
 
@@ -140,12 +139,13 @@ class CountOffMetronomeScheduler {
   }
 }
 
-interface NewRecordingMetaData {
-  afterLoop: boolean;
-  afterStop: boolean;
-}
-
-type SchedulerListenerType = "seek" | "play" | "pause" | "stop" | "jsClockTick";
+type SchedulerListenerType =
+  | "seek"
+  | "play"
+  | "pause"
+  | "stop"
+  | "jsClockTick"
+  | "loop";
 
 class SchedulerListeners {
   private _listeners: {
@@ -198,20 +198,6 @@ export class Scheduler {
   private _events: { [id: string]: SchedulerEvent };
 
   private _listeners: SchedulerListeners;
-
-  private _recorder: Recorder;
-
-  private _recorderPrimed: boolean;
-  private _recordingId: string;
-
-  /**
-   * Fires when recording data becomes available.
-   * @param metaData Data about the context of the new recording.
-   */
-  private _onNewRecording: (
-    file: Blob,
-    metaData: NewRecordingMetaData
-  ) => Promise<void>;
 
   /**
    * At this point in seconds, we will loop back to `_idleTime`.
@@ -284,7 +270,6 @@ export class Scheduler {
   constructor() {
     this._events = {};
     this._listeners = new SchedulerListeners();
-    this._recorderPrimed = false;
     this._dispatchedAudioNodes = {};
     this._idleTime = 0;
     this._isPlaying = false;
@@ -292,7 +277,6 @@ export class Scheduler {
     this._audioContextLoopStart = 0;
     this._loopDispatchOffset = 0;
     this._firstLoopDispatchOffset = 0;
-    // this._metronomeScheduler = new MetronomeScheduler();
     this._countOffMetronomeScheduler = new CountOffMetronomeScheduler();
   }
 
@@ -303,16 +287,12 @@ export class Scheduler {
    */
   giveContext = (context: AudioContext): void => {
     this._context = context;
-    this._recorder = new Recorder(context);
-    // this._metronomeScheduler.giveContext(context);
     this._countOffMetronomeScheduler.giveContext(context);
   };
 
   /**
    * Dispatches the event in the `_events` map for the given ID, then adds the
-   * resulting node to `_dispatchedAudioNodes` if it exists. Note that this
-   * dispatches the event *immediately*, implementations of that should handle
-   * timing.
+   * resulting node to `_dispatchedAudioNodes` if it exists.
    *
    * @param audioContextBasis Should be omitted if the event is being played
    * on-the-fly (as in, dispatched while the scheduler is playing). In this
@@ -353,8 +333,14 @@ export class Scheduler {
     // positive if it should be started somewhere in the middle.
     const eventTimeFromPlayhead = playheadVampTime - event.start;
 
+    // When events are created (such as an audio content), they can specify and
+    // offset value, which ends up getting fed back into the dispatch function'
+    // offset argument, but account for other sources of offset like starting
+    // playing after content start.
+    const specifiedEventOffset = event.offset ?? 0;
+
     // (Non-negative) Time into event to start playing.
-    const offset = Math.max(0, eventTimeFromPlayhead);
+    const offset = Math.max(specifiedEventOffset, eventTimeFromPlayhead);
 
     // (Non-negative) Time *until* event should start playing.
     const when = Math.max(0, -eventTimeFromPlayhead);
@@ -390,42 +376,6 @@ export class Scheduler {
   };
 
   /**
-   * Notifies the scheduler to start recording next time `play` is called.
-   * @param onNewRecording This gets called with the final audio data when
-   * recording completes.
-   * @returns An ID that can be used to uniquely identify the recording.
-   */
-  primeRecorder = (
-    onNewRecording?: (
-      file: Blob,
-      metaData: NewRecordingMetaData
-    ) => Promise<void>
-  ): string => {
-    this._recorderPrimed = true;
-    this._onNewRecording = onNewRecording;
-    const recordingId = ObjectID.generate();
-    this._recordingId = recordingId;
-    return recordingId;
-  };
-
-  private unprimeRecorder = (): void => {
-    this._recorderPrimed = false;
-    this._onNewRecording = undefined;
-    this._recordingId = undefined;
-  };
-
-  private record = (): void => {
-    this._recorder.startRecording(this._recordingId);
-  };
-
-  private stopRecording = (): void => {
-    this._recorder.stopRecording(500).then(blob => {
-      this._onNewRecording(blob, { afterLoop: false, afterStop: true });
-      this.unprimeRecorder();
-    });
-  };
-
-  /**
    * Plays all scheduled events, starting at `_idleTime`.
    *
    * @param delay Specify to precisely delay playback by this many seconds.
@@ -444,10 +394,6 @@ export class Scheduler {
 
     this.setLoopDispatchOffset(startingFrom, true);
 
-    if (this._recorderPrimed && !this._recorder.isRecording()) {
-      this.record();
-    }
-
     this._audioContextPlayStart = this._context.currentTime + delay;
     this._audioContextLoopStart = this._audioContextPlayStart;
 
@@ -455,9 +401,9 @@ export class Scheduler {
 
     await this.dispatchAllEvents(this._audioContextPlayStart);
 
-    await this._context.resume();
-
     this._listeners.fire("play", startingFrom);
+
+    await this._context.resume();
   };
 
   /**
@@ -524,6 +470,8 @@ export class Scheduler {
                 : this._loopDispatchOffset;
               nextLoopDispatched = false;
               isThisTheFirstLoop = false;
+
+              this._listeners.fire("loop", this.timecode);
             }
           }
 
@@ -592,9 +540,6 @@ export class Scheduler {
     clearTimeout(this._jsClockTimeout);
     this.cancelDispatch();
     this._audioContextPlayStart = this._audioContextLoopStart = 0;
-    if (this._recorderPrimed) {
-      this.stopRecording();
-    }
 
     this._listeners.fire("pause", this._pausedTime);
   };
@@ -611,9 +556,6 @@ export class Scheduler {
     this.cancelDispatch();
     this._audioContextLoopStart = this._audioContextPlayStart = 0;
     this._firstLoopDispatchOffset = this._loopDispatchOffset = 0;
-    if (this._recorderPrimed) {
-      this.stopRecording();
-    }
 
     this._listeners.fire("stop", timecode);
   };
@@ -671,12 +613,17 @@ export class Scheduler {
    */
   updateEvent = (
     eventId: string,
-    { start, duration }: { start?: number; duration?: number }
+    {
+      start,
+      duration,
+      offset
+    }: { start?: number; duration?: number; offset?: number }
   ): void => {
     if (_.isEmpty({ start, duration })) return;
 
     start !== undefined && (this._events[eventId].start = start);
     duration !== undefined && (this._events[eventId].duration = duration);
+    offset !== undefined && (this._events[eventId].offset = offset);
 
     this.cancelEventDispatch(eventId);
 
@@ -713,10 +660,6 @@ export class Scheduler {
 
   get listeners(): SchedulerListeners {
     return this._listeners;
-  }
-
-  get recorder(): Recorder {
-    return this._recorder;
   }
 
   get events(): { [id: string]: SchedulerEvent } {

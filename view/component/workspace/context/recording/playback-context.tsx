@@ -40,6 +40,7 @@ export interface PlaybackContextData {
   stop: () => void;
   setLoop: (loop: boolean) => void;
   record: () => void;
+  stopRecording: () => void;
 
   setBounds: (bounds: { start: number; end: number }) => void;
 
@@ -65,6 +66,7 @@ export const defaultPlaybackContext: PlaybackContextData = {
   stop: () => {},
   setLoop: () => {},
   record: () => {},
+  stopRecording: () => {},
 
   setBounds: () => {},
 
@@ -136,11 +138,6 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
     setPlayPosition(SchedulerInstance.timecode);
   }, []);
 
-  const seek = useCallback((time: number) => {
-    setRecording(false);
-    setPlayPosition(time);
-  }, []);
-
   const stop = useCallback(() => {
     setRecording(false);
     setPlaying(false);
@@ -150,9 +147,23 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
     setCountOffTimeout(undefined);
   }, [cab.start, countOffTimeout]);
 
+  const seek = useCallback(
+    (time: number) => {
+      const wasPlaying = playing;
+      if (wasPlaying) stop();
+      setPlayPosition(time);
+      if (wasPlaying) play();
+    },
+    [play, playing, stop]
+  );
+
   const record = useCallback(() => {
     setPlaying(true);
     setRecording(true);
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    setRecording(false);
   }, []);
 
   const endCountOff = useCallback(() => {
@@ -213,6 +224,7 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
         stop,
         setLoop,
         record,
+        stopRecording,
 
         setBounds,
 

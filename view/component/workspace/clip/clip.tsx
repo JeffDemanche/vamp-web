@@ -48,13 +48,13 @@ interface ClipProps {
     content: {
       start: number;
       duration: number;
+      offset: number;
       type: string;
       audio: {
         id: string;
         filename: string;
         storedLocally: boolean;
         localFilename: string;
-        latencyCompensation: number;
         duration: number;
         error: string | null;
       };
@@ -150,7 +150,12 @@ const Clip: React.FunctionComponent<ClipProps> = ({
     clip.content.forEach((content, i) => {
       if (content.type === "AUDIO") {
         elements.push(
-          <ClipContentAudio key={i} content={content}></ClipContentAudio>
+          <ClipContentAudio
+            key={i}
+            content={content}
+            index={i}
+            total={clip.content.length}
+          ></ClipContentAudio>
         );
       }
     });

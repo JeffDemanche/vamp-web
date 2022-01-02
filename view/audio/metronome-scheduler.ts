@@ -5,7 +5,7 @@ import { Scheduler } from "./scheduler";
  * This class hooks into `Scheduler`'s listener system to interactively schedule
  * metronome tick events according to a form model which can be updated.
  */
-export class MetronomeScheduler2 {
+export class MetronomeScheduler {
   private _context: AudioContext;
 
   private _scheduler: Scheduler;
@@ -75,7 +75,7 @@ export class MetronomeScheduler2 {
     if (this._scheduler.loops) {
       this.scheduleTicks(time, this._scheduler.loopPoint);
     } else {
-      this.scheduleTicks(time, time + MetronomeScheduler2.TICK_BATCH_DURATION);
+      this.scheduleTicks(time, time + MetronomeScheduler.TICK_BATCH_DURATION);
     }
   };
 
@@ -87,14 +87,13 @@ export class MetronomeScheduler2 {
 
     const scheduleNextBatch =
       time >=
-      this._scheduledTicksTimeRange[1] -
-        MetronomeScheduler2.TICK_BATCH_DURATION;
+      this._scheduledTicksTimeRange[1] - MetronomeScheduler.TICK_BATCH_DURATION;
 
     if (scheduleNextBatch) {
       this.scheduleTicks(
         this._scheduledTicksTimeRange[1],
         this._scheduledTicksTimeRange[1] +
-          MetronomeScheduler2.TICK_BATCH_DURATION
+          MetronomeScheduler.TICK_BATCH_DURATION
       );
     }
   };
@@ -109,7 +108,7 @@ export class MetronomeScheduler2 {
     } else {
       this.scheduleTicks(
         this._scheduler.idleTime,
-        this._scheduler.idleTime + MetronomeScheduler2.TICK_BATCH_DURATION
+        this._scheduler.idleTime + MetronomeScheduler.TICK_BATCH_DURATION
       );
     }
   };
@@ -139,7 +138,7 @@ export class MetronomeScheduler2 {
       this._scheduler.addEvent({
         id: tickId,
         start: tickTime,
-        duration: MetronomeScheduler2.BEEP_TICK_DURATION,
+        duration: MetronomeScheduler.BEEP_TICK_DURATION,
         type: "Audio",
         dispatch: async ({
           context,
@@ -180,7 +179,7 @@ export class MetronomeScheduler2 {
 
         if (
           tickTime < end &&
-          tickTime + MetronomeScheduler2.BEEP_TICK_DURATION >= start
+          tickTime + MetronomeScheduler.BEEP_TICK_DURATION >= start
         ) {
           const code = `${measure.num}.${tick}`;
           this.scheduleBeepTick({
@@ -206,6 +205,6 @@ export class MetronomeScheduler2 {
   }
 
   accessPrivateFields = (): {
-    _scheduledTicksTimeRange: MetronomeScheduler2["_scheduledTicksTimeRange"];
+    _scheduledTicksTimeRange: MetronomeScheduler["_scheduledTicksTimeRange"];
   } => ({ _scheduledTicksTimeRange: this._scheduledTicksTimeRange });
 }

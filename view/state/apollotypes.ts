@@ -29,102 +29,6 @@ export interface EmptyVampAdapterUpdateCabVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: RecordAdapterQuery
-// ====================================================
-
-export interface RecordAdapterQuery_userInVamp_cab {
-  __typename: "Cab";
-  start: number;
-  duration: number;
-}
-
-export interface RecordAdapterQuery_userInVamp_prefs {
-  __typename: "UserInVampPrefs";
-  latencyCompensation: number;
-}
-
-export interface RecordAdapterQuery_userInVamp {
-  __typename: "UserInVamp";
-  id: string;
-  cab: RecordAdapterQuery_userInVamp_cab;
-  prefs: RecordAdapterQuery_userInVamp_prefs;
-}
-
-export interface RecordAdapterQuery {
-  /**
-   * Tries to find a UserInVamp, or adds one if not found.
-   */
-  userInVamp: RecordAdapterQuery_userInVamp;
-}
-
-export interface RecordAdapterQueryVariables {
-  userId: string;
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: AddClipMutation
-// ====================================================
-
-export interface AddClipMutation_addClip {
-  __typename: "Clip";
-  id: string;
-}
-
-export interface AddClipMutation {
-  /**
-   * Adds a clip and puts the new clip in the Vamp specfied.
-   */
-  addClip: AddClipMutation_addClip;
-}
-
-export interface AddClipMutationVariables {
-  userId: string;
-  vampId: string;
-  file: any;
-  contentStart?: number | null;
-  latencyCompensation?: number | null;
-  referenceId?: string | null;
-  start?: number | null;
-  duration: number;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL mutation operation: RecordAdapterUpdateCab
-// ====================================================
-
-export interface RecordAdapterUpdateCab_updateUserInVamp {
-  __typename: "UserInVamp";
-  id: string;
-}
-
-export interface RecordAdapterUpdateCab {
-  updateUserInVamp: RecordAdapterUpdateCab_updateUserInVamp;
-}
-
-export interface RecordAdapterUpdateCabVariables {
-  userId: string;
-  vampId: string;
-  start?: number | null;
-  duration?: number | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
 // GraphQL query operation: SeekAdapterQuery
 // ====================================================
 
@@ -182,6 +86,35 @@ export interface FloorAdapterVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL mutation operation: AddClipNewRecordingMutation
+// ====================================================
+
+export interface AddClipNewRecordingMutation_addClip {
+  __typename: "Clip";
+  id: string;
+}
+
+export interface AddClipNewRecordingMutation {
+  /**
+   * Adds a clip and puts the new clip in the Vamp specfied.
+   */
+  addClip: AddClipNewRecordingMutation_addClip;
+}
+
+export interface AddClipNewRecordingMutationVariables {
+  userId: string;
+  vampId: string;
+  file: any;
+  recordingProgram: RecordingProgramInput;
+  referenceId?: string | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: WorkspaceAudioClient
 // ====================================================
 
@@ -190,7 +123,6 @@ export interface WorkspaceAudioClient_vamp_clips_content_audio {
   id: string;
   filename: string;
   localFilename: string;
-  latencyCompensation: number;
   storedLocally: boolean;
   duration: number;
 }
@@ -201,6 +133,7 @@ export interface WorkspaceAudioClient_vamp_clips_content {
   type: ClipContentType;
   start: number;
   duration: number;
+  offset: number | null;
   audio: WorkspaceAudioClient_vamp_clips_content_audio | null;
 }
 
@@ -238,7 +171,6 @@ export interface WorkspaceAudioClient {
 
 export interface WorkspaceAudioClientVariables {
   vampId: string;
-  userId: string;
 }
 
 /* tslint:disable */
@@ -494,6 +426,46 @@ export interface PlaybackProviderQuery {
 export interface PlaybackProviderQueryVariables {
   vampId: string;
   userId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: RecordingProviderQuery
+// ====================================================
+
+export interface RecordingProviderQuery_userInVamp_cab {
+  __typename: "Cab";
+  mode: CabMode;
+  start: number;
+  duration: number;
+}
+
+export interface RecordingProviderQuery_userInVamp_prefs {
+  __typename: "UserInVampPrefs";
+  latencyCompensation: number;
+}
+
+export interface RecordingProviderQuery_userInVamp {
+  __typename: "UserInVamp";
+  id: string;
+  cab: RecordingProviderQuery_userInVamp_cab;
+  prefs: RecordingProviderQuery_userInVamp_prefs;
+}
+
+export interface RecordingProviderQuery {
+  /**
+   * Tries to find a UserInVamp, or adds one if not found.
+   */
+  userInVamp: RecordingProviderQuery_userInVamp;
+}
+
+export interface RecordingProviderQueryVariables {
+  userId: string;
+  vampId: string;
 }
 
 /* tslint:disable */
@@ -909,7 +881,6 @@ export interface TimelineClient_vamp_clips_content_audio {
   filename: string;
   localFilename: string;
   storedLocally: boolean;
-  latencyCompensation: number;
   duration: number;
   error: string | null;
 }
@@ -918,6 +889,7 @@ export interface TimelineClient_vamp_clips_content {
   __typename: "ContentInClip";
   start: number;
   duration: number;
+  offset: number | null;
   type: ClipContentType;
   audio: TimelineClient_vamp_clips_content_audio | null;
 }
@@ -1093,7 +1065,6 @@ export interface GetVamp_vamp_clips_content_audio {
   __typename: "Audio";
   id: string;
   filename: string;
-  latencyCompensation: number;
   storedLocally: boolean;
   localFilename: string;
   duration: number;
@@ -1106,6 +1077,7 @@ export interface GetVamp_vamp_clips_content {
   type: ClipContentType;
   start: number;
   duration: number;
+  offset: number | null;
   audio: GetVamp_vamp_clips_content_audio | null;
 }
 
@@ -1223,7 +1195,6 @@ export interface VampSubscription_subVamp_vampPayload_clips_content_audio {
   __typename: "Audio";
   id: string;
   filename: string;
-  latencyCompensation: number;
   storedLocally: boolean;
   localFilename: string;
   duration: number;
@@ -1236,6 +1207,7 @@ export interface VampSubscription_subVamp_vampPayload_clips_content {
   type: ClipContentType;
   start: number;
   duration: number;
+  offset: number | null;
   audio: VampSubscription_subVamp_vampPayload_clips_content_audio | null;
 }
 
@@ -1848,6 +1820,14 @@ export enum CabMode {
  */
 export enum ClipContentType {
   AUDIO = "AUDIO",
+}
+
+export interface RecordingProgramInput {
+  recordingStart: number;
+  recordingDuration: number;
+  cabStart: number;
+  cabDuration?: number | null;
+  cabMode: CabMode;
 }
 
 export interface UpdateClipInput {
