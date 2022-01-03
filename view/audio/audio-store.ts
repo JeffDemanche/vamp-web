@@ -3,6 +3,7 @@ import { AdaptiveWaveform } from "./waveform/adaptive-waveform";
 
 interface StoredAudio {
   data: Blob;
+  audioBuffer?: AudioBuffer;
   adaptiveWaveform?: AdaptiveWaveform;
 }
 
@@ -96,6 +97,7 @@ class AudioStore {
 
           this._store[content.audio.id] = {
             data: blob,
+            audioBuffer,
             adaptiveWaveform
           };
         }

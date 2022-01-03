@@ -92,14 +92,13 @@ const createContentEvent = ({
       offset: number;
       duration: number;
     }): Promise<AudioScheduledSourceNode> => {
-      const fileBuffer = await audioStore
-        .getStoredAudio(storeKey)
-        .data.arrayBuffer();
       const source = context.createBufferSource();
 
-      const decodedData = await context.decodeAudioData(fileBuffer);
+      if (!audioStore.getStoredAudio(storeKey).audioBuffer) {
+        throw new Error("Tried to dispatch audio without decoded AudioBuffer.");
+      }
 
-      source.buffer = decodedData;
+      source.buffer = audioStore.getStoredAudio(storeKey).audioBuffer;
       source.connect(context.destination);
 
       const offsetVal = offset > 0 ? offset : 0;
