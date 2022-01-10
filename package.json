@@ -19,7 +19,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@apollo/client": "^3.2.5",
+        "@apollo/client": "^3.5.6",
         "@apollo/react-hooks": "^3.1.5",
         "@apollo/react-testing": "^3.1.4",
         "@babel/plugin-transform-typescript": "^7.9.6",

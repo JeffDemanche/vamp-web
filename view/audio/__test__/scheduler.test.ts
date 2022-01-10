@@ -300,20 +300,6 @@ describe("Scheduler", () => {
           duration: 2
         })
       );
-
-      // await advanceTimers(mockAudioContextCurrentTime, 0.2, 5);
-      // expect(TestScheduler.timecode).toEqual(2);
-      // await advanceTimers(mockAudioContextCurrentTime, 0.2, 1);
-      // expect(TestScheduler.timecode).toEqual(2.2);
-      // expect(mockClipEvent1Dispatch).toHaveBeenNthCalledWith(
-      //   3,
-      //   expect.objectContaining({
-      //     startTime: 4,
-      //     when: 0,
-      //     offset: 0,
-      //     duration: 2
-      //   })
-      // );
     });
   });
 
@@ -525,6 +511,108 @@ describe("Scheduler", () => {
         offset: 1,
         when: 0
       });
+    });
+
+    it("dispatched event has proper offset when play starts during event and event has specified offset", async () => {
+      TestScheduler.addEvent({
+        ...mockClipEvent1,
+        start: -2,
+        duration: 4,
+        offset: 2
+      });
+      TestScheduler.seek(0, 2);
+      await TestScheduler.play();
+
+      expect(mockClipEvent1Dispatch).toHaveBeenNthCalledWith(1, {
+        context: mockAudioContext,
+        startTime: 0,
+        duration: 2,
+        offset: 4,
+        when: 0
+      });
+    });
+
+    it("an event moved during playback should fire on the fly and then be played again during next loop", async () => {
+      TestScheduler.addEvent({
+        ...mockClipEvent1,
+        start: 0,
+        duration: 4,
+        offset: 0.5
+      });
+      TestScheduler.seek(0, 4);
+      await TestScheduler.play();
+
+      // Dispatches fine on initial play.
+      expect(mockClipEvent1Dispatch).toHaveBeenNthCalledWith(1, {
+        context: mockAudioContext,
+        startTime: 0,
+        duration: 4,
+        offset: 0.5,
+        when: 0
+      });
+
+      // Advance 1 second.
+      await advanceTimers(mockAudioContextCurrentTime, 0.5, 2);
+
+      // Dispatches first loop
+      expect(mockClipEvent1Dispatch).toHaveBeenNthCalledWith(2, {
+        context: mockAudioContext,
+        startTime: 4,
+        duration: 4,
+        offset: 0.5,
+        when: 0
+      });
+      expect(mockClipEvent1Dispatch).toHaveBeenCalledTimes(2);
+
+      // Move clip back to before idleTime which playing.
+      TestScheduler.updateEvent(mockClipEvent1.id, {
+        start: -2,
+        duration: 4,
+        offset: 0.5
+      });
+
+      // Just flushes playEvent promise.
+      await advanceTimers(mockAudioContextCurrentTime, 0, 0);
+
+      // Dispatch which plays remainder of moved event.
+      expect(mockClipEvent1Dispatch).toHaveBeenNthCalledWith(3, {
+        context: mockAudioContext,
+        startTime: 1,
+        duration: 1,
+        offset: 3.5,
+        when: 0
+      });
+      // Dispatch which plays next loop of moved event, bypassing jsClockTick.
+      expect(mockClipEvent1Dispatch).toHaveBeenNthCalledWith(4, {
+        context: mockAudioContext,
+        startTime: 4,
+        duration: 2,
+        offset: 2.5,
+        when: 0
+      });
+      expect(mockClipEvent1Dispatch).toHaveBeenCalledTimes(4);
+      expect(
+        TestScheduler.accessPrivateFields()._dispatchedAudioNodes[
+          mockClipEvent1.id
+        ].length
+      ).toEqual(2);
+
+      // Waits for subsequent loop to get dispatched, this time by jsClockTick.
+      await advanceTimers(mockAudioContextCurrentTime, 0.5, 6);
+
+      expect(mockClipEvent1Dispatch).toHaveBeenNthCalledWith(5, {
+        context: mockAudioContext,
+        startTime: 8,
+        duration: 2,
+        offset: 2.5,
+        when: 0
+      });
+      expect(mockClipEvent1Dispatch).toHaveBeenCalledTimes(5);
+      expect(
+        TestScheduler.accessPrivateFields()._dispatchedAudioNodes[
+          mockClipEvent1.id
+        ].length
+      ).toEqual(3);
     });
   });
 

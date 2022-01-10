@@ -27,7 +27,6 @@ export const ClipContentAudio: React.FC<ClipContentAudioProps> = ({
   index,
   total
 }: ClipContentAudioProps) => {
-  console.log(content);
   const { svg } = useWaveformSVG(content.audio.id, 1);
 
   const widthFn = useWorkspaceWidth();

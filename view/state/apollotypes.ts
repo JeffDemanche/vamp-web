@@ -4,6 +4,52 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: ContentAudioSchedulerAdapterQuery
+// ====================================================
+
+export interface ContentAudioSchedulerAdapterQuery_vamp_clips_content_audio {
+  __typename: "Audio";
+  id: string;
+}
+
+export interface ContentAudioSchedulerAdapterQuery_vamp_clips_content {
+  __typename: "ContentInClip";
+  id: string;
+  type: ClipContentType;
+  start: number;
+  duration: number;
+  offset: number | null;
+  audio: ContentAudioSchedulerAdapterQuery_vamp_clips_content_audio | null;
+}
+
+export interface ContentAudioSchedulerAdapterQuery_vamp_clips {
+  __typename: "Clip";
+  id: string;
+  start: number;
+  duration: number;
+  content: ContentAudioSchedulerAdapterQuery_vamp_clips_content[];
+}
+
+export interface ContentAudioSchedulerAdapterQuery_vamp {
+  __typename: "Vamp";
+  id: string;
+  clips: ContentAudioSchedulerAdapterQuery_vamp_clips[];
+}
+
+export interface ContentAudioSchedulerAdapterQuery {
+  vamp: ContentAudioSchedulerAdapterQuery_vamp | null;
+}
+
+export interface ContentAudioSchedulerAdapterQueryVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL mutation operation: EmptyVampAdapterUpdateCab
 // ====================================================
 

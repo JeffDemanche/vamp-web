@@ -6,7 +6,7 @@
     "noImplicitAny": true,
     "module": "commonjs",
     "target": "es5",
-    "lib": ["WebWorker", "es5", "es6", "es7", "es2017", "dom"],
+    "lib": ["WebWorker", "es5", "es6", "es7", "es2017", "es2019", "dom"],
     "jsx": "react",
     "allowJs": true,
     "moduleResolution": "node",

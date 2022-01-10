@@ -13,7 +13,6 @@ import { useContext, useEffect, useState } from "react";
 import { gql, useApolloClient, useQuery } from "@apollo/client";
 import { useCurrentUserId } from "../util/react-hooks";
 import { audioStore } from "./audio-store";
-import { ClipPlayer } from "./clip-player";
 import { WorkspaceAudioClient } from "../state/apollotypes";
 import { FloorAdapter } from "./floor/floor-adapter";
 import { CountOffAdapter } from "./adapter/count-off-adapter";
@@ -24,6 +23,7 @@ import { MetronomeContext } from "../component/workspace/context/metronome-conte
 import { PlaybackContext } from "../component/workspace/context/recording/playback-context";
 import { MetronomeScheduler } from "./metronome-scheduler";
 import { useVampAudioContext } from "./hooks/use-vamp-audio-context";
+import { ContentAudioScheduleAdapter } from "./adapter/content-audio-schedule-adapter";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!) {
@@ -75,7 +75,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
 
   const userId = useCurrentUserId();
 
-  const { playing, playPosition, setBounds } = useContext(PlaybackContext);
+  const { setBounds } = useContext(PlaybackContext);
 
   // State query for clientside Vamp playback info.
   const {
@@ -168,12 +168,9 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
 
   return (
     <>
-      <ClipPlayer
-        clips={clips}
-        clientClips={clientClips}
-        audioStore={store}
+      <ContentAudioScheduleAdapter
         scheduler={scheduler}
-      ></ClipPlayer>
+      ></ContentAudioScheduleAdapter>
       <PlayStopAdapter scheduler={scheduler}></PlayStopAdapter>
       <CountOffAdapter scheduler={scheduler}></CountOffAdapter>
       <SeekAdapter scheduler={scheduler}></SeekAdapter>

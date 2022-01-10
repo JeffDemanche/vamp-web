@@ -23,13 +23,12 @@ export const useLoopPoints = (): {
   const vampId = useCurrentVampId();
   const userId = useCurrentUserId();
 
-  const { playPosition } = useContext(PlaybackContext);
   const { data } = useQuery<UseLoopPointsQuery>(USE_LOOP_POINTS_QUERY, {
     variables: { vampId, userId }
   });
 
   const mode = data?.userInVamp?.cab?.mode;
-  const loopA = playPosition;
+  const loopA = data?.userInVamp?.cab?.start;
   const loopB =
     mode !== CabMode.INFINITE
       ? data?.userInVamp?.cab?.start + data?.userInVamp?.cab?.duration

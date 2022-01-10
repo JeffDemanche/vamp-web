@@ -14,4 +14,6 @@ export const advanceTimers = async (
     await audioContextDelorean.travel(seconds);
     jest.advanceTimersByTime(seconds * 1000);
   }
+  // Will flush promises even if no timers get advanced.
+  await new Promise(setImmediate);
 };

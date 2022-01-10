@@ -298,7 +298,7 @@ export class Scheduler {
    * on-the-fly (as in, dispatched while the scheduler is playing). In this
    * case, the basis for timing dispatched nodes will default to
    * `context.currentTime`. If provided, this value is the time in AC-space when
-   * audio context nodes should be played relative to. If this call happen when
+   * audio context nodes should be played relative to. If this call happens when
    * play first begins, this should be `this._audioContextPlayStart` or
    * `this._audioContextLoopStart`.
    *
@@ -315,7 +315,7 @@ export class Scheduler {
     const event = this._events[eventId];
     if (!event) throw new Error("Tried to play event that wasn't registered.");
 
-    const dispatchedWhilePlaying = !audioContextBasis;
+    const dispatchedWhilePlaying = audioContextBasis === undefined;
     audioContextBasis = audioContextBasis ?? this._context.currentTime;
 
     let playheadVampTime;
@@ -333,14 +333,14 @@ export class Scheduler {
     // positive if it should be started somewhere in the middle.
     const eventTimeFromPlayhead = playheadVampTime - event.start;
 
-    // When events are created (such as an audio content), they can specify and
+    // When events are created (such as an audio content), they can specify an
     // offset value, which ends up getting fed back into the dispatch function'
     // offset argument, but account for other sources of offset like starting
     // playing after content start.
     const specifiedEventOffset = event.offset ?? 0;
 
     // (Non-negative) Time into event to start playing.
-    const offset = Math.max(specifiedEventOffset, eventTimeFromPlayhead);
+    const offset = specifiedEventOffset + Math.max(0, eventTimeFromPlayhead);
 
     // (Non-negative) Time *until* event should start playing.
     const when = Math.max(0, -eventTimeFromPlayhead);
@@ -373,6 +373,19 @@ export class Scheduler {
       duration: durationAfterPlayheadAndBeforeLoop
     });
     if (node) this.pushAudioNodeForEvent(eventId, node);
+
+    // Slightly idiosyncratic... jsClockTick dispatches all looping events in
+    // batches, so it doesn't handle events played on-the-fly, after the next
+    // loop batch has been scheduled. The result is that an event added or
+    // updated while playing will miss the next loop unless we dispatch it
+    // twice, which we do here.
+    if (dispatchedWhilePlaying && this.loops) {
+      this.playEvent({
+        eventId,
+        audioContextBasis:
+          this._audioContextLoopStart + this._loopDispatchOffset
+      });
+    }
   };
 
   /**
@@ -571,6 +584,7 @@ export class Scheduler {
 
   private cancelEventDispatch = (eventId: string): void => {
     if (this._dispatchedAudioNodes[eventId]) {
+      console.log("canceling node", eventId);
       this._dispatchedAudioNodes[eventId].forEach(node => {
         node.disconnect();
         node.stop(0);
