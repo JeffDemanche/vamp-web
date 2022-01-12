@@ -1,8 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
-import { useContext } from "react";
 import { CabMode, UseLoopPointsQuery } from "../../../state/apollotypes";
 import { useCurrentUserId, useCurrentVampId } from "../../../util/react-hooks";
-import { PlaybackContext } from "../context/recording/playback-context";
 
 export const USE_LOOP_POINTS_QUERY = gql`
   query UseLoopPointsQuery($vampId: ID!, $userId: ID!) {

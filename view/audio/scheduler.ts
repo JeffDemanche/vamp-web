@@ -365,26 +365,28 @@ export class Scheduler {
       );
     }
 
-    const node = await event.dispatch({
-      context: this._context,
-      startTime: audioContextBasis,
-      when,
-      offset,
-      duration: durationAfterPlayheadAndBeforeLoop
-    });
-    if (node) this.pushAudioNodeForEvent(eventId, node);
-
-    // Slightly idiosyncratic... jsClockTick dispatches all looping events in
-    // batches, so it doesn't handle events played on-the-fly, after the next
-    // loop batch has been scheduled. The result is that an event added or
-    // updated while playing will miss the next loop unless we dispatch it
-    // twice, which we do here.
-    if (dispatchedWhilePlaying && this.loops) {
-      this.playEvent({
-        eventId,
-        audioContextBasis:
-          this._audioContextLoopStart + this._loopDispatchOffset
+    if (durationAfterPlayheadAndBeforeLoop > 0) {
+      const node = await event.dispatch({
+        context: this._context,
+        startTime: audioContextBasis,
+        when,
+        offset,
+        duration: durationAfterPlayheadAndBeforeLoop
       });
+      if (node) this.pushAudioNodeForEvent(eventId, node);
+
+      // Slightly idiosyncratic... jsClockTick dispatches all looping events in
+      // batches, so it doesn't handle events played on-the-fly, after the next
+      // loop batch has been scheduled. The result is that an event added or
+      // updated while playing will miss the next loop unless we dispatch it
+      // twice, which we do here.
+      if (dispatchedWhilePlaying && this.loops) {
+        this.playEvent({
+          eventId,
+          audioContextBasis:
+            this._audioContextLoopStart + this._loopDispatchOffset
+        });
+      }
     }
   };
 
@@ -398,7 +400,7 @@ export class Scheduler {
 
     const startingFrom = this.paused ? this._pausedTime : this._idleTime;
 
-    if (this._loopPoint && this._loopPoint <= startingFrom)
+    if (this._loopPoint !== undefined && this._loopPoint <= startingFrom)
       throw new Error("Loop point must be greater than play start time.");
 
     this._isPlaying = true;
@@ -497,7 +499,7 @@ export class Scheduler {
   };
 
   private setLoopDispatchOffset = (from: number, firstLoop: boolean): void => {
-    if (this._loopPoint) {
+    if (this._loopPoint !== undefined) {
       if (this._loopPoint - from <= 0) {
         throw new Error("Can't set loop dispatch offset to be non-positive");
       }
@@ -528,13 +530,16 @@ export class Scheduler {
   seek = async (time: number, loopPoint: number | undefined): Promise<void> => {
     this._loopPoint = loopPoint;
 
-    if (loopPoint && loopPoint <= time)
+    if (loopPoint !== undefined && loopPoint <= time)
       throw new Error("Cannot seek with loop point before time");
 
     const playing = this._isPlaying;
     if (playing) {
       const currentTime = this.timecode;
-      if (currentTime >= time && (!loopPoint || currentTime < loopPoint)) {
+      if (
+        currentTime >= time &&
+        (loopPoint === undefined || currentTime < loopPoint)
+      ) {
         this.pause();
       } else {
         this.stop();
@@ -542,9 +547,9 @@ export class Scheduler {
     }
     this._idleTime = time;
     this.setLoopDispatchOffset(this._idleTime, !playing);
-    if (playing) await this.play();
 
     this._listeners.fire("seek", time);
+    if (playing) await this.play();
   };
 
   pause = (): void => {
@@ -584,7 +589,6 @@ export class Scheduler {
 
   private cancelEventDispatch = (eventId: string): void => {
     if (this._dispatchedAudioNodes[eventId]) {
-      console.log("canceling node", eventId);
       this._dispatchedAudioNodes[eventId].forEach(node => {
         node.disconnect();
         node.stop(0);
@@ -689,7 +693,7 @@ export class Scheduler {
   }
 
   get loops(): boolean {
-    return !!this._loopPoint;
+    return this._loopPoint !== undefined;
   }
 
   get loopPoint(): number | undefined {
