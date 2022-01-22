@@ -88,7 +88,13 @@ export const RecordingProvider: React.FC = ({
 
   const clips = data?.vamp?.clips;
 
-  const { recording, countOffData } = useContext(PlaybackContext);
+  const {
+    cabMode,
+    loopPointA,
+    loopPointB,
+    recording,
+    countOffData
+  } = useContext(PlaybackContext);
 
   const [scheduler] = useState(SchedulerInstance);
   const [recorder] = useState(() => new Recorder(context, scheduler));
@@ -103,21 +109,19 @@ export const RecordingProvider: React.FC = ({
 
   const programArgs: Omit<RecorderProgram, "recordingId"> = useMemo(() => {
     return {
-      cabMode: data.userInVamp.cab.mode,
-      cabStart: data.userInVamp.cab.start,
-      cabDuration:
-        data.userInVamp.cab.mode !== CabMode.INFINITE
-          ? data.userInVamp.cab.duration
-          : undefined,
+      cabMode,
+      cabStart: loopPointA,
+      cabDuration: cabMode !== CabMode.INFINITE ? loopPointB : undefined,
       latencyCompensation: data.userInVamp.prefs.latencyCompensation,
       recordingStart: data.userInVamp.cab.start - countOffData.duration
     };
   }, [
+    cabMode,
     countOffData.duration,
-    data.userInVamp.cab.duration,
-    data.userInVamp.cab.mode,
     data.userInVamp.cab.start,
-    data.userInVamp.prefs.latencyCompensation
+    data.userInVamp.prefs.latencyCompensation,
+    loopPointA,
+    loopPointB
   ]);
 
   const addActiveRecording = useCallback(

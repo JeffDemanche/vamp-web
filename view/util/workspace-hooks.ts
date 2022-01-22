@@ -223,20 +223,9 @@ export const useIsEmpty = (vampId: string): boolean => {
     variables: { vampId }
   });
 
-  const { data: clientClipsData } = useQuery<GetClientClipsClient>(
-    GET_CLIENT_CLIPS_CLIENT,
-    {
-      variables: { vampId }
-    }
-  );
-
-  if (!clipsData || !clientClipsData || clipsData.vamp.clips.length > 0) {
+  if (!clipsData || clipsData.vamp.clips.length > 0) {
     return false;
   }
-  clientClipsData.vamp.clientClips.forEach(clientClip => {
-    if (!clientClip.inProgress) {
-      return false;
-    }
-  });
+
   return true;
 };

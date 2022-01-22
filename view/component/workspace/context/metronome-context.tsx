@@ -114,7 +114,7 @@ export interface MetronomeContextData {
    * Given a time (namely the end time of a recording), get the time of the
    * closest previous beat marker to that time.
    */
-  truncateEndOfRecording: (time: number, formIndex?: number) => number;
+  truncateTime: (time: number, formIndex?: number) => number;
 
   /**
    * For a time in seconds, get the nearest beat in the specified form and
@@ -422,7 +422,7 @@ export const MetronomeProvider: React.FC = ({
     []
   );
 
-  const truncateEndOfRecording = useCallback(
+  const truncateTime = useCallback(
     (time: number, formIndex?: number) => {
       const measureMap = getMeasureMap({ formIndex, start: time, end: time });
       const keys: number[] = Object.keys(measureMap).map(Number);
@@ -465,7 +465,7 @@ export const MetronomeProvider: React.FC = ({
         getMeasureMap,
         getSectionMap,
         getSectionIds,
-        truncateEndOfRecording,
+        truncateTime,
         snapToBeat
       }}
     >

@@ -290,8 +290,8 @@ export class Scheduler {
     this._dispatchedAudioNodes = {};
     this._idleTime = 0;
     this._isPlaying = false;
-    this._audioContextPlayStart = 0;
-    this._audioContextLoopStart = 0;
+    this._audioContextPlayStart = -1;
+    this._audioContextLoopStart = -1;
     this._loopDispatchOffset = 0;
     this._firstLoopDispatchOffset = 0;
     this._countOffMetronomeScheduler = new CountOffMetronomeScheduler();
@@ -574,7 +574,7 @@ export class Scheduler {
     this._isPlaying = false;
     clearTimeout(this._jsClockTimeout);
     this.cancelDispatch();
-    this._audioContextPlayStart = this._audioContextLoopStart = 0;
+    this._audioContextPlayStart = this._audioContextLoopStart = -1;
 
     this._listeners.fire("pause", this._pausedTime);
   };
@@ -589,7 +589,7 @@ export class Scheduler {
     this._pausedTime = undefined;
     clearTimeout(this._jsClockTimeout);
     this.cancelDispatch();
-    this._audioContextLoopStart = this._audioContextPlayStart = 0;
+    this._audioContextLoopStart = this._audioContextPlayStart = -1;
     this._firstLoopDispatchOffset = this._loopDispatchOffset = 0;
 
     this._listeners.fire("stop", timecode);
@@ -726,6 +726,8 @@ export class Scheduler {
       const playStartTime = this._pausedTime ?? this._idleTime;
       const totalTimeElapsed =
         this._context.currentTime - this._audioContextPlayStart;
+
+      if (this._audioContextPlayStart === -1) return 0;
 
       // Equivalent to "we're getting the timecode before the scheduler has
       // reached its first loop point."

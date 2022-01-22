@@ -1,13 +1,16 @@
 import { mount } from "enzyme";
 import * as React from "react";
+import { useContext } from "react";
 import { SchedulerInstance } from "../../scheduler";
-import { useLoopPoints } from "../../../component/workspace/hooks/use-loop-points";
 import { CabMode } from "../../../state/apollotypes";
 import { SeekAdapter } from "../seek-adapter";
 import { useQuery } from "@apollo/client";
 
 jest.mock("../../../util/react-hooks");
-jest.mock("../../../component/workspace/hooks/use-loop-points");
+jest.mock("react", () => ({
+  ...(jest.requireActual("react") as object),
+  useContext: jest.fn()
+}));
 jest.mock("@apollo/client", () => ({
   ...(jest.requireActual("@apollo/client") as object),
   useQuery: jest.fn()
@@ -33,8 +36,10 @@ describe("SeekAdapter", () => {
 
   it("sets loop point on first render", () => {
     const seekSpy = jest.spyOn(SchedulerInstance, "seek");
-    (useLoopPoints as jest.Mock).mockImplementationOnce(() => ({
-      loopPoints: [0, 3],
+    (useContext as jest.Mock).mockImplementationOnce(() => ({
+      seek: jest.fn(),
+      loopPointA: 0,
+      loopPointB: 3,
       mode: CabMode.STACK
     }));
 
@@ -46,13 +51,17 @@ describe("SeekAdapter", () => {
   it("sets infinite loop", () => {
     const seekSpy = jest.spyOn(SchedulerInstance, "seek");
 
-    (useLoopPoints as jest.Mock)
+    (useContext as jest.Mock)
       .mockImplementationOnce(() => ({
-        loopPoints: [0, 2],
+        seek: jest.fn(),
+        loopPointA: 0,
+        loopPointB: 2,
         mode: CabMode.STACK
       }))
       .mockImplementationOnce(() => ({
-        loopPoints: [0, undefined],
+        seek: jest.fn(),
+        loopPointA: 0,
+        loopPointB: undefined,
         mode: CabMode.INFINITE
       }));
 
@@ -67,17 +76,23 @@ describe("SeekAdapter", () => {
   it("sets loop mode in scheduler", () => {
     const seekSpy = jest.spyOn(SchedulerInstance, "seek");
 
-    (useLoopPoints as jest.Mock)
+    (useContext as jest.Mock)
       .mockImplementationOnce(() => ({
-        loopPoints: [0, undefined],
+        seek: jest.fn(),
+        loopPointA: 0,
+        loopPointB: undefined,
         mode: CabMode.INFINITE
       }))
       .mockImplementationOnce(() => ({
-        loopPoints: [0, 1],
+        seek: jest.fn(),
+        loopPointA: 0,
+        loopPointB: 1,
         mode: CabMode.STACK
       }))
       .mockImplementationOnce(() => ({
-        loopPoints: [0, 1],
+        seek: jest.fn(),
+        loopPointA: 0,
+        loopPointB: 1,
         mode: CabMode.TELESCOPE
       }));
 

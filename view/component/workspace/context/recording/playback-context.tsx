@@ -3,10 +3,12 @@ import gql from "graphql-tag";
 import * as React from "react";
 import { useCallback, useState } from "react";
 import { SchedulerInstance } from "../../../../audio/scheduler";
+import { CabMode, PlaybackProviderQuery } from "../../../../state/apollotypes";
 import {
   useCurrentUserId,
   useCurrentVampId
 } from "../../../../util/react-hooks";
+import { useIsEmpty } from "../../hooks/use-is-empty";
 
 export interface CountOff {
   duration: number;
@@ -23,6 +25,10 @@ export interface PlaybackContextData {
   playPosition: number;
   loop: boolean;
   recording: boolean;
+
+  cabMode: CabMode;
+  loopPointA: number;
+  loopPointB: number | undefined;
 
   /** Calculated bounds of the Vamp, holds beginning and end in seconds. */
   bounds: {
@@ -53,6 +59,10 @@ export const defaultPlaybackContext: PlaybackContextData = {
   playPosition: 0,
   loop: false,
   recording: false,
+
+  cabMode: CabMode.INFINITE,
+  loopPointA: 0,
+  loopPointB: undefined,
 
   bounds: { start: 0, end: 0 },
 
@@ -89,6 +99,7 @@ const PLAYBACK_PROVIDER_QUERY = gql`
       cab {
         start
         duration
+        mode
       }
     }
   }
@@ -104,7 +115,7 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
     data: {
       userInVamp: { cab }
     }
-  } = useQuery(PLAYBACK_PROVIDER_QUERY, {
+  } = useQuery<PlaybackProviderQuery>(PLAYBACK_PROVIDER_QUERY, {
     variables: { vampId, userId }
   });
 
@@ -112,6 +123,13 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
   const [playPosition, setPlayPosition] = useState(0);
   const [loop, setLoop] = useState(true);
   const [recording, setRecording] = useState(false);
+
+  const empty = useIsEmpty();
+
+  const cabMode = empty ? CabMode.INFINITE : cab?.mode;
+  const loopPointA = cab?.start;
+  const loopPointB =
+    cabMode !== CabMode.INFINITE ? cab?.start + cab?.duration : undefined;
 
   const [bounds, setBounds] = useState<PlaybackContextData["bounds"]>({
     start: 0,
@@ -211,6 +229,10 @@ export const PlaybackProvider: React.FC<PlaybackProviderProps> = ({
         playPosition,
         loop,
         recording,
+
+        cabMode,
+        loopPointA,
+        loopPointB,
 
         bounds,
 

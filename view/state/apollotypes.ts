@@ -132,6 +132,31 @@ export interface FloorAdapterVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL mutation operation: UpdateCabNewRecordingMutation
+// ====================================================
+
+export interface UpdateCabNewRecordingMutation_updateUserInVamp {
+  __typename: "UserInVamp";
+  id: string;
+}
+
+export interface UpdateCabNewRecordingMutation {
+  updateUserInVamp: UpdateCabNewRecordingMutation_updateUserInVamp;
+}
+
+export interface UpdateCabNewRecordingMutationVariables {
+  userId: string;
+  vampId: string;
+  start?: number | null;
+  duration?: number | null;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL mutation operation: AddClipNewRecordingMutation
 // ====================================================
 
@@ -453,6 +478,7 @@ export interface PlaybackProviderQuery_userInVamp_cab {
   __typename: "Cab";
   start: number;
   duration: number;
+  mode: CabMode;
 }
 
 export interface PlaybackProviderQuery_userInVamp {
@@ -606,39 +632,6 @@ export interface UseIsEmpty {
 
 export interface UseIsEmptyVariables {
   vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL query operation: UseLoopPointsQuery
-// ====================================================
-
-export interface UseLoopPointsQuery_userInVamp_cab {
-  __typename: "Cab";
-  start: number;
-  duration: number;
-  mode: CabMode;
-}
-
-export interface UseLoopPointsQuery_userInVamp {
-  __typename: "UserInVamp";
-  cab: UseLoopPointsQuery_userInVamp_cab;
-}
-
-export interface UseLoopPointsQuery {
-  /**
-   * Tries to find a UserInVamp, or adds one if not found.
-   */
-  userInVamp: UseLoopPointsQuery_userInVamp;
-}
-
-export interface UseLoopPointsQueryVariables {
-  vampId: string;
-  userId: string;
 }
 
 /* tslint:disable */

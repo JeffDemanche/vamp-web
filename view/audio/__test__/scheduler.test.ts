@@ -60,10 +60,10 @@ describe("Scheduler", () => {
       expect(TestScheduler.accessPrivateFields()._idleTime).toEqual(0);
       expect(
         TestScheduler.accessPrivateFields()._audioContextPlayStart
-      ).toEqual(0);
+      ).toEqual(-1);
       expect(
         TestScheduler.accessPrivateFields()._audioContextLoopStart
-      ).toEqual(0);
+      ).toEqual(-1);
     });
 
     it("returns to idleTime while looping after pausing, waiting, and playing", async () => {
@@ -244,10 +244,10 @@ describe("Scheduler", () => {
 
       expect(
         TestScheduler.accessPrivateFields()._audioContextPlayStart
-      ).toEqual(0);
+      ).toEqual(-1);
       expect(
         TestScheduler.accessPrivateFields()._audioContextLoopStart
-      ).toEqual(0);
+      ).toEqual(-1);
       expect(TestScheduler.timecode).toEqual(3);
       // First dispatch on play. There's a second dispatch from the clock tick.
       expect(mockClipEvent1Dispatch).toHaveBeenNthCalledWith(

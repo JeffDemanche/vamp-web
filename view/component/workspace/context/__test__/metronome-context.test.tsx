@@ -375,12 +375,12 @@ describe("Metronome Context", () => {
 
     const oneBeat = 0.42857142857;
 
-    expect(data.truncateEndOfRecording(0)).toBeCloseTo(0);
-    expect(data.truncateEndOfRecording(2)).toBeCloseTo(oneBeat * 4);
-    expect(data.truncateEndOfRecording(oneBeat)).toBeCloseTo(0);
-    expect(data.truncateEndOfRecording(oneBeat + 0.2)).toBeCloseTo(oneBeat);
-    expect(data.truncateEndOfRecording(-0.01)).toBeCloseTo(-oneBeat);
-    expect(data.truncateEndOfRecording(-0.43)).toBeCloseTo(-2 * oneBeat);
+    expect(data.truncateTime(0)).toBeCloseTo(0);
+    expect(data.truncateTime(2)).toBeCloseTo(oneBeat * 4);
+    expect(data.truncateTime(oneBeat)).toBeCloseTo(0);
+    expect(data.truncateTime(oneBeat + 0.2)).toBeCloseTo(oneBeat);
+    expect(data.truncateTime(-0.01)).toBeCloseTo(-oneBeat);
+    expect(data.truncateTime(-0.43)).toBeCloseTo(-2 * oneBeat);
   });
 
   it("gets truncated end time with inserted section", () => {
@@ -431,10 +431,10 @@ describe("Metronome Context", () => {
 
     const oneBeat = 0.42857142857;
 
-    expect(data.truncateEndOfRecording(3.6)).toBeCloseTo(3.5);
-    expect(data.truncateEndOfRecording(4)).toBeCloseTo(4);
-    expect(data.truncateEndOfRecording(4.5)).toBeCloseTo(4 + oneBeat);
-    expect(data.truncateEndOfRecording(5)).toBeCloseTo(4 + 2 * oneBeat);
+    expect(data.truncateTime(3.6)).toBeCloseTo(3.5);
+    expect(data.truncateTime(4)).toBeCloseTo(4);
+    expect(data.truncateTime(4.5)).toBeCloseTo(4 + oneBeat);
+    expect(data.truncateTime(5)).toBeCloseTo(4 + 2 * oneBeat);
   });
 
   it("gets snap to beat time", () => {

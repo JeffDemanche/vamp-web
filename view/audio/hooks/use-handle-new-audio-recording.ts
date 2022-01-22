@@ -4,13 +4,33 @@ import { useVampAudioContext } from "./use-vamp-audio-context";
 import {
   AddClipNewRecordingMutation,
   CabMode,
-  RecordingProgramInput
+  RecordingProgramInput,
+  UpdateCabNewRecordingMutation
 } from "../../state/apollotypes";
 import { useCurrentUserId, useCurrentVampId } from "../../util/react-hooks";
-import { useIsEmpty } from "../../util/workspace-hooks";
 import { MetronomeContext } from "../../component/workspace/context/metronome-context";
 import { PlaybackContext } from "../../component/workspace/context/recording/playback-context";
-import { useLoopPoints } from "../../component/workspace/hooks/use-loop-points";
+import { useIsEmpty } from "../../component/workspace/hooks/use-is-empty";
+
+const UPDATE_CAB_NEW_RECORDING_MUTATION = gql`
+  mutation UpdateCabNewRecordingMutation(
+    $userId: ID!
+    $vampId: ID!
+    $start: Float
+    $duration: Float
+  ) {
+    updateUserInVamp(
+      update: {
+        userId: $userId
+        vampId: $vampId
+        cabStart: $start
+        cabDuration: $duration
+      }
+    ) {
+      id
+    }
+  }
+`;
 
 const ADD_CLIP_NEW_RECORDING_MUTATION = gql`
   mutation AddClipNewRecordingMutation(
@@ -52,24 +72,24 @@ export const useHandleNewAudioRecording = (): {
   ) => Promise<void>;
 } => {
   const context = useVampAudioContext();
-  const { truncateEndOfRecording } = useContext(MetronomeContext);
+
+  const { truncateTime } = useContext(MetronomeContext);
 
   const userId = useCurrentUserId();
   const vampId = useCurrentVampId();
 
-  const empty = useIsEmpty(vampId);
+  const empty = useIsEmpty();
 
   const [addClip] = useMutation<AddClipNewRecordingMutation>(
     ADD_CLIP_NEW_RECORDING_MUTATION
   );
+  const [updateCab] = useMutation<UpdateCabNewRecordingMutation>(
+    UPDATE_CAB_NEW_RECORDING_MUTATION
+  );
 
   const {
-    recording,
-    playPosition,
     countOffData: { duration: countOffDuration }
   } = useContext(PlaybackContext);
-
-  const { loopPoints, mode } = useLoopPoints();
 
   return {
     audioRecordingHandler: async (
@@ -88,24 +108,6 @@ export const useHandleNewAudioRecording = (): {
       const audioDuration = (await context.decodeAudioData(dataArrBuff))
         .duration;
 
-      const truncatedEndOfRecordingTime = truncateEndOfRecording(
-        loopPoints[0] + audioDuration - countOffDuration - latencyCompensation
-      );
-      const emptyDuration =
-        truncatedEndOfRecordingTime === 0
-          ? audioDuration - countOffDuration - latencyCompensation
-          : truncatedEndOfRecordingTime;
-      const cabLoopsDuration = loopPoints[1]
-        ? loopPoints[1] - loopPoints[0]
-        : 0;
-      const noLoopDuration = audioDuration;
-
-      let duration = emptyDuration;
-      if (!empty) {
-        if (mode !== CabMode.INFINITE) duration = cabLoopsDuration;
-        else duration = noLoopDuration;
-      }
-
       const audioStart = -countOffDuration;
 
       const recordingProgram: RecordingProgramInput = {
@@ -116,6 +118,20 @@ export const useHandleNewAudioRecording = (): {
         cabStart,
         cabDuration
       };
+
+      if (empty) {
+        const truncatedDuration = truncateTime(
+          audioDuration - countOffDuration - latencyCompensation
+        );
+        updateCab({
+          variables: {
+            vampId,
+            userId,
+            start: cabStart,
+            duration: truncatedDuration
+          }
+        });
+      }
 
       addClip({
         variables: {
