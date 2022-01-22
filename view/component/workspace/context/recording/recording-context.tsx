@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useVampAudioContext } from "../../../../audio/hooks/use-vamp-audio-context";
 import Recorder from "../../../../audio/recorder";
 import { SchedulerInstance } from "../../../../audio/scheduler";
@@ -14,10 +14,16 @@ import {
 } from "../../../../audio/hooks/use-handle-new-audio-recording";
 import { PlaybackContext } from "./playback-context";
 import { gql, useQuery } from "@apollo/client";
-import { RecordingProviderQuery } from "../../../../state/apollotypes";
+import { CabMode, RecordingProviderQuery } from "../../../../state/apollotypes";
 
 const RECORDING_PROVIDER_QUERY = gql`
   query RecordingProviderQuery($userId: ID!, $vampId: ID!) {
+    vamp(id: $vampId) @client {
+      clips {
+        id
+        recordingId
+      }
+    }
     userInVamp(userId: $userId, vampId: $vampId) @client {
       id
       cab {
@@ -32,16 +38,27 @@ const RECORDING_PROVIDER_QUERY = gql`
   }
 `;
 
-export interface OptimisticRecording {
+export interface ActiveRecording {
   audioStoreKey: string;
+
+  /** The Vamp-time in seconds at which the recording began. */
+  recordingStart: number;
+
+  /** The Vamp-time in seconds where the cab begins for this recording. */
+  cabStart: number;
+
+  /** Only defined if the recording program loops. */
+  cabDuration?: number;
+
+  numberOfLoops?: number;
 }
 
 export interface RecordingContextData {
-  optimisticRecordings: OptimisticRecording[];
+  activeRecording?: ActiveRecording;
 }
 
 export const defaultRecordingContext: RecordingContextData = {
-  optimisticRecordings: []
+  activeRecording: undefined
 };
 
 export const RecordingContext = React.createContext<RecordingContextData>(
@@ -69,13 +86,14 @@ export const RecordingProvider: React.FC = ({
     variables: { vampId, userId }
   });
 
+  const clips = data?.vamp?.clips;
+
   const { recording, countOffData } = useContext(PlaybackContext);
 
   const [scheduler] = useState(SchedulerInstance);
   const [recorder] = useState(() => new Recorder(context, scheduler));
 
-  // Set to an identifier generated when the recorder is primed.
-  const [currentRecordingId, setCurrentRecordingId] = useState<string>(
+  const [activeRecording, setActiveRecording] = useState<ActiveRecording>(
     undefined
   );
 
@@ -87,7 +105,10 @@ export const RecordingProvider: React.FC = ({
     return {
       cabMode: data.userInVamp.cab.mode,
       cabStart: data.userInVamp.cab.start,
-      cabDuration: data.userInVamp.cab.duration,
+      cabDuration:
+        data.userInVamp.cab.mode !== CabMode.INFINITE
+          ? data.userInVamp.cab.duration
+          : undefined,
       latencyCompensation: data.userInVamp.prefs.latencyCompensation,
       recordingStart: data.userInVamp.cab.start - countOffData.duration
     };
@@ -99,14 +120,57 @@ export const RecordingProvider: React.FC = ({
     data.userInVamp.prefs.latencyCompensation
   ]);
 
+  const addActiveRecording = useCallback(
+    (audioStoreKey: string, program: Omit<RecorderProgram, "recordingId">) => {
+      const newActiveRecording: ActiveRecording = {
+        audioStoreKey,
+        recordingStart: program.recordingStart,
+        cabStart: program.cabStart,
+        cabDuration: program.cabDuration
+      };
+      setActiveRecording(newActiveRecording);
+    },
+    [setActiveRecording]
+  );
+
+  const removeActiveRecording = useCallback(() => {
+    setActiveRecording(undefined);
+  }, [setActiveRecording]);
+
+  // Listens to recording state changing and primes/stops the recorder when it
+  // happens. (We don't actually start recording from here, that happens in a
+  // function in Recorder that listens to Scheduler changes).
   useEffect(() => {
     if (prevRecording !== undefined && recording && !prevRecording) {
-      setCurrentRecordingId(recorder.prime(audioRecordingHandler, programArgs));
+      const recordingId = recorder.prime(audioRecordingHandler, programArgs);
+
+      addActiveRecording(recordingId, programArgs);
     }
     if (prevRecording !== undefined && !recording && prevRecording) {
       recorder.stopRecording();
     }
-  }, [audioRecordingHandler, prevRecording, programArgs, recorder, recording]);
+  }, [
+    addActiveRecording,
+    audioRecordingHandler,
+    activeRecording,
+    prevRecording,
+    programArgs,
+    recorder,
+    recording
+  ]);
+
+  // Listens for new clips with referenceId's equal to active recordings and
+  // removes those active recordings.
+  useEffect(() => {
+    if (activeRecording) {
+      clips &&
+        clips.forEach(clip => {
+          if (activeRecording.audioStoreKey === clip.recordingId) {
+            removeActiveRecording();
+          }
+        });
+    }
+  }, [clips, activeRecording, removeActiveRecording]);
 
   useEffect(() => {
     return (): void => {
@@ -115,7 +179,7 @@ export const RecordingProvider: React.FC = ({
   }, []);
 
   return (
-    <RecordingContext.Provider value={{ optimisticRecordings: [] }}>
+    <RecordingContext.Provider value={{ activeRecording }}>
       {children}
     </RecordingContext.Provider>
   );

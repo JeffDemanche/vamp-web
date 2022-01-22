@@ -24,6 +24,7 @@ import { PlaybackContext } from "../component/workspace/context/recording/playba
 import { MetronomeScheduler } from "./metronome-scheduler";
 import { useVampAudioContext } from "./hooks/use-vamp-audio-context";
 import { ContentAudioScheduleAdapter } from "./adapter/content-audio-schedule-adapter";
+import { ActiveRecordingScheduleAdapter } from "./adapter/active-recording-schedule-adapter";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!) {
@@ -159,8 +160,15 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     // from the audio.
     if (clips) {
       for (const clip of clips) {
+        const audioIds = new Set(clip.content.map(content => content.audio.id));
         // This function checks if the clip has already been cached.
-        store.cacheClipAudio(clip, vampId, apolloClient, context);
+        audioIds.forEach(id =>
+          store.downloadAndCacheAudio({
+            audioId: id,
+            apolloClient,
+            audioContext: context
+          })
+        );
       }
       updateStartEnd(clips);
     }
@@ -171,6 +179,9 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       <ContentAudioScheduleAdapter
         scheduler={scheduler}
       ></ContentAudioScheduleAdapter>
+      <ActiveRecordingScheduleAdapter
+        scheduler={scheduler}
+      ></ActiveRecordingScheduleAdapter>
       <PlayStopAdapter scheduler={scheduler}></PlayStopAdapter>
       <CountOffAdapter scheduler={scheduler}></CountOffAdapter>
       <SeekAdapter scheduler={scheduler}></SeekAdapter>

@@ -748,5 +748,31 @@ describe("Scheduler", () => {
       await advanceTimers(mockAudioContextCurrentTime, 0.2, 2);
       expect(jsClockTickListener).toHaveBeenLastCalledWith(0);
     });
+
+    it("fires afterLoop listener shortly after a loop occurs", async () => {
+      const afterLoopListener = jest.fn();
+
+      TestScheduler.listeners.addListener("afterLoop", afterLoopListener);
+
+      TestScheduler.seek(0, 1);
+      await TestScheduler.play();
+
+      await advanceTimers(mockAudioContextCurrentTime, 0.2, 4);
+
+      expect(afterLoopListener).not.toHaveBeenCalled();
+
+      await advanceTimers(mockAudioContextCurrentTime, 0.2, 1);
+
+      expect(afterLoopListener).toHaveBeenCalledTimes(1);
+      expect(afterLoopListener).toHaveBeenCalledWith(0);
+
+      await advanceTimers(mockAudioContextCurrentTime, 0.2, 2);
+
+      expect(afterLoopListener).toHaveBeenCalledTimes(1);
+
+      await advanceTimers(mockAudioContextCurrentTime, 0.2, 3);
+
+      expect(afterLoopListener).toHaveBeenCalledTimes(2);
+    });
   });
 });

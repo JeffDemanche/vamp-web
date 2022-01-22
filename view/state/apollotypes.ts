@@ -152,7 +152,6 @@ export interface AddClipNewRecordingMutationVariables {
   vampId: string;
   file: any;
   recordingProgram: RecordingProgramInput;
-  referenceId?: string | null;
 }
 
 /* tslint:disable */
@@ -483,6 +482,17 @@ export interface PlaybackProviderQueryVariables {
 // GraphQL query operation: RecordingProviderQuery
 // ====================================================
 
+export interface RecordingProviderQuery_vamp_clips {
+  __typename: "Clip";
+  id: string;
+  recordingId: string | null;
+}
+
+export interface RecordingProviderQuery_vamp {
+  __typename: "Vamp";
+  clips: RecordingProviderQuery_vamp_clips[];
+}
+
 export interface RecordingProviderQuery_userInVamp_cab {
   __typename: "Cab";
   mode: CabMode;
@@ -503,6 +513,7 @@ export interface RecordingProviderQuery_userInVamp {
 }
 
 export interface RecordingProviderQuery {
+  vamp: RecordingProviderQuery_vamp | null;
   /**
    * Tries to find a UserInVamp, or adds one if not found.
    */
@@ -1130,6 +1141,7 @@ export interface GetVamp_vamp_clips_content {
 export interface GetVamp_vamp_clips {
   __typename: "Clip";
   id: string;
+  recordingId: string | null;
   start: number;
   duration: number;
   track: GetVamp_vamp_clips_track | null;
@@ -1260,6 +1272,7 @@ export interface VampSubscription_subVamp_vampPayload_clips_content {
 export interface VampSubscription_subVamp_vampPayload_clips {
   __typename: "Clip";
   id: string;
+  recordingId: string | null;
   start: number;
   duration: number;
   track: VampSubscription_subVamp_vampPayload_clips_track | null;
@@ -1333,15 +1346,6 @@ export interface VampSubscription_subVamp_vampPayload {
 export interface VampSubscription_subVamp {
   __typename: "VampSubscriptionOutput";
   vampPayload: VampSubscription_subVamp_vampPayload;
-  addedClipId: string | null;
-  /**
-   * When we add a clip in the client we specify an ID that gets assigned to
-   * the temporary client clip which plays while we wait for the actual clip
-   * to make the round trip to and from the server. This value and addedClipId
-   * tell us which client clip to replace with the real clip once it's
-   * returned.
-   */
-  addedClipRefId: string | null;
 }
 
 export interface VampSubscription {
@@ -1869,6 +1873,7 @@ export enum ClipContentType {
 }
 
 export interface RecordingProgramInput {
+  recordingId?: string | null;
   recordingStart: number;
   recordingDuration: number;
   cabStart: number;

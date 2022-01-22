@@ -1,4 +1,4 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import { useContext } from "react";
 import { useVampAudioContext } from "./use-vamp-audio-context";
 import {
@@ -18,7 +18,6 @@ const ADD_CLIP_NEW_RECORDING_MUTATION = gql`
     $vampId: ID!
     $file: Upload!
     $recordingProgram: RecordingProgramInput!
-    $referenceId: ID
   ) {
     addClip(
       clip: {
@@ -26,7 +25,6 @@ const ADD_CLIP_NEW_RECORDING_MUTATION = gql`
         vampId: $vampId
         file: $file
         recordingProgram: $recordingProgram
-        referenceId: $referenceId
       }
     ) {
       id
@@ -111,6 +109,7 @@ export const useHandleNewAudioRecording = (): {
       const audioStart = -countOffDuration;
 
       const recordingProgram: RecordingProgramInput = {
+        recordingId,
         recordingStart: audioStart - latencyCompensation,
         recordingDuration: audioDuration,
         cabMode,

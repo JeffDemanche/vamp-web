@@ -23,7 +23,7 @@ jest.mock("@apollo/client", () => ({
 jest.mock("../../../../audio/recorder");
 
 const mockAudioContext: AudioContext = new AudioContext();
-const mockPrime = jest.fn();
+const mockPrime = jest.fn(() => "primed_recording_id");
 const mockStopRecording = jest.fn();
 const mockUnprime = jest.fn();
 
@@ -51,10 +51,14 @@ describe("Recording Context", () => {
       SchedulerInstance: TestScheduler
     }));
 
+    (useQuery as jest.Mock).mockClear();
     (useQuery as jest.Mock).mockImplementation(() => ({
       data: {
+        vamp: {
+          clips: [{ id: "clip_1_id", referenceId: "clip_1_reference_id" }]
+        },
         userInVamp: {
-          id: "61ccdddbfe806e4693315dee",
+          id: "user_in_vamp_id",
           cab: {
             mode: CabMode.INFINITE,
             start: 0,
@@ -73,8 +77,6 @@ describe("Recording Context", () => {
   });
 
   it("primes recording process when PlaybackContext recording begins", () => {
-    let data: RecordingContextData;
-
     const playbackState1 = { ...defaultPlaybackContext };
     const playbackState2 = { ...defaultPlaybackContext, recording: true };
 
@@ -82,8 +84,7 @@ describe("Recording Context", () => {
       <PlaybackContext.Provider value={playbackState1}>
         <RecordingProvider>
           <RecordingContext.Consumer>
-            {(value): React.ReactNode => {
-              data = value;
+            {(): React.ReactNode => {
               return null;
             }}
           </RecordingContext.Consumer>
@@ -115,5 +116,113 @@ describe("Recording Context", () => {
     component.setProps({ value: playbackState2 });
 
     expect(mockStopRecording).toHaveBeenCalledTimes(1);
+  });
+
+  it("sets ActiveRecording when recording begins", () => {
+    (useQuery as jest.Mock).mockClear();
+    (useQuery as jest.Mock).mockImplementation(() => ({
+      data: {
+        // @ts-ignore
+        vamp: { clips: [] },
+        userInVamp: {
+          id: "user_in_vamp_id",
+          cab: {
+            mode: CabMode.INFINITE,
+            start: 0,
+            duration: 2
+          },
+          prefs: {
+            latencyCompensation: 0.13
+          }
+        }
+      }
+    }));
+
+    let data: RecordingContextData;
+
+    const playbackState1 = { ...defaultPlaybackContext, recording: false };
+    const playbackState2 = { ...defaultPlaybackContext, recording: true };
+
+    const component = mount(
+      <PlaybackContext.Provider value={playbackState1}>
+        <RecordingProvider>
+          <RecordingContext.Consumer>
+            {(value): React.ReactNode => {
+              data = value;
+              return null;
+            }}
+          </RecordingContext.Consumer>
+        </RecordingProvider>
+      </PlaybackContext.Provider>
+    );
+
+    expect(data.activeRecording).toBeUndefined();
+
+    component.setProps({ value: playbackState2 });
+    expect(data.activeRecording.audioStoreKey).toEqual("primed_recording_id");
+    expect(data.activeRecording.recordingStart).toEqual(0);
+    expect(data.activeRecording.cabStart).toEqual(0);
+    expect(data.activeRecording.cabDuration).toBeUndefined();
+  });
+
+  it("unsets ActiveRecording when a clip with it's referenceId is returned", () => {
+    const mock = {
+      data: {
+        // @ts-ignore
+        vamp: { clips: [] },
+        userInVamp: {
+          id: "user_in_vamp_id",
+          cab: {
+            mode: CabMode.INFINITE,
+            start: 0,
+            duration: 2
+          },
+          prefs: {
+            latencyCompensation: 0.13
+          }
+        }
+      }
+    };
+    (useQuery as jest.Mock).mockClear();
+    (useQuery as jest.Mock).mockImplementationOnce(() => mock);
+    (useQuery as jest.Mock).mockImplementationOnce(() => mock);
+    (useQuery as jest.Mock).mockImplementationOnce(() => mock);
+    (useQuery as jest.Mock).mockImplementationOnce(() => ({
+      data: {
+        ...mock.data,
+        vamp: {
+          clips: [{ id: "clip_1_id", recordingId: "primed_recording_id" }]
+        }
+      }
+    }));
+
+    let data: RecordingContextData;
+
+    const playbackState1 = { ...defaultPlaybackContext, recording: false };
+    const playbackState2 = { ...defaultPlaybackContext, recording: true };
+    const playbackState3 = { ...defaultPlaybackContext, recording: false };
+
+    const component = mount(
+      <PlaybackContext.Provider value={playbackState1}>
+        <RecordingProvider>
+          <RecordingContext.Consumer>
+            {(value): React.ReactNode => {
+              data = value;
+              return null;
+            }}
+          </RecordingContext.Consumer>
+        </RecordingProvider>
+      </PlaybackContext.Provider>
+    );
+
+    expect(data.activeRecording).toBeUndefined();
+
+    component.setProps({ value: playbackState2 });
+
+    expect(data.activeRecording).not.toBeUndefined();
+
+    component.setProps({ value: playbackState3 });
+
+    expect(data.activeRecording).toBeUndefined();
   });
 });

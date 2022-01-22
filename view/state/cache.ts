@@ -31,7 +31,6 @@ export const typePolicies: TypePolicies = {
   },
   Clip: {
     fields: {
-      referenceId: (referenceId = null): string => referenceId,
       draggingInfo: (
         draggingInfo = {
           dragging: false,

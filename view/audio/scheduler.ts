@@ -4,23 +4,40 @@ import { CountOff } from "../component/workspace/context/recording/playback-cont
 class SchedulerEvent {
   readonly id: string;
 
+  /** Non-AudioContext time that this event should start playing at. */
   public start: number;
 
+  /**
+   * If specified, the event will stop playing this many seconds after start.
+   */
   public duration?: number;
 
+  /**
+   * Start the event at this many seconds into it. For instance, this event
+   * might be an AudioBufferSource node where we don't want the node to start at
+   * the beginning of the audio.
+   */
   public offset?: number;
 
   public type: "Audio";
 
   /**
-   * Called by scheduler when this event starts playing. All events that use Web
-   * Audio API nodes should return the node, or else they won't stop playing.
+   * **The main function of scheduler is to take the zero-based fields on an
+   * event (start, duration, offset) and transform them into the AudioContext
+   * time coordinates that are returned to the event as the args to this
+   * `dispatch` function.**
+   *
+   * This is called by `Scheduler` with information about when to dispatch a Web
+   * Audio API node. Note that it is not necessarily called at the moment when
+   * events start playing. All events that use Web Audio API nodes should return
+   * the node, as this is how the scheduler stops all audio when it is stopped
+   * or paused.
    *
    * @param context An AudioContext, in case it's not present in the dispatching
    * module.
    * @param startTime The value of context.currentTime to base this dispatch off
-   * of. For instance, if this is `2` and `when` is `0.5`, the event should
-   * be fired at AC-time `2.5`.
+   * of. For instance, if this is `2` and `when` is `0.5`, the event should be
+   * fired at AC-time `2.5`.
    * @param when Number of seconds between `startTime` and when the event should
    * start playing.
    * @param offset Number of seconds into the event to begin playback at.
@@ -145,7 +162,7 @@ type SchedulerListenerType =
   | "pause"
   | "stop"
   | "jsClockTick"
-  | "loop";
+  | "afterLoop";
 
 class SchedulerListeners {
   private _listeners: {
@@ -486,7 +503,7 @@ export class Scheduler {
               nextLoopDispatched = false;
               isThisTheFirstLoop = false;
 
-              this._listeners.fire("loop", this.timecode);
+              this._listeners.fire("afterLoop", this.timecode);
             }
           }
 

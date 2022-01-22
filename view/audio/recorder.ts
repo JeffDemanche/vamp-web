@@ -57,7 +57,7 @@ class Recorder {
       "recorder_seek"
     );
     this._scheduler.listeners.addListener(
-      "loop",
+      "afterLoop",
       this.onSchedulerLoop,
       "recorder_loop"
     );
@@ -166,7 +166,7 @@ class Recorder {
    */
   private handleData = (e: BlobEvent): void => {
     if (e.data.size > 0) {
-      audioStore.appendBlob(this._currentAudioStoreKey, e.data);
+      audioStore.appendBlob(this._context, this._currentAudioStoreKey, e.data);
     }
   };
 

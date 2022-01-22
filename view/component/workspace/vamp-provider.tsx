@@ -24,6 +24,7 @@ const VAMP_QUERY = gql`
       }
       clips {
         id
+        recordingId
         start
         duration
         track {
@@ -96,6 +97,7 @@ const VAMP_SUBSCRIPTION = gql`
         }
         clips {
           id
+          recordingId
           start
           duration
           track {
@@ -151,8 +153,6 @@ const VAMP_SUBSCRIPTION = gql`
           audioStoreKey
         }
       }
-      addedClipId
-      addedClipRefId
     }
   }
 `;
@@ -201,10 +201,6 @@ const VampProvider: React.FunctionComponent<VampProviderProps> = ({
         if (!subscriptionData.data) return prev;
 
         const subVamp = subscriptionData.data.subVamp;
-
-        if (subVamp.addedClipId && subVamp.addedClipRefId) {
-          handOffClientClip(subVamp.addedClipRefId, subVamp.addedClipId);
-        }
 
         const newVamp = subVamp.vampPayload;
 
