@@ -1,15 +1,15 @@
 import * as React from "react";
-import { CountOffAdapter } from "../adapter/count-off-adapter";
+import { CountOffAdapter } from "../count-off-adapter";
 import { mount } from "enzyme";
-import { SchedulerInstance } from "../scheduler";
-import { MetronomeContext } from "../../component/workspace/context/metronome-context";
+import { SchedulerInstance } from "../../scheduler";
+import { MetronomeContext } from "../../../component/workspace/context/metronome-context";
 import {
   defaultPlaybackContext,
   PlaybackContext
-} from "../../component/workspace/context/recording/playback-context";
+} from "../../../component/workspace/context/recording/playback-context";
 
-jest.mock("../../util/react-hooks");
-jest.mock("../scheduler");
+jest.mock("../../../util/react-hooks");
+jest.mock("../../scheduler");
 
 const useMeasuresReturnFour = {
   measureMap: {

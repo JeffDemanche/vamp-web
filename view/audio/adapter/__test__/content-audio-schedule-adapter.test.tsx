@@ -3,12 +3,12 @@ import * as React from "react";
 import {
   calculateEventScheduling,
   ContentAudioScheduleAdapter
-} from "../adapter/content-audio-schedule-adapter";
-import { SchedulerInstance } from "../scheduler";
+} from "../content-audio-schedule-adapter";
+import { SchedulerInstance } from "../../scheduler";
 import { useQuery } from "@apollo/client";
 
 jest.mock("@apollo/client");
-jest.mock("../../util/react-hooks.ts");
+jest.mock("../../../util/react-hooks.ts");
 
 const constructContent = (
   id: string,

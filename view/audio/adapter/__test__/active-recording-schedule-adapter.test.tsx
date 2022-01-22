@@ -1,9 +1,9 @@
 import { mount } from "enzyme";
 import * as React from "react";
-import { RecordingContext } from "../../component/workspace/context/recording/recording-context";
-import { ActiveRecordingScheduleAdapter } from "../adapter/active-recording-schedule-adapter";
-import { Scheduler, SchedulerInstance } from "../scheduler";
-import { advanceTimers } from "./scheduler-test-utils";
+import { RecordingContext } from "../../../component/workspace/context/recording/recording-context";
+import { ActiveRecordingScheduleAdapter } from "../active-recording-schedule-adapter";
+import { Scheduler, SchedulerInstance } from "../../scheduler";
+import { advanceTimers } from "../../__test__/scheduler-test-utils";
 import {
   AudioContext,
   registrar,
@@ -12,10 +12,10 @@ import {
 import { DeLorean } from "vehicles";
 import { act } from "react-dom/test-utils";
 
-jest.mock("../hooks/use-handle-new-audio-recording", () => ({
+jest.mock("../../hooks/use-handle-new-audio-recording", () => ({
   useHandleNewAudioRecording: jest.fn()
 }));
-jest.mock("../audio-store", () => ({
+jest.mock("../../audio-store", () => ({
   audioStore: {
     getStoredAudio: () => ({
       data: {

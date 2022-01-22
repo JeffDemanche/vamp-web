@@ -1,13 +1,13 @@
 import { mount } from "enzyme";
 import * as React from "react";
-import { SchedulerInstance } from "../scheduler";
-import { useLoopPoints } from "../../component/workspace/hooks/use-loop-points";
-import { CabMode } from "../../state/apollotypes";
-import { SeekAdapter } from "../adapter/seek-adapter";
+import { SchedulerInstance } from "../../scheduler";
+import { useLoopPoints } from "../../../component/workspace/hooks/use-loop-points";
+import { CabMode } from "../../../state/apollotypes";
+import { SeekAdapter } from "../seek-adapter";
 import { useQuery } from "@apollo/client";
 
-jest.mock("../../util/react-hooks");
-jest.mock("../../component/workspace/hooks/use-loop-points");
+jest.mock("../../../util/react-hooks");
+jest.mock("../../../component/workspace/hooks/use-loop-points");
 jest.mock("@apollo/client", () => ({
   ...(jest.requireActual("@apollo/client") as object),
   useQuery: jest.fn()
