@@ -229,15 +229,14 @@ export const ContentAudioScheduleAdapter: React.FC<{
     added.forEach(addedEvent => {
       const { start, duration, offset } = calculateEventScheduling(addedEvent);
       if (duration > 0) {
-        scheduler.addEvent(
-          createContentEvent({
-            id: addedEvent.contentId,
-            start,
-            duration,
-            contentOffset: offset,
-            storeKey: addedEvent.audioId
-          })
-        );
+        const event = createContentEvent({
+          id: addedEvent.contentId,
+          start,
+          duration,
+          contentOffset: offset,
+          storeKey: addedEvent.audioId
+        });
+        scheduler.addEvent(event);
       }
     });
     changed.forEach(changedEvent => {

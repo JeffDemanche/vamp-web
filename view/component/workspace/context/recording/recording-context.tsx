@@ -44,6 +44,8 @@ export interface ActiveRecording {
   /** The Vamp-time in seconds at which the recording began. */
   recordingStart: number;
 
+  latencyCompensation: number;
+
   /** The Vamp-time in seconds where the cab begins for this recording. */
   cabStart: number;
 
@@ -129,6 +131,7 @@ export const RecordingProvider: React.FC = ({
       const newActiveRecording: ActiveRecording = {
         audioStoreKey,
         recordingStart: program.recordingStart,
+        latencyCompensation: program.latencyCompensation,
         cabStart: program.cabStart,
         cabDuration: program.cabDuration
       };

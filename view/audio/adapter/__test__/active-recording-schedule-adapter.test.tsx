@@ -56,6 +56,7 @@ describe("ActiveRecordingScheduleAdapter", () => {
         value={{
           activeRecording: {
             audioStoreKey: "audio_store_key",
+            latencyCompensation: 0.16,
             cabStart: 0,
             recordingStart: -2
           }
@@ -95,6 +96,7 @@ describe("ActiveRecordingScheduleAdapter", () => {
       value: {
         activeRecording: {
           audioStoreKey: "audio_store_key",
+          latencyCompensation: 0.16,
           cabStart: 0,
           recordingStart: -2
         }
@@ -109,7 +111,9 @@ describe("ActiveRecordingScheduleAdapter", () => {
     expect(
       TestScheduler.events["active_audio_store_key_0"].duration
     ).toBeUndefined();
-    expect(TestScheduler.events["active_audio_store_key_0"].offset).toEqual(2);
+    expect(TestScheduler.events["active_audio_store_key_0"].offset).toEqual(
+      2.16
+    );
   });
 
   it("schedules active events after each loop for looping program", async () => {
@@ -121,6 +125,7 @@ describe("ActiveRecordingScheduleAdapter", () => {
         value={{
           activeRecording: {
             audioStoreKey: "audio_store_key",
+            latencyCompensation: 0.16,
             cabStart: 2,
             cabDuration: 4,
             recordingStart: 0
@@ -148,7 +153,9 @@ describe("ActiveRecordingScheduleAdapter", () => {
     expect(TestScheduler.events["active_audio_store_key_0"].duration).toEqual(
       4
     );
-    expect(TestScheduler.events["active_audio_store_key_0"].offset).toEqual(2);
+    expect(TestScheduler.events["active_audio_store_key_0"].offset).toEqual(
+      2.16
+    );
 
     await act(async () => {
       await advanceTimers(mockAudioContextCurrentTime, 0.2, 20);
@@ -159,6 +166,77 @@ describe("ActiveRecordingScheduleAdapter", () => {
     expect(TestScheduler.events["active_audio_store_key_1"].duration).toEqual(
       4
     );
-    expect(TestScheduler.events["active_audio_store_key_1"].offset).toEqual(6);
+    expect(TestScheduler.events["active_audio_store_key_1"].offset).toEqual(
+      6.16
+    );
+  });
+
+  it("recording multiple times creates multiple correct active recording events", async () => {
+    TestScheduler.seek(0, 4);
+    await TestScheduler.play();
+
+    const component = mount(
+      <RecordingContext.Provider
+        value={{
+          activeRecording: {
+            audioStoreKey: "audio_store_key",
+            latencyCompensation: 0.16,
+            cabStart: 2,
+            cabDuration: 4,
+            recordingStart: 0
+          }
+        }}
+      >
+        <ActiveRecordingScheduleAdapter
+          scheduler={TestScheduler}
+        ></ActiveRecordingScheduleAdapter>
+      </RecordingContext.Provider>
+    );
+
+    await act(async () => {
+      await advanceTimers(mockAudioContextCurrentTime, 0.2, 20);
+    });
+
+    expect(Object.keys(TestScheduler.events).length).toEqual(1);
+    expect(TestScheduler.events["active_audio_store_key_0"].start).toEqual(2);
+    expect(TestScheduler.events["active_audio_store_key_0"].offset).toEqual(
+      2.16
+    );
+    expect(TestScheduler.events["active_audio_store_key_0"].duration).toEqual(
+      4
+    );
+
+    component.setProps({
+      value: {
+        activeRecording: undefined
+      }
+    });
+
+    expect(Object.keys(TestScheduler.events).length).toEqual(0);
+
+    component.setProps({
+      value: {
+        activeRecording: {
+          audioStoreKey: "audio_store_key",
+          latencyCompensation: 0.16,
+          cabStart: 2,
+          cabDuration: 4,
+          recordingStart: 0
+        }
+      }
+    });
+
+    await act(async () => {
+      await advanceTimers(mockAudioContextCurrentTime, 0.2, 20);
+    });
+
+    expect(Object.keys(TestScheduler.events).length).toEqual(1);
+    expect(TestScheduler.events["active_audio_store_key_0"].start).toEqual(2);
+    expect(TestScheduler.events["active_audio_store_key_0"].offset).toEqual(
+      2.16
+    );
+    expect(TestScheduler.events["active_audio_store_key_0"].duration).toEqual(
+      4
+    );
   });
 });

@@ -15,7 +15,10 @@ const createActiveRecordingEvent = (
   const start = Math.max(recording.recordingStart, recording.cabStart);
   const offsetFromLoopNumber = loopNumber * (recording.cabDuration ?? 0);
   const offset =
-    recording.cabStart - recording.recordingStart + offsetFromLoopNumber;
+    recording.cabStart -
+    recording.recordingStart +
+    recording.latencyCompensation +
+    offsetFromLoopNumber;
 
   return {
     id: `active_${recording.audioStoreKey}_${loopNumber}`,
@@ -98,7 +101,7 @@ export const ActiveRecordingScheduleAdapter: React.FC<{
       scheduledEventIds.forEach(eventId => {
         scheduler.removeEvent(eventId);
       });
-      setLoopNumber(1);
+      setLoopNumber(0);
     }
   }, [activeRecording, prevActiveRecording, scheduledEventIds, scheduler]);
 
