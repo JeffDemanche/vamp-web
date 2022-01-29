@@ -22,11 +22,7 @@ export const typePolicies: TypePolicies = {
         read: (tracks = []) => tracks,
         merge: (existing, incoming) => incoming
       },
-      floorOpen: (floorOpen = false): boolean => floorOpen,
-      clientClips: {
-        read: (clientClips = []) => clientClips,
-        merge: (existing, incoming) => incoming
-      }
+      floorOpen: (floorOpen = false): boolean => floorOpen
     }
   },
   Clip: {
@@ -38,16 +34,6 @@ export const typePolicies: TypePolicies = {
           position: null as number
         }
       ): { dragging: boolean; track: string; position: number } => draggingInfo
-    }
-  },
-  ClientClip: {
-    keyFields: ["audioStoreKey"],
-    fields: {
-      start: (start = 0): number => start,
-      audioStoreKey: (audioStoreKey = ""): string => audioStoreKey,
-      realClipId: (realClipId = ""): string => realClipId,
-      inProgress: (inProgress = false): boolean => inProgress,
-      duration: (duration = 0): number => duration
     }
   },
   Audio: {

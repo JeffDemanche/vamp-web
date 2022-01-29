@@ -41,19 +41,3 @@ export const GET_CLIPS_CLIENT = gql`
     }
   }
 `;
-
-export const GET_CLIENT_CLIPS_CLIENT = gql`
-  query GetClientClipsClient($vampId: ID!) {
-    # loadedVampId @client @export(as: "vampId")
-    vamp(id: $vampId) @client {
-      clientClips {
-        start
-        audioStoreKey
-        realClipId
-        duration
-        inProgress
-        latencyCompensation
-      }
-    }
-  }
-`;

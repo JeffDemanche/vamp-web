@@ -215,16 +215,6 @@ export interface WorkspaceAudioClient_vamp_clips {
   content: WorkspaceAudioClient_vamp_clips_content[];
 }
 
-export interface WorkspaceAudioClient_vamp_clientClips {
-  __typename: "ClientClip";
-  start: number;
-  audioStoreKey: string;
-  realClipId: string | null;
-  inProgress: boolean;
-  duration: number;
-  latencyCompensation: number | null;
-}
-
 export interface WorkspaceAudioClient_vamp {
   __typename: "Vamp";
   id: string;
@@ -232,7 +222,6 @@ export interface WorkspaceAudioClient_vamp {
   beatsPerBar: number;
   metronomeSound: string;
   clips: WorkspaceAudioClient_vamp_clips[];
-  clientClips: (WorkspaceAudioClient_vamp_clientClips | null)[] | null;
 }
 
 export interface WorkspaceAudioClient {
@@ -1182,11 +1171,6 @@ export interface GetVamp_vamp_forms {
   postSection: GetVamp_vamp_forms_postSection | null;
 }
 
-export interface GetVamp_vamp_clientClips {
-  __typename: "ClientClip";
-  audioStoreKey: string;
-}
-
 export interface GetVamp_vamp {
   __typename: "Vamp";
   id: string;
@@ -1202,7 +1186,6 @@ export interface GetVamp_vamp {
    * Is the floor open in the workspace or not.
    */
   floorOpen: boolean | null;
-  clientClips: (GetVamp_vamp_clientClips | null)[] | null;
 }
 
 export interface GetVamp {
@@ -1313,11 +1296,6 @@ export interface VampSubscription_subVamp_vampPayload_forms {
   postSection: VampSubscription_subVamp_vampPayload_forms_postSection | null;
 }
 
-export interface VampSubscription_subVamp_vampPayload_clientClips {
-  __typename: "ClientClip";
-  audioStoreKey: string;
-}
-
 export interface VampSubscription_subVamp_vampPayload {
   __typename: "Vamp";
   id: string;
@@ -1333,7 +1311,6 @@ export interface VampSubscription_subVamp_vampPayload {
    * Is the floor open in the workspace or not.
    */
   floorOpen: boolean | null;
-  clientClips: (VampSubscription_subVamp_vampPayload_clientClips | null)[] | null;
 }
 
 export interface VampSubscription_subVamp {
@@ -1509,38 +1486,6 @@ export interface GetClipsClient {
 }
 
 export interface GetClipsClientVariables {
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL query operation: GetClientClipsClient
-// ====================================================
-
-export interface GetClientClipsClient_vamp_clientClips {
-  __typename: "ClientClip";
-  start: number;
-  audioStoreKey: string;
-  realClipId: string | null;
-  duration: number;
-  inProgress: boolean;
-  latencyCompensation: number | null;
-}
-
-export interface GetClientClipsClient_vamp {
-  __typename: "Vamp";
-  clientClips: (GetClientClipsClient_vamp_clientClips | null)[] | null;
-}
-
-export interface GetClientClipsClient {
-  vamp: GetClientClipsClient_vamp | null;
-}
-
-export interface GetClientClipsClientVariables {
   vampId: string;
 }
 
@@ -1729,17 +1674,10 @@ export interface ViewBoundsDataClient_vamp_clips {
   audio: ViewBoundsDataClient_vamp_clips_audio;
 }
 
-export interface ViewBoundsDataClient_vamp_clientClips {
-  __typename: "ClientClip";
-  start: number;
-  duration: number;
-}
-
 export interface ViewBoundsDataClient_vamp {
   __typename: "Vamp";
   id: string;
   clips: ViewBoundsDataClient_vamp_clips[];
-  clientClips: (ViewBoundsDataClient_vamp_clientClips | null)[] | null;
 }
 
 export interface ViewBoundsDataClient_userInVamp_cab {
@@ -1789,55 +1727,6 @@ export interface UseSnapToBeatClient {
 
 export interface UseSnapToBeatClientVariables {
   vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL fragment: NewClientClip
-// ====================================================
-
-export interface NewClientClip {
-  __typename: "ClientClip";
-  audioStoreKey: string;
-  realClipId: string | null;
-  start: number;
-  duration: number;
-  inProgress: boolean;
-  latencyCompensation: number | null;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL fragment: ClientClipInProgress
-// ====================================================
-
-export interface ClientClipInProgress {
-  __typename: "ClientClip";
-  audioStoreKey: string;
-  inProgress: boolean;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL fragment: ClientClipRealClipId
-// ====================================================
-
-export interface ClientClipRealClipId {
-  __typename: "ClientClip";
-  audioStoreKey: string;
-  realClipId: string | null;
 }
 
 /* tslint:disable */

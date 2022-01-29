@@ -1,7 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import {
   ViewBoundsDataClient,
-  GetClientClipsClient,
   GetClipsClient,
   UseSnapToBeatClient
 } from "../state/apollotypes";
@@ -11,10 +10,7 @@ import {
   TemporalZoomContext,
   HorizontalPosContext
 } from "../component/workspace/workspace-content";
-import {
-  GET_CLIENT_CLIPS_CLIENT,
-  GET_CLIPS_CLIENT
-} from "../state/queries/clips-queries";
+import { GET_CLIPS_CLIENT } from "../state/queries/clips-queries";
 import { isNaN } from "underscore";
 
 /**
@@ -103,7 +99,7 @@ export const useWindowDimensions = (): { width: number; height: number } => {
 /**
  * Updates with the start and end view bounds. Those are the beginning and
  * ending time positions for all elements of a Vamp that would need to be in
- * view (Clips, Cab, ClientClips, potentially more).
+ * view (Clips, Cab, potentially more).
  */
 export const useViewBounds = (): { start: number; end: number } => {
   const vampId = useCurrentVampId();
@@ -116,25 +112,21 @@ export const useViewBounds = (): { start: number; end: number } => {
     gql`
       query ViewBoundsDataClient($vampId: ID!, $userId: ID!) {
         vamp(id: $vampId) @client {
-          id @client
-          clips @client {
-            id @client
-            start @client
-            audio @client {
-              id @client
-              duration @client
+          id
+          clips {
+            id
+            start
+            audio {
+              id
+              duration
             }
-          }
-          clientClips @client {
-            start @client
-            duration @client
           }
         }
         userInVamp(vampId: $vampId, userId: $userId) @client {
-          id @client
-          cab @client {
-            start @client
-            duration @client
+          id
+          cab {
+            start
+            duration
           }
         }
       }
@@ -153,7 +145,7 @@ export const useViewBounds = (): { start: number; end: number } => {
     let end = Number.NEGATIVE_INFINITY;
 
     const {
-      vamp: { clips, clientClips },
+      vamp: { clips },
       userInVamp: { cab }
     } = data;
 
@@ -161,11 +153,6 @@ export const useViewBounds = (): { start: number; end: number } => {
       if (clip.start < start) start = clip.start;
       const clipEnd = clip.audio.duration + clip.start;
       if (clipEnd > end) end = clipEnd;
-    });
-    clientClips.forEach(clientClip => {
-      if (clientClip.start < start) start = clientClip.start;
-      const ccEnd = clientClip.duration + clientClip.start;
-      if (ccEnd > end) end = ccEnd;
     });
 
     if (cab.start < start) start = cab.start;

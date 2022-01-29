@@ -25,6 +25,7 @@ import { MetronomeScheduler } from "./metronome-scheduler";
 import { useVampAudioContext } from "./hooks/use-vamp-audio-context";
 import { ContentAudioScheduleAdapter } from "./adapter/content-audio-schedule-adapter";
 import { ActiveRecordingScheduleAdapter } from "./adapter/active-recording-schedule-adapter";
+import { useIsEmpty } from "../util/workspace-hooks";
 
 const WORKSPACE_AUDIO_CLIENT = gql`
   query WorkspaceAudioClient($vampId: ID!) {
@@ -54,15 +55,6 @@ const WORKSPACE_AUDIO_CLIENT = gql`
           }
         }
       }
-
-      clientClips {
-        start
-        audioStoreKey
-        realClipId
-        inProgress
-        duration
-        latencyCompensation
-      }
     }
   }
 `;
@@ -81,7 +73,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
   // State query for clientside Vamp playback info.
   const {
     data: {
-      vamp: { clips, clientClips }
+      vamp: { clips }
     }
   } = useQuery<WorkspaceAudioClient>(WORKSPACE_AUDIO_CLIENT, {
     variables: { vampId, userId }
@@ -145,15 +137,14 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
     metronomeScheduler.updateGetMeasureMap(getMeasureMap);
   }, [metronomeScheduler, getMeasureMap]);
 
+  const empty = useIsEmpty(vampId);
+
   /**
    * CLIPS DATA
    *
    * Handles changes to clips (and client clips).
    */
   useEffect(() => {
-    const empty =
-      (clips === undefined || clips.length == 0) &&
-      (clientClips === undefined || clientClips.length == 0);
     setLoop(!empty);
 
     // Process clips' audio and do stuff that requires access to the metadata
@@ -172,7 +163,7 @@ const WorkspaceAudio = ({ vampId }: WorkspaceAudioProps): JSX.Element => {
       }
       updateStartEnd(clips);
     }
-  }, [clips, clientClips]);
+  }, [clips, empty]);
 
   return (
     <>

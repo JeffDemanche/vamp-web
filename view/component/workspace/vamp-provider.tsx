@@ -5,7 +5,6 @@ import { GetVamp, VampSubscription } from "../../state/apollotypes";
 import { ViewNotFound } from "../not-found/view-not-found";
 import { ViewLoading } from "../loading/view-loading";
 import { loadedVampIdVar } from "../../state/cache";
-import { useHandOffClientClip } from "../../util/client-clip-state-hooks";
 
 /**
  * This encompasses all the data that should be in the cache *when the page
@@ -76,9 +75,6 @@ const VAMP_QUERY = gql`
         }
       }
       floorOpen @client
-      clientClips @client {
-        audioStoreKey
-      }
     }
   }
 `;
@@ -149,9 +145,6 @@ const VAMP_SUBSCRIPTION = gql`
           }
         }
         floorOpen @client
-        clientClips @client {
-          audioStoreKey
-        }
       }
     }
   }
@@ -173,8 +166,6 @@ const VampProvider: React.FunctionComponent<VampProviderProps> = ({
 }: VampProviderProps) => {
   const client = useApolloClient();
   loadedVampIdVar(vampId);
-
-  const handOffClientClip = useHandOffClientClip();
 
   const {
     subscribeToMore: vampSubscribeToMore,

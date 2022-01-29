@@ -41,23 +41,10 @@ export const typeDefs = gql`
     Is the floor open in the workspace or not.
     """
     floorOpen: Boolean
-    clientClips: [ClientClip]
   }
 
   extend type Clip {
     referenceId: ID
-  }
-
-  """
-  Client-side types
-  """
-  type ClientClip {
-    start: Float!
-    audioStoreKey: String!
-    realClipId: ID
-    duration: Float!
-    inProgress: Boolean!
-    latencyCompensation: Float
   }
 `;
 
