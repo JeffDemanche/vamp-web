@@ -614,6 +614,32 @@ describe("Scheduler", () => {
         ].length
       ).toEqual(3);
     });
+
+    it("adding an event which is already over during first loop should cause it to be scheduled for next loop", async () => {
+      TestScheduler.seek(0, 4);
+      await TestScheduler.play();
+
+      // Advance to 3s
+      await advanceTimers(mockAudioContextCurrentTime, 1, 3);
+
+      TestScheduler.addEvent({
+        ...mockClipEvent1,
+        start: 1,
+        duration: 1.5,
+        offset: 0
+      });
+
+      // Flush playEvent promise.
+      await advanceTimers(mockAudioContextCurrentTime, 0, 0);
+
+      expect(mockClipEvent1Dispatch).toHaveBeenCalledWith({
+        context: mockAudioContext,
+        startTime: 4,
+        when: 1,
+        offset: 0,
+        duration: 1.5
+      });
+    });
   });
 
   describe("listeners", () => {

@@ -104,7 +104,7 @@ const CabMain: React.FC = () => {
 
   const [adjusting, setAdjusting] = useState(false);
 
-  const { countOff, seek } = useContext(PlaybackContext);
+  const { playing, record, countOff, seek } = useContext(PlaybackContext);
 
   const [deltaLeft, setDeltaLeft] = useState(0);
   const [deltaWidth, setDeltaWidth] = useState(0);
@@ -189,7 +189,11 @@ const CabMain: React.FC = () => {
         className={styles["cab-main-draggable"]}
         snapFn={snapFn}
         onClick={(): void => {
-          countOff(true);
+          if (!playing) {
+            countOff(true);
+          } else {
+            record();
+          }
         }}
         onDragBegin={(): void => {
           setAdjusting(true);

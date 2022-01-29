@@ -8,22 +8,54 @@ import { usePrevious } from "../../util/react-hooks";
 import { audioStore } from "../audio-store";
 import { Scheduler, SchedulerEvent } from "../scheduler";
 
-const createActiveRecordingEvent = (
+export const createActiveRecordingEvent = (
   recording: ActiveRecording,
   loopNumber: number
 ): SchedulerEvent => {
-  const start = Math.max(recording.recordingStart, recording.cabStart);
-  const offsetFromLoopNumber = loopNumber * (recording.cabDuration ?? 0);
-  const offset =
-    recording.cabStart -
-    recording.recordingStart +
-    recording.latencyCompensation +
-    offsetFromLoopNumber;
+  if (loopNumber > 0 && recording.cabDuration === undefined) {
+    throw new Error(
+      "Can't create active recording with non-zero loop number and no cab duration."
+    );
+  }
+
+  const recordingStartWithLatency =
+    recording.recordingStart - recording.latencyCompensation;
+
+  // Infinity condition
+  let start = Math.max(recording.cabStart, recordingStartWithLatency);
+  let duration = recording.cabDuration;
+  let offset = Math.abs(
+    Math.min(recordingStartWithLatency - recording.cabStart, 0)
+  );
+
+  // Looping case
+  if (recording.cabDuration !== undefined) {
+    const recordingStartRelative =
+      recordingStartWithLatency - recording.cabStart;
+    const firstLoopStartRelative = Math.max(recordingStartRelative, 0);
+    const firstLoopDuration = recording.cabDuration - firstLoopStartRelative;
+    const firstLoopOffset = Math.abs(Math.min(recordingStartRelative, 0));
+
+    if (loopNumber === 0) {
+      start = recording.cabStart + firstLoopStartRelative;
+      duration = firstLoopDuration;
+      offset = firstLoopOffset;
+    } else {
+      const offsetFromLoopNumber =
+        (loopNumber - 1) * (recording.cabDuration ?? 0);
+      const loopOffset =
+        firstLoopOffset + firstLoopDuration + offsetFromLoopNumber;
+
+      start = recording.cabStart;
+      duration = recording.cabDuration;
+      offset = loopOffset;
+    }
+  }
 
   return {
     id: `active_${recording.audioStoreKey}_${loopNumber}`,
     start,
-    duration: recording.cabDuration,
+    duration,
     type: "Audio",
     offset,
     dispatch: async ({

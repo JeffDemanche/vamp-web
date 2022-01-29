@@ -366,7 +366,7 @@ export class Scheduler {
     // the *duration* of the dispatched event based on if the playback starts
     // after the event ended (*0*), before the event begins (*event.duration*),
     // or somewhere during the event (*the remaining event duration*).
-    const durationAfterPlayhead = event.duration
+    const eventDurationAfterPlayhead = event.duration
       ? Math.min(
           Math.max(event.duration - (playheadVampTime - event.start), 0),
           event.duration
@@ -374,36 +374,38 @@ export class Scheduler {
       : undefined;
 
     // event.duration also doesn't account for the scheduler loop point.
-    let durationAfterPlayheadAndBeforeLoop = durationAfterPlayhead;
-    if (this.loops && durationAfterPlayhead) {
-      durationAfterPlayheadAndBeforeLoop = Math.min(
-        durationAfterPlayhead,
+    let eventDurationAfterPlayheadAndBeforeLoop = eventDurationAfterPlayhead;
+    if (this.loops && eventDurationAfterPlayhead !== undefined) {
+      eventDurationAfterPlayheadAndBeforeLoop = Math.min(
+        eventDurationAfterPlayhead,
         this.loopPoint - playheadVampTime - when
       );
     }
 
-    if (durationAfterPlayheadAndBeforeLoop > 0) {
+    // If this value isn't positive the event has already finished for this
+    // loop.
+    if (eventDurationAfterPlayheadAndBeforeLoop > 0) {
       const node = await event.dispatch({
         context: this._context,
         startTime: audioContextBasis,
         when,
         offset,
-        duration: durationAfterPlayheadAndBeforeLoop
+        duration: eventDurationAfterPlayheadAndBeforeLoop
       });
       if (node) this.pushAudioNodeForEvent(eventId, node);
+    }
 
-      // Slightly idiosyncratic... jsClockTick dispatches all looping events in
-      // batches, so it doesn't handle events played on-the-fly, after the next
-      // loop batch has been scheduled. The result is that an event added or
-      // updated while playing will miss the next loop unless we dispatch it
-      // twice, which we do here.
-      if (dispatchedWhilePlaying && this.loops) {
-        this.playEvent({
-          eventId,
-          audioContextBasis:
-            this._audioContextLoopStart + this._loopDispatchOffset
-        });
-      }
+    // Slightly idiosyncratic... jsClockTick dispatches all looping events in
+    // batches, so it doesn't handle events played on-the-fly, after the next
+    // loop batch has been scheduled. The result is that an event added or
+    // updated while playing will miss the next loop unless we dispatch it
+    // twice, which we do here.
+    if (dispatchedWhilePlaying && this.loops) {
+      this.playEvent({
+        eventId,
+        audioContextBasis:
+          this._audioContextLoopStart + this._loopDispatchOffset
+      });
     }
   };
 

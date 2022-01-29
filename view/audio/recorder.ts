@@ -125,7 +125,8 @@ class Recorder {
 
   prime = (
     onNewRecording: (file: Blob, program: RecorderProgram) => Promise<void>,
-    programArgs: Omit<RecorderProgram, "recordingId">
+    programArgs: Omit<RecorderProgram, "recordingId">,
+    andStart?: boolean
   ): string => {
     this._primed = true;
     this._onNewRecording = onNewRecording;
@@ -135,6 +136,9 @@ class Recorder {
       recordingId,
       ...programArgs
     };
+    if (andStart) {
+      this.startMediaRecorder();
+    }
     return recordingId;
   };
 

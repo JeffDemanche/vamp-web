@@ -108,15 +108,16 @@ export const useHandleNewAudioRecording = (): {
       const audioDuration = (await context.decodeAudioData(dataArrBuff))
         .duration;
 
-      const audioStart = -countOffDuration;
-
+      // There's a bit of weirdness caused by having latencyCompensation defined
+      // on front end programs... it gets applied to recordingStart before being
+      // sent to the server.
       const recordingProgram: RecordingProgramInput = {
         recordingId,
-        recordingStart: audioStart - latencyCompensation,
-        recordingDuration: audioDuration,
         cabMode,
         cabStart,
-        cabDuration
+        cabDuration,
+        recordingStart: program.recordingStart - program.latencyCompensation,
+        recordingDuration: audioDuration
       };
 
       if (empty) {

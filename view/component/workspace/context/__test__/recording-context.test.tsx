@@ -97,6 +97,45 @@ describe("Recording Context", () => {
     expect(mockPrime).toHaveBeenCalledTimes(1);
   });
 
+  it("calculates correct recordingProgram 1", () => {
+    const loopingPlaybackContext = {
+      ...defaultPlaybackContext,
+      loop: true,
+      loopPointA: -2,
+      loopPointB: 4,
+      cabMode: CabMode.STACK
+    };
+
+    const playbackState1 = loopingPlaybackContext;
+    const playbackState2 = { ...loopingPlaybackContext, recording: true };
+
+    const component = mount(
+      <PlaybackContext.Provider value={playbackState1}>
+        <RecordingProvider>
+          <RecordingContext.Consumer>
+            {(): React.ReactNode => {
+              return null;
+            }}
+          </RecordingContext.Consumer>
+        </RecordingProvider>
+      </PlaybackContext.Provider>
+    );
+
+    component.setProps({ value: playbackState2 });
+
+    expect(mockPrime).toHaveBeenCalledWith(
+      undefined,
+      {
+        recordingStart: 0,
+        cabStart: -2,
+        cabDuration: 6,
+        cabMode: CabMode.STACK,
+        latencyCompensation: 0.13
+      },
+      false
+    );
+  });
+
   it("stops recorder when PlaybackContext recording becomes false", () => {
     const playbackState1 = { ...defaultPlaybackContext, recording: true };
     const playbackState2 = { ...defaultPlaybackContext, recording: false };

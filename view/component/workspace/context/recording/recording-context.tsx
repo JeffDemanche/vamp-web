@@ -91,12 +91,15 @@ export const RecordingProvider: React.FC = ({
   const clips = data?.vamp?.clips;
 
   const {
+    playing,
     cabMode,
     loopPointA,
     loopPointB,
     recording,
     countOffData
   } = useContext(PlaybackContext);
+
+  const loopDuration = loopPointB - loopPointA;
 
   const [scheduler] = useState(SchedulerInstance);
   const [recorder] = useState(() => new Recorder(context, scheduler));
@@ -113,7 +116,7 @@ export const RecordingProvider: React.FC = ({
     return {
       cabMode,
       cabStart: loopPointA,
-      cabDuration: cabMode !== CabMode.INFINITE ? loopPointB : undefined,
+      cabDuration: cabMode !== CabMode.INFINITE ? loopDuration : undefined,
       latencyCompensation: data.userInVamp.prefs.latencyCompensation,
       recordingStart: data.userInVamp.cab.start - countOffData.duration
     };
@@ -122,8 +125,8 @@ export const RecordingProvider: React.FC = ({
     countOffData.duration,
     data.userInVamp.cab.start,
     data.userInVamp.prefs.latencyCompensation,
-    loopPointA,
-    loopPointB
+    loopDuration,
+    loopPointA
   ]);
 
   const addActiveRecording = useCallback(
@@ -145,17 +148,35 @@ export const RecordingProvider: React.FC = ({
   }, [setActiveRecording]);
 
   // Listens to recording state changing and primes/stops the recorder when it
-  // happens. (We don't actually start recording from here, that happens in a
-  // function in Recorder that listens to Scheduler changes).
+  // happens. (We don't start recording from here unless we are currently
+  // playing, that happens in a function in Recorder that listens to Scheduler
+  // changes).
   useEffect(() => {
     if (prevRecording !== undefined && recording && !prevRecording) {
-      const recordingId = recorder.prime(audioRecordingHandler, programArgs);
+      const timeStarted = scheduler.timecode;
 
-      addActiveRecording(recordingId, programArgs);
+      // If recording begins duruing playback, we set the recording start time
+      // for the program to be this instant from scheduler.timecode.
+      const programArgsFixedForPlayback: Omit<
+        RecorderProgram,
+        "recordingId"
+      > = {
+        ...programArgs,
+        recordingStart: playing ? timeStarted : programArgs.recordingStart
+      };
+
+      const recordingId = recorder.prime(
+        audioRecordingHandler,
+        programArgsFixedForPlayback,
+        playing
+      );
+
+      addActiveRecording(recordingId, programArgsFixedForPlayback);
     }
     if (prevRecording !== undefined && !recording && prevRecording) {
       recorder.stopRecording();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     addActiveRecording,
     audioRecordingHandler,
@@ -163,7 +184,8 @@ export const RecordingProvider: React.FC = ({
     prevRecording,
     programArgs,
     recorder,
-    recording
+    recording,
+    playing
   ]);
 
   // Listens for new clips with referenceId's equal to active recordings and
