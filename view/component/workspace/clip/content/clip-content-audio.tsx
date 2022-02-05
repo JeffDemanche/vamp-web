@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as styles from "./clip-content-audio.less";
+import classNames from "classnames";
 import { useWorkspaceWidth } from "../../../../util/workspace-hooks";
 import { useWaveformSVG } from "../../../../audio/waveform/waveform-hooks";
 import { useMemo } from "react";
@@ -18,12 +19,14 @@ interface ClipContentAudioProps {
       error: string | null;
     };
   };
+  hoveringClip: boolean;
   index: number;
   total: number;
 }
 
 export const ClipContentAudio: React.FC<ClipContentAudioProps> = ({
   content,
+  hoveringClip,
   index,
   total
 }: ClipContentAudioProps) => {
@@ -39,12 +42,20 @@ export const ClipContentAudio: React.FC<ClipContentAudioProps> = ({
     content.audio.duration - (content.duration + content.offset)
   );
 
-  const topPct = useMemo(() => 10 + (index * 80.0) / total, [index, total]);
-  const heightPct = useMemo(() => 80.0 / total, [total]);
+  const topPctNotHovered = useMemo(() => 10 + (index * 80.0) / total, [
+    index,
+    total
+  ]);
+  const heightPctNotHovered = useMemo(() => 80.0 / total, [total]);
+
+  const topPct = hoveringClip ? topPctNotHovered : 10;
+  const heightPct = hoveringClip ? heightPctNotHovered : 80;
 
   return (
     <div
-      className={styles["content-container"]}
+      className={classNames(styles["content-container"], {
+        [styles["singleLane"]]: !hoveringClip
+      })}
       style={{ width, left, top: `${topPct}%`, height: `${heightPct}%` }}
     >
       <div

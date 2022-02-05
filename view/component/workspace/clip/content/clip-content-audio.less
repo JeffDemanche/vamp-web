@@ -4,13 +4,23 @@
   position: absolute;
   height: 100%;
   overflow: hidden;
-  transition: @timeline-left-transition, @timeline-width-transition;
-  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+  transition: @timeline-width-transition, @timeline-left-transition, 0.2s height,
+    0.2s top;
+  -webkit-transition: @timeline-width-transition, @timeline-left-transition,
+    0.2s height, 0.2 top;
+
+  &.singleLane {
+    top: 10%;
+    height: 80%;
+  }
 }
 
 .waveform-container {
   position: absolute;
   height: 100%;
+
+  transition: @timeline-left-transition, @timeline-right-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-right-transition;
 
   svg {
     height: 100%;

@@ -30,6 +30,13 @@ interface TimelineDraggableProps {
 
   handleWidth?: React.CSSProperties["width"];
 
+  divProps?: Partial<
+    React.DetailedHTMLProps<
+      React.HTMLAttributes<HTMLDivElement>,
+      HTMLDivElement
+    >
+  >;
+
   className?: string;
   style?: React.CSSProperties;
 
@@ -56,6 +63,7 @@ export const TimelineDraggable: React.FC<TimelineDraggableProps> = ({
   onDragOutOfZone,
   onDragIntoZone,
   handleWidth,
+  divProps,
   className,
   style,
   children
@@ -175,6 +183,7 @@ export const TimelineDraggable: React.FC<TimelineDraggableProps> = ({
         currentlyDragging === "none" && styles["use-transitions"]
       )}
       style={{ ...style, height, left, width }}
+      {...divProps}
     >
       <div className={styles["handles-container"]}>
         <div

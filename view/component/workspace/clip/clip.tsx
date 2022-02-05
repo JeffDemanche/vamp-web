@@ -145,6 +145,8 @@ const Clip: React.FunctionComponent<ClipProps> = ({
 
   const boxShadow = raised ? "2px 2px rgba(0, 0, 0, 0.2)" : undefined;
 
+  const [hovering, setHovering] = useState(false);
+
   const audioContent = useMemo(() => {
     const elements: JSX.Element[] = [];
     clip.content.forEach((content, i) => {
@@ -153,6 +155,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
           <ClipContentAudio
             key={i}
             content={content}
+            hoveringClip={hovering}
             index={i}
             total={clip.content.length}
           ></ClipContentAudio>
@@ -160,7 +163,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       }
     });
     return elements;
-  }, [clip.content]);
+  }, [clip.content, hovering]);
 
   return (
     <TimelineDraggable
@@ -225,6 +228,14 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       onDragIntoZone={(zone, handle): void => {
         if (zone.type === "Track" && handle === "move")
           setTrackIndexState(zone.trackIndex);
+      }}
+      divProps={{
+        onMouseEnter: (): void => {
+          setHovering(true);
+        },
+        onMouseLeave: (): void => {
+          setHovering(false);
+        }
       }}
     >
       <div className={styles["clip"]} ref={clipRef} style={{ boxShadow }}>
