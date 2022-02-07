@@ -20,7 +20,8 @@ import { ViewHome } from "./home/view-home";
 // Used for workspace (and other pages potentially)
 const gradientVibes = "linear-gradient(-45deg, #56B0F2, #C471ED)";
 const gradientLogin = "linear-gradient(-45deg, #ED71AD, #E1A74F)";
-const gradientHome = "linear-gradient(-45deg, #EB5757, #C4C4C4)";
+const gradientHome =
+  "linear-gradient(-45deg, rgba(235, 87, 87, 1), rgba(242, 153, 74, 1))";
 
 const VampAppBackdrop = withRouter(
   ({
