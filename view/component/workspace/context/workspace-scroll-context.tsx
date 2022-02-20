@@ -72,7 +72,7 @@ export const WorkspaceScrollProvider: React.FC<WorkspaceScrollProviderProps> = (
         if (!e.altKey && !e.shiftKey) {
           const clampedPos = Math.max(
             0,
-            Math.min(tracks.length, verticalPos + deltaY / 200.0)
+            Math.min(tracks.length - 1, verticalPos + deltaY / 200.0)
           );
           setVerticalPos(clampedPos);
         }
