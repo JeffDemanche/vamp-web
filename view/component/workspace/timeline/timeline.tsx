@@ -43,17 +43,10 @@ const TIMELINE_CLIENT = gql`
   }
 `;
 
-interface TimelineProps {
-  // See workspace-content.tsx for how this works.
-  tracksRef: (node: HTMLDivElement) => void;
-}
-
 /**
  * Timeline is everything below the play panel.
  */
-const Timeline: React.FunctionComponent<TimelineProps> = ({
-  tracksRef
-}: TimelineProps) => {
+const Timeline: React.FunctionComponent<{}> = () => {
   const vampId = useCurrentVampId();
 
   const { recording } = useContext(PlaybackContext);
@@ -80,7 +73,6 @@ const Timeline: React.FunctionComponent<TimelineProps> = ({
         <TimelineClips
           tracks={data.vamp.tracks}
           clips={data.vamp.clips}
-          tracksRef={tracksRef}
         ></TimelineClips>
       </div>
       <div className={styles["bottom-cell"]}>

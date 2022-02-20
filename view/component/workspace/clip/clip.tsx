@@ -23,12 +23,9 @@ import { useCurrentVampId, usePrevious } from "../../../util/react-hooks";
 import { FailureOverlay } from "./failure-overlay";
 import { ClipContentAudio } from "./content/clip-content-audio";
 import { TimelineDraggable } from "../timeline/timeline-draggable";
-import {
-  HorizontalPosContext,
-  TemporalZoomContext
-} from "../workspace-content";
 import { MetronomeContext } from "../context/metronome-context";
 import { GuidelineContext } from "../context/guideline-context";
+import { WorkspaceScrollContext } from "../context/workspace-scroll-context";
 
 const UPDATE_CLIP = gql`
   mutation UpdateClip($clipUpdate: UpdateClipInput!) {
@@ -76,9 +73,8 @@ const Clip: React.FunctionComponent<ClipProps> = ({
   const leftFn = useWorkspaceLeft();
   const timeFn = useWorkspaceTime();
 
-  const horizontalPos = useContext(HorizontalPosContext);
+  const { temporalZoom, horizontalPos } = useContext(WorkspaceScrollContext);
   const prevHorizontalPos = usePrevious(horizontalPos);
-  const temporalZoom = useContext(TemporalZoomContext);
   const prevTemporalZoom = usePrevious(temporalZoom);
 
   const clipRef = useRef<HTMLDivElement>();

@@ -6,12 +6,9 @@ import {
 } from "../state/apollotypes";
 import { useCurrentVampId, useCurrentUserId } from "./react-hooks";
 import { useState, useEffect, useContext } from "react";
-import {
-  TemporalZoomContext,
-  HorizontalPosContext
-} from "../component/workspace/workspace-content";
 import { GET_CLIPS_CLIENT } from "../state/queries/clips-queries";
 import { isNaN } from "underscore";
+import { WorkspaceScrollContext } from "../component/workspace/context/workspace-scroll-context";
 
 /**
  * Returns a function that will determine width for a duration, which should be
@@ -19,7 +16,7 @@ import { isNaN } from "underscore";
  * component function definition.
  */
 export const useWorkspaceWidth = (): ((duration: number) => number) => {
-  const temporalZoom = useContext(TemporalZoomContext);
+  const { temporalZoom } = useContext(WorkspaceScrollContext);
   const width = (duration: number): number => {
     if (duration === undefined || isNaN(duration)) return undefined;
     return 100 * duration * temporalZoom;
@@ -32,7 +29,7 @@ export const useWorkspaceWidth = (): ((duration: number) => number) => {
  * pixel-width of a workspace object, gives the duration in seconds.
  */
 export const useWorkspaceDuration = (): ((width: number) => number) => {
-  const temporalZoom = useContext(TemporalZoomContext);
+  const { temporalZoom } = useContext(WorkspaceScrollContext);
 
   const duration = (width: number): number => {
     if (width === undefined || isNaN(width)) return undefined;
@@ -48,8 +45,7 @@ export const useWorkspaceDuration = (): ((width: number) => number) => {
  * whenever you want.
  */
 export const useWorkspaceLeft = (): ((time: number) => number) => {
-  const temporalZoom = useContext(TemporalZoomContext);
-  const horizontalPos = useContext(HorizontalPosContext);
+  const { temporalZoom, horizontalPos } = useContext(WorkspaceScrollContext);
 
   const left = (time: number): number => {
     if (time === undefined || isNaN(time)) return undefined;
@@ -63,8 +59,7 @@ export const useWorkspaceLeft = (): ((time: number) => number) => {
  * pixel-position into the time position in seconds.
  */
 export const useWorkspaceTime = (): ((left: number) => number) => {
-  const temporalZoom = useContext(TemporalZoomContext);
-  const horizontalPos = useContext(HorizontalPosContext);
+  const { temporalZoom, horizontalPos } = useContext(WorkspaceScrollContext);
 
   const time = (left: number): number => {
     if (left === undefined || isNaN(left)) return undefined;

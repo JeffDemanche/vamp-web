@@ -546,6 +546,33 @@ export interface RecordingProviderQueryVariables {
 // This file was automatically generated and should not be edited.
 
 // ====================================================
+// GraphQL query operation: WorkspaceScrollContextQuery
+// ====================================================
+
+export interface WorkspaceScrollContextQuery_vamp_tracks {
+  __typename: "Track";
+  id: string;
+}
+
+export interface WorkspaceScrollContextQuery_vamp {
+  __typename: "Vamp";
+  tracks: WorkspaceScrollContextQuery_vamp_tracks[];
+}
+
+export interface WorkspaceScrollContextQuery {
+  vamp: WorkspaceScrollContextQuery_vamp | null;
+}
+
+export interface WorkspaceScrollContextQueryVariables {
+  vampId: string;
+}
+
+/* tslint:disable */
+/* eslint-disable */
+// @generated
+// This file was automatically generated and should not be edited.
+
+// ====================================================
 // GraphQL query operation: FloorOverlayWrapper
 // ====================================================
 
@@ -1323,33 +1350,6 @@ export interface VampSubscription {
 }
 
 export interface VampSubscriptionVariables {
-  vampId: string;
-}
-
-/* tslint:disable */
-/* eslint-disable */
-// @generated
-// This file was automatically generated and should not be edited.
-
-// ====================================================
-// GraphQL query operation: WorkspaceContentClient
-// ====================================================
-
-export interface WorkspaceContentClient_vamp_tracks {
-  __typename: "Track";
-  id: string;
-}
-
-export interface WorkspaceContentClient_vamp {
-  __typename: "Vamp";
-  tracks: WorkspaceContentClient_vamp_tracks[];
-}
-
-export interface WorkspaceContentClient {
-  vamp: WorkspaceContentClient_vamp | null;
-}
-
-export interface WorkspaceContentClientVariables {
   vampId: string;
 }
 

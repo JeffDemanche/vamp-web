@@ -5,6 +5,7 @@ import Clip from "../clip/clip";
 import Track from "./track";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { DraggableContext, Dropzone } from "../context/draggable-context";
+import { WorkspaceScrollContext } from "../context/workspace-scroll-context";
 
 interface TimelineClipsProps {
   tracks: { id: string }[];
@@ -30,14 +31,13 @@ interface TimelineClipsProps {
       };
     }[];
   }[];
-  tracksRef: (node: HTMLDivElement) => void;
 }
 
 const TimelineClips: React.FunctionComponent<TimelineClipsProps> = ({
   tracks,
-  clips,
-  tracksRef
+  clips
 }: TimelineClipsProps) => {
+  const { tracksRef } = useContext(WorkspaceScrollContext);
   const { registerDropzones } = useContext(DraggableContext);
   const [tracksMarkup, setTracksMarkup] = useState<JSX.Element[]>([]);
 
