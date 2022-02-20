@@ -136,7 +136,7 @@ export const WorkspaceScrollProvider: React.FC<WorkspaceScrollProviderProps> = (
           const indexDist = Math.abs(focusedTrack - i);
           // The exponent here determines "vertical zoom." Higher values are
           // more exaggerated.
-          rawWeights.push(1.0 / Math.pow(indexDist + 1, 0.7));
+          rawWeights.push(1.0 / Math.pow(indexDist + 1, 0.6));
         }
 
         const sum =

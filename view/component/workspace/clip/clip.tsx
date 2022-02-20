@@ -1,5 +1,5 @@
 import * as React from "react";
-
+import cx from "classnames";
 import styles = require("./clip.less");
 import {
   useWorkspaceWidth,
@@ -26,6 +26,7 @@ import { TimelineDraggable } from "../timeline/timeline-draggable";
 import { MetronomeContext } from "../context/metronome-context";
 import { GuidelineContext } from "../context/guideline-context";
 import { WorkspaceScrollContext } from "../context/workspace-scroll-context";
+import { SelectionContext } from "../context/selection-context";
 
 const UPDATE_CLIP = gql`
   mutation UpdateClip($clipUpdate: UpdateClipInput!) {
@@ -161,6 +162,36 @@ const Clip: React.FunctionComponent<ClipProps> = ({
     return elements;
   }, [clip.content, hovering]);
 
+  const {
+    selectedClipIds,
+    selectClip,
+    deselectClip,
+    setSelectedClips
+  } = useContext(SelectionContext);
+
+  const backgroundClassName = selectedClipIds.includes(clip.id)
+    ? styles["selected"]
+    : styles["deselected"];
+
+  const onClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!e.shiftKey) {
+        if (selectedClipIds.includes(clip.id) && selectedClipIds.length === 1) {
+          setSelectedClips([]);
+        } else {
+          setSelectedClips([clip.id]);
+        }
+      } else {
+        if (selectedClipIds.includes(clip.id)) {
+          deselectClip(clip.id);
+        } else {
+          selectClip(clip.id);
+        }
+      }
+    },
+    [clip.id, deselectClip, selectClip, selectedClipIds, setSelectedClips]
+  );
+
   return (
     <TimelineDraggable
       id={`clip${clip.id}`}
@@ -174,6 +205,7 @@ const Clip: React.FunctionComponent<ClipProps> = ({
       className={styles["clip-movable"]}
       dropzoneTypes={["Track"]}
       snapFn={snapFn}
+      onClick={onClick}
       onDragBegin={(): void => {
         setRaised(true);
         setIsShowing(true);
@@ -238,7 +270,10 @@ const Clip: React.FunctionComponent<ClipProps> = ({
         <div className={styles["foreground"]}>
           <TrashButton clipId={clip.id}></TrashButton>
         </div>
-        <div className={styles["background"]} style={{ opacity }}>
+        <div
+          className={cx(styles["background"], backgroundClassName)}
+          style={{ opacity }}
+        >
           {!raised && <Playhead containerStart={clip.start} />}
           {audioErrors.length > 0 ? (
             <FailureOverlay

@@ -1,5 +1,6 @@
 @import "../../../constants/colors.less";
 @import "../../../constants/transitions.less";
+@import "../../../constants/gradients.less";
 
 .clip {
   cursor: pointer;
@@ -35,5 +36,14 @@
   width: 100%;
   height: 100%;
   display: flex;
-  background-color: @orange-100;
+
+  &.selected {
+    background: @timepiece-2-vertical;
+    outline: solid 4px @purple-75;
+    outline-offset: -4px;
+  }
+
+  &.deselected {
+    background: @backdrop-vertical;
+  }
 }
