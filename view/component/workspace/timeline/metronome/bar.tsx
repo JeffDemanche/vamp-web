@@ -13,7 +13,6 @@ interface BarProps {
   label?: string;
   bpm: number;
   beats: number;
-  gapWidth: number;
   children?: React.ReactChildren | React.ReactChild;
 }
 
@@ -26,7 +25,6 @@ export const Bar: React.FC<BarProps> = ({
   label,
   bpm,
   beats,
-  gapWidth,
   children
 }: BarProps) => {
   const { barHeight } = useMetronomeDimensions();
@@ -34,47 +32,39 @@ export const Bar: React.FC<BarProps> = ({
   const text = label || `${num}`;
 
   const labelRef = useRef<HTMLDivElement>();
-  const labelWidth = labelRef.current
-    ? labelRef.current.getBoundingClientRect().width
-    : 0;
-
-  const markerStyle = useMemo(() => {
-    if (labelWidth > width / beats) {
-      return { height: "20%", opacity: 0.7 };
-    } else {
-      return { height: "66%", opacity: 0.5 };
-    }
-  }, [labelWidth, width, beats]);
 
   const verticalLines = useMemo(() => {
     const lines: JSX.Element[] = [];
 
-    for (let i = 1; i < beats; i++) {
+    for (let i = 0; i < beats; i++) {
       lines.push(
         <div
           key={i}
-          style={{ left: `${(100 * i) / beats}%`, ...markerStyle }}
-          className={styles["beat-marker"]}
+          style={{ left: `${(100 * i) / beats}%` }}
+          className={classNames(styles["beat-marker"], {
+            [styles["first-beat"]]: i === 0,
+            [styles["other-beat"]]: i !== 0
+          })}
         ></div>
       );
     }
 
     return lines;
-  }, [beats, markerStyle]);
+  }, [beats]);
 
   return (
     <div
       style={{
         left,
         height: `${barHeight}px`,
-        width: `${width - gapWidth}px`,
+        width: `${width}px`,
         top: `${top}px`
       }}
       className={classNames(styles["bar"], depth !== 0 && styles["variant"])}
     >
       {children}
       <div className={styles["label"]} ref={labelRef}>
-        {text}.
+        {text}
       </div>
       {verticalLines}
     </div>

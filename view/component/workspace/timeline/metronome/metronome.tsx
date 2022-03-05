@@ -210,7 +210,6 @@ export const Metronome: React.FC<{}> = () => {
           label={
             measure.section.startMeasure === measure.num && measure.section.name
           }
-          gapWidth={gapWidth}
         >
           <Playhead
             containerStart={measure.timeStart}
