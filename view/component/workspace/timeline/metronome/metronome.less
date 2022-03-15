@@ -28,9 +28,18 @@
   background: @timepiece-reverse-vertical;
   opacity: 0.5;
   overflow: hidden;
+  cursor: pointer;
 
   transition: @timeline-left-transition, @timeline-width-transition;
   -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+
+  &.highlighted {
+    opacity: 1;
+  }
+
+  .menu-open {
+    opacity: 1;
+  }
 }
 
 .variant {
@@ -54,16 +63,32 @@
 }
 
 .section-handle-container {
+  cursor: pointer;
   position: absolute;
   transition: @timeline-left-transition, @timeline-width-transition;
   -webkit-transition: @timeline-left-transition, @timeline-width-transition;
 
   .section-handle {
-    background-color: @purple-100;
-    border-radius: 5px;
+    background-color: @blue-purple-75;
+
+    &.highlighted {
+      background-color: @blue-purple-100;
+    }
   }
 
   .variant {
-    background-color: @blue-purple-100;
+    background-color: @blue-purple-75;
+
+    &.highlighted {
+      background-color: @blue-purple-100;
+    }
   }
+}
+
+.mouseCursorLine {
+  position: absolute;
+  width: 2px;
+  bottom: 0px;
+  height: 100%;
+  background-color: white;
 }

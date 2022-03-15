@@ -24,7 +24,7 @@ interface WorkspaceScrollContextData {
 }
 
 export const defaultWorkspaceScrollContextValue: WorkspaceScrollContextData = {
-  temporalZoom: 100,
+  temporalZoom: 1,
   horizontalPos: 0,
   tracksRef: () => {}
 };

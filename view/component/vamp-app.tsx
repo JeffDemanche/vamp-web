@@ -16,6 +16,7 @@ import { ViewNotFound } from "./not-found/view-not-found";
 
 import { ME_SERVER } from "../state/queries/user-queries";
 import { ViewHome } from "./home/view-home";
+import { ContextMenuProvider } from "./element/menu/context-menu-context";
 
 // Used for workspace (and other pages potentially)
 const gradientVibes = "linear-gradient(-45deg, #56B0F2, #C471ED)";
@@ -30,7 +31,7 @@ const VampAppBackdrop = withRouter(
     location,
     history
   }: {
-    children: React.ReactNodeArray;
+    children: React.ReactNode | React.ReactNodeArray;
     match: any;
     location: any;
     history: any;
@@ -62,13 +63,15 @@ const VampApp: React.FunctionComponent = () => {
           }}
         </Query>
         <VampAppBackdrop>
-          <VampHeader></VampHeader>
-          <Switch>
-            <Route path="/" exact component={ViewHome} />
-            <Route path="/v/:vampid" component={ViewWorkspace} />
-            <Route path="/login" component={ViewLogin} />
-            <Route component={ViewNotFound} />
-          </Switch>
+          <ContextMenuProvider>
+            <VampHeader></VampHeader>
+            <Switch>
+              <Route path="/" exact component={ViewHome} />
+              <Route path="/v/:vampid" component={ViewWorkspace} />
+              <Route path="/login" component={ViewLogin} />
+              <Route component={ViewNotFound} />
+            </Switch>
+          </ContextMenuProvider>
         </VampAppBackdrop>
       </ApolloProvider>
     </BrowserRouter>

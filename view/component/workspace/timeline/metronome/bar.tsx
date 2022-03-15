@@ -1,7 +1,10 @@
 import classNames from "classnames";
 import * as React from "react";
-import { useMemo, useRef } from "react";
+import { useCallback, useContext, useMemo, useRef, useState } from "react";
+import { useContextMenu } from "../../../element/menu/context-menu";
 import { useMetronomeDimensions } from "../../context/metronome-context";
+import { WorkspaceScrollContext } from "../../context/workspace-scroll-context";
+import { MetronomeMenuContext } from "./metronome";
 import * as styles from "./metronome.less";
 
 interface BarProps {
@@ -13,6 +16,9 @@ interface BarProps {
   label?: string;
   bpm: number;
   beats: number;
+  highlighted: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
   children?: React.ReactChildren | React.ReactChild;
 }
 
@@ -25,18 +31,30 @@ export const Bar: React.FC<BarProps> = ({
   label,
   bpm,
   beats,
+  highlighted,
+  onMouseEnter,
+  onMouseLeave,
   children
 }: BarProps) => {
   const { barHeight } = useMetronomeDimensions();
+
+  const barRef = useRef<HTMLDivElement>(null);
 
   const text = label || `${num}`;
 
   const labelRef = useRef<HTMLDivElement>();
 
+  const { temporalZoom } = useContext(WorkspaceScrollContext);
+
+  const renderNonFirstBeats = temporalZoom > 0.4;
+  const renderMeasureNos = temporalZoom > 0.1;
+
   const verticalLines = useMemo(() => {
     const lines: JSX.Element[] = [];
 
     for (let i = 0; i < beats; i++) {
+      if (!renderNonFirstBeats && i > 0) break;
+
       lines.push(
         <div
           key={i}
@@ -50,7 +68,44 @@ export const Bar: React.FC<BarProps> = ({
     }
 
     return lines;
-  }, [beats]);
+  }, [beats, renderNonFirstBeats]);
+
+  const [showCursor, setShowCursor] = useState(false);
+  const [cursorX, setCursorX] = useState(0);
+
+  const { setMetronomeMenuOpen } = useContext(MetronomeMenuContext);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const { isOpen } = useContextMenu({
+    headerText: `Bar ${num}`,
+    options: [],
+    target: barRef,
+    onContextMenuOpened: () => {
+      setMetronomeMenuOpen({ measureNum: num });
+      setMenuOpen(true);
+    },
+    onContextMenuClosed: () => {
+      setMetronomeMenuOpen({});
+      setMenuOpen(false);
+    }
+  });
+
+  const mouseEnter = useCallback(() => {
+    setShowCursor(true);
+    onMouseEnter();
+  }, [onMouseEnter]);
+
+  const mouseLeave = useCallback(() => {
+    setShowCursor(false);
+    onMouseLeave();
+  }, [onMouseLeave]);
+
+  const onMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      setCursorX(e.clientX - barRef.current.getBoundingClientRect().left);
+    },
+    [barRef]
+  );
 
   return (
     <div
@@ -60,12 +115,28 @@ export const Bar: React.FC<BarProps> = ({
         width: `${width}px`,
         top: `${top}px`
       }}
-      className={classNames(styles["bar"], depth !== 0 && styles["variant"])}
+      ref={barRef}
+      className={classNames(styles["bar"], {
+        [styles["variant"]]: depth !== 0,
+        [styles["menu-open"]]: isOpen,
+        [styles["highlighted"]]: menuOpen || highlighted
+      })}
+      onMouseMove={onMouseMove}
+      onMouseEnter={mouseEnter}
+      onMouseLeave={mouseLeave}
     >
+      {showCursor && (
+        <div
+          className={styles["mouseCursorLine"]}
+          style={{ left: cursorX }}
+        ></div>
+      )}
       {children}
-      <div className={styles["label"]} ref={labelRef}>
-        {text}
-      </div>
+      {renderMeasureNos && (
+        <div className={styles["label"]} ref={labelRef}>
+          {text}
+        </div>
+      )}
       {verticalLines}
     </div>
   );

@@ -15,7 +15,7 @@ export const useMetronomeDimensions = (): {
     barHeight: 30,
     sectionHandleHeight: 0,
     sectionHandleMargin: 0,
-    expandedSectionHandleHeight: 8,
+    expandedSectionHandleHeight: 12,
     expandedSectionHandleMargin: 2
   };
 
