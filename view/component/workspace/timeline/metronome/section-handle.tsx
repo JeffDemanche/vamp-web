@@ -37,14 +37,17 @@ export const SectionHandle: React.FC<SectionHandleProps> = ({
 
   const { isOpen } = useContextMenu({
     headerText: name ? `Section ${name}` : "Section",
-    options: [{ component: <a>Delete</a> }],
+    options: [
+      { component: <a>Edit section</a> },
+      { component: <a>Delete section</a> }
+    ],
     target: sectionRef,
     onContextMenuOpened: () => {
-      setOpenSectionMenu(id);
+      setOpenSectionMenu(id, true);
       setMenuOpen(true);
     },
     onContextMenuClosed: () => {
-      setOpenSectionMenu(undefined);
+      setOpenSectionMenu(id, false);
       setMenuOpen(false);
     }
   });

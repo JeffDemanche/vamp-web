@@ -88,12 +88,12 @@ export const useContextMenu = <T extends HTMLElement>({
   const openMenu = useCallback(
     (pos: { x: number; y: number }): void => {
       setIsOpen(true);
+      onContextMenuOpened();
       setContextMenu({
         props: { headerText, options, target },
         pos,
         closeListener: onClose
       });
-      onContextMenuOpened();
     },
     [headerText, onClose, onContextMenuOpened, options, setContextMenu, target]
   );

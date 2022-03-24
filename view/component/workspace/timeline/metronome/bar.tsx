@@ -78,14 +78,14 @@ export const Bar: React.FC<BarProps> = ({
 
   const { isOpen } = useContextMenu({
     headerText: `Bar ${num}`,
-    options: [],
+    options: [{ component: <a>Add section after</a> }],
     target: barRef,
     onContextMenuOpened: () => {
-      setOpenBarMenu(num);
+      setOpenBarMenu(num, true);
       setMenuOpen(true);
     },
     onContextMenuClosed: () => {
-      setOpenBarMenu(undefined);
+      setOpenBarMenu(num, false);
       setMenuOpen(false);
     }
   });

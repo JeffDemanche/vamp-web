@@ -23,8 +23,8 @@ interface MetronomeHighlightedElement {
 
 export const MetronomeMenuContext = React.createContext<{
   metronomeMenuOpen: MetronomeHighlightedElement;
-  setOpenBarMenu: (num: number) => void;
-  setOpenSectionMenu: (sectionId: string) => void;
+  setOpenBarMenu: (num: number, open: boolean) => void;
+  setOpenSectionMenu: (sectionId: string, open: boolean) => void;
 }>({
   metronomeMenuOpen: {},
   setOpenBarMenu: () => {},
@@ -171,17 +171,39 @@ export const Metronome: React.FC<{}> = () => {
   const [metronomeMenuOpen, setMetronomeMenuOpen] = useState<
     MetronomeHighlightedElement
   >({});
-  const setOpenBarMenu = (num: number): void => {
-    setMetronomeMenuOpen(menuOpen => ({ ...menuOpen, measureNum: num }));
+  const setOpenBarMenu = (num: number, open: boolean): void => {
+    setMetronomeMenuOpen(menuOpen => {
+      if (open) {
+        return { ...menuOpen, measureNum: num };
+      } else {
+        if (menuOpen.measureNum === num) {
+          return { ...menuOpen, measureNum: undefined };
+        } else {
+          return menuOpen;
+        }
+      }
+    });
   };
-  const setOpenSectionMenu = (sectionId: string): void => {
-    setMetronomeMenuOpen(menuOpen => ({ ...menuOpen, sectionId }));
+  const setOpenSectionMenu = (sectionId: string, open: boolean): void => {
+    setMetronomeMenuOpen(menuOpen => {
+      if (open) {
+        return { ...menuOpen, sectionId };
+      } else {
+        if (menuOpen.sectionId === sectionId) {
+          return { ...menuOpen, sectionId: undefined };
+        } else {
+          return menuOpen;
+        }
+      }
+    });
   };
 
   const [isHovered, setIsHovered] = useState(false);
 
   const metronomeExpanded =
-    metronomeMenuOpen.measureNum || metronomeMenuOpen.sectionId || isHovered;
+    metronomeMenuOpen.measureNum !== undefined ||
+    metronomeMenuOpen.sectionId ||
+    isHovered;
 
   const [hoveredSection, setHoveredSection] = useState<
     RenderInfo["sections"][number]
