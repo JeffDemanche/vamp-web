@@ -73,7 +73,7 @@ export const Bar: React.FC<BarProps> = ({
   const [showCursor, setShowCursor] = useState(false);
   const [cursorX, setCursorX] = useState(0);
 
-  const { setMetronomeMenuOpen } = useContext(MetronomeMenuContext);
+  const { setOpenBarMenu } = useContext(MetronomeMenuContext);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const { isOpen } = useContextMenu({
@@ -81,11 +81,11 @@ export const Bar: React.FC<BarProps> = ({
     options: [],
     target: barRef,
     onContextMenuOpened: () => {
-      setMetronomeMenuOpen({ measureNum: num });
+      setOpenBarMenu(num);
       setMenuOpen(true);
     },
     onContextMenuClosed: () => {
-      setMetronomeMenuOpen({});
+      setOpenBarMenu(undefined);
       setMenuOpen(false);
     }
   });

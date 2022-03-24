@@ -23,10 +23,12 @@ interface MetronomeHighlightedElement {
 
 export const MetronomeMenuContext = React.createContext<{
   metronomeMenuOpen: MetronomeHighlightedElement;
-  setMetronomeMenuOpen: (highlighted: MetronomeHighlightedElement) => void;
+  setOpenBarMenu: (num: number) => void;
+  setOpenSectionMenu: (sectionId: string) => void;
 }>({
   metronomeMenuOpen: {},
-  setMetronomeMenuOpen: () => {}
+  setOpenBarMenu: () => {},
+  setOpenSectionMenu: () => {}
 });
 
 interface RenderInfo {
@@ -169,6 +171,13 @@ export const Metronome: React.FC<{}> = () => {
   const [metronomeMenuOpen, setMetronomeMenuOpen] = useState<
     MetronomeHighlightedElement
   >({});
+  const setOpenBarMenu = (num: number): void => {
+    setMetronomeMenuOpen(menuOpen => ({ ...menuOpen, measureNum: num }));
+  };
+  const setOpenSectionMenu = (sectionId: string): void => {
+    setMetronomeMenuOpen(menuOpen => ({ ...menuOpen, sectionId }));
+  };
+
   const [isHovered, setIsHovered] = useState(false);
 
   const metronomeExpanded =
@@ -339,7 +348,7 @@ export const Metronome: React.FC<{}> = () => {
 
   return (
     <MetronomeMenuContext.Provider
-      value={{ metronomeMenuOpen, setMetronomeMenuOpen }}
+      value={{ metronomeMenuOpen, setOpenBarMenu, setOpenSectionMenu }}
     >
       <div
         className={styles["metronome"]}

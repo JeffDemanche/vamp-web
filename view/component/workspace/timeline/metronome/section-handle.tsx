@@ -32,7 +32,7 @@ export const SectionHandle: React.FC<SectionHandleProps> = ({
 }: SectionHandleProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  const { setMetronomeMenuOpen } = useContext(MetronomeMenuContext);
+  const { setOpenSectionMenu } = useContext(MetronomeMenuContext);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const { isOpen } = useContextMenu({
@@ -40,11 +40,11 @@ export const SectionHandle: React.FC<SectionHandleProps> = ({
     options: [{ component: <a>Delete</a> }],
     target: sectionRef,
     onContextMenuOpened: () => {
-      setMetronomeMenuOpen({ sectionId: id });
+      setOpenSectionMenu(id);
       setMenuOpen(true);
     },
     onContextMenuClosed: () => {
-      setMetronomeMenuOpen({});
+      setOpenSectionMenu(undefined);
       setMenuOpen(false);
     }
   });

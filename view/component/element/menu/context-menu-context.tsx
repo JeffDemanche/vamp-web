@@ -1,13 +1,10 @@
 import * as React from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePrevious } from "../../../util/react-hooks";
 import { ContextMenu, ContextMenuProps } from "./context-menu";
 
 interface ContextMenuContextValue {
-  setContextMenu: (
-    props: Omit<ContextMenuProps, "screenPos">,
-    pos: { x: number; y: number },
-    onClose: () => void
-  ) => void;
+  setContextMenu: (contextMenuInfo: ContextMenuInfo) => void;
 }
 
 const defaultContextMenuContext = {
@@ -22,36 +19,45 @@ interface ContextMenuProviderProps {
   children: JSX.Element | JSX.Element[];
 }
 
+interface ContextMenuInfo {
+  props: Omit<ContextMenuProps, "screenPos">;
+  pos: { x: number; y: number };
+  closeListener: () => void;
+}
+
 export const ContextMenuProvider: React.FC<ContextMenuProviderProps> = ({
   children
 }: ContextMenuProviderProps) => {
-  const [contextMenuProps, setContextMenuProps] = useState<
-    Omit<ContextMenuProps, "screenPos">
+  const [contextMenuInfo, setContextMenuInfo] = useState<
+    ContextMenuInfo | undefined
   >(undefined);
 
-  const [pos, setPos] = useState<{ x: number; y: number }>(undefined);
+  const previousContextMenuInfo = usePrevious(contextMenuInfo);
 
-  const [closeListener, setCloseListener] = useState<() => void>(undefined);
+  useEffect(() => {
+    if (contextMenuInfo && previousContextMenuInfo) {
+      previousContextMenuInfo.closeListener?.();
+    } else if (previousContextMenuInfo && !contextMenuInfo) {
+      previousContextMenuInfo.closeListener?.();
+    }
+  }, [contextMenuInfo, previousContextMenuInfo]);
+
+  const menuOpen = !!contextMenuInfo;
 
   const contextMenu = useMemo(() => {
-    if (pos !== undefined && contextMenuProps !== undefined)
-      return <ContextMenu {...contextMenuProps} screenPos={pos}></ContextMenu>;
+    if (menuOpen)
+      return (
+        <ContextMenu
+          {...contextMenuInfo.props}
+          screenPos={contextMenuInfo.pos}
+        ></ContextMenu>
+      );
     return <div />;
-  }, [contextMenuProps, pos]);
+  }, [contextMenuInfo?.pos, contextMenuInfo?.props, menuOpen]);
 
-  const setContextMenu = useCallback(
-    (
-      props: ContextMenuProps,
-      pos: { x: number; y: number },
-      onClose: () => void
-    ): void => {
-      setPos(pos);
-      setContextMenuProps(props);
-      // Reminder if you set state to a function do it this way.
-      setCloseListener(() => onClose);
-    },
-    []
-  );
+  const setContextMenu = (info: ContextMenuInfo): void => {
+    setContextMenuInfo(info);
+  };
 
   const value: ContextMenuContextValue = { setContextMenu };
 
@@ -59,8 +65,7 @@ export const ContextMenuProvider: React.FC<ContextMenuProviderProps> = ({
     <ContextMenuContext.Provider value={value}>
       <div
         onClick={(): void => {
-          closeListener?.();
-          setContextMenu(undefined, undefined, undefined);
+          setContextMenu(undefined);
         }}
         style={{
           position: "absolute",
