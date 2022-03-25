@@ -76,9 +76,16 @@ export const Bar: React.FC<BarProps> = ({
   const { setOpenBarMenu } = useContext(MetronomeMenuContext);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const refBoundingBox = barRef.current?.getBoundingClientRect();
+  const menuPos = refBoundingBox && {
+    x: refBoundingBox.left,
+    y: refBoundingBox.bottom + 4
+  };
+
   const { isOpen } = useContextMenu({
     headerText: `Bar ${num}`,
     options: [{ component: <a>Add section after</a> }],
+    pos: menuPos,
     target: barRef,
     onContextMenuOpened: () => {
       setOpenBarMenu(num, true);

@@ -35,12 +35,19 @@ export const SectionHandle: React.FC<SectionHandleProps> = ({
   const { setOpenSectionMenu } = useContext(MetronomeMenuContext);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const refBoundingBox = sectionRef.current?.getBoundingClientRect();
+  const menuPos = refBoundingBox && {
+    x: refBoundingBox.left,
+    y: refBoundingBox.bottom + 4
+  };
+
   const { isOpen } = useContextMenu({
     headerText: name ? `Section ${name}` : "Section",
     options: [
       { component: <a>Edit section</a> },
       { component: <a>Delete section</a> }
     ],
+    pos: menuPos,
     target: sectionRef,
     onContextMenuOpened: () => {
       setOpenSectionMenu(id, true);

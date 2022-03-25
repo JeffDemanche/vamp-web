@@ -52,6 +52,9 @@ interface UseContextMenuArgs<T extends HTMLElement> {
    * event.
    */
   disableContextMenuEvent?: boolean;
+
+  /** Will default to cursor location. */
+  pos?: { x: number; y: number };
   target: React.MutableRefObject<T>;
   options: ContextMenuOption[];
   onContextMenuOpened?: () => void;
@@ -71,6 +74,7 @@ interface UseContextMenuReturn {
 export const useContextMenu = <T extends HTMLElement>({
   headerText,
   disableContextMenuEvent,
+  pos,
   target,
   options,
   onContextMenuOpened,
@@ -105,7 +109,8 @@ export const useContextMenu = <T extends HTMLElement>({
   useEffect(() => {
     const listener = (e: MouseEvent): void => {
       e.preventDefault();
-      openMenu({ x: e.clientX, y: e.clientY });
+      const menuPos = pos ?? { x: e.clientX, y: e.clientY };
+      openMenu(menuPos);
     };
     const element = target.current;
 
@@ -119,7 +124,7 @@ export const useContextMenu = <T extends HTMLElement>({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pos]);
 
   return { isOpen, openMenu, closeMenu };
 };
