@@ -40,16 +40,19 @@ class Recorder {
     this._primed = false;
     this._currentProgram = undefined;
 
-    const gotMedia = (stream: MediaStream): void => {
-      this._source = context.createMediaStreamSource(stream);
-      this._mediaRecorder = new window.MediaRecorder(
-        stream,
-        this._mediaRecorderOptions
-      );
-      this._mediaRecorder.ondataavailable = this.handleData;
-    };
-
-    vampAudioStream.getAudioStream().then(stream => gotMedia(stream));
+    vampAudioStream
+      .getAudioStream()
+      .then(stream => {
+        this._source = context.createMediaStreamSource(stream);
+        this._mediaRecorder = new window.MediaRecorder(
+          stream,
+          this._mediaRecorderOptions
+        );
+        this._mediaRecorder.ondataavailable = this.handleData;
+      })
+      .catch(() => {
+        throw new Error("Error getting user media in Recorde");
+      });
 
     this._scheduler.listeners.addListener(
       "seek",

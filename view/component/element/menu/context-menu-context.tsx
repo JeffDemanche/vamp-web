@@ -65,7 +65,6 @@ export const ContextMenuProvider: React.FC<ContextMenuProviderProps> = ({
     <ContextMenuContext.Provider value={value}>
       <div
         onClick={(): void => {
-          console.log("outside click");
           setContextMenu(undefined);
         }}
         style={{

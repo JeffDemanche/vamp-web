@@ -124,68 +124,6 @@ export const useStoredAudio = (id: string): Float32Array => {
   return audioData;
 };
 
-const Float32Concat = (
-  first: Float32Array,
-  second: Float32Array
-): Float32Array => {
-  const firstLength = first.length,
-    result = new Float32Array(firstLength + second.length);
-
-  result.set(first);
-  result.set(second, firstLength);
-
-  return result;
-};
-
-// If there's no stored audio, we use the user's mic stream and animate
-export const useStreamedAudio = (): Float32Array => {
-  const context = vampAudioContext.getAudioContext();
-  let stream: MediaStream;
-  let data: Float32Array;
-  let source: MediaStreamAudioSourceNode;
-  let analyser: AnalyserNode;
-
-  const requestRef = useRef<number>(null);
-  const previousTimeRef = useRef<number>(null);
-  const audioDataRef = useRef<Float32Array>(new Float32Array());
-
-  const update = (time: number): void => {
-    const audioData = audioDataRef.current;
-    if (previousTimeRef.current != undefined) {
-      data = new Float32Array(analyser.fftSize);
-      // Copy new values into the blank data array
-      analyser.getFloatTimeDomainData(data);
-      audioDataRef.current = Float32Concat(audioData, data);
-    }
-    const rate = 100;
-    setTimeout(() => {
-      previousTimeRef.current = time;
-      requestRef.current = requestAnimationFrame(update);
-    }, rate);
-  };
-
-  useEffect(() => {
-    vampAudioStream
-      .getAudioStream()
-      .then(res => (stream = res))
-      .then(() => {
-        source = context.createMediaStreamSource(stream);
-        analyser = context.createAnalyser();
-        source.connect(analyser);
-      })
-      .then(() => {
-        requestRef.current = requestAnimationFrame(update);
-        return (): void => cancelAnimationFrame(requestRef.current);
-      })
-      .catch(() => {
-        // Tell the user they need to enable their mic manually
-        vampAudioStream.sendAlert();
-      });
-  }, []);
-
-  return audioDataRef.current;
-};
-
 /*
   Hook for web rtc + socket io, returns an array of peer 
   instances, each of which has a media stream accessible from the 
@@ -213,10 +151,6 @@ export const usePeers = (streamType?: string): Peer.Instance[] => {
         });
       break;
     }
-    // case "video": {
-    //   stream = vampVideoStream.getVideoStream();
-    //   break;
-    // }
     default:
       vampAudioStream
         .getAudioStream()
@@ -225,7 +159,6 @@ export const usePeers = (streamType?: string): Peer.Instance[] => {
           vampAudioStream.sendAlert();
         });
       break;
-    // TODO: any other p2p data we want to send
   }
 
   const vampId = useCurrentVampId();

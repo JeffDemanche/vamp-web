@@ -5,6 +5,7 @@ import { GetVamp, VampSubscription } from "../../state/apollotypes";
 import { ViewNotFound } from "../not-found/view-not-found";
 import { ViewLoading } from "../loading/view-loading";
 import { loadedVampIdVar } from "../../state/cache";
+import { usePrevious } from "../../util/react-hooks";
 
 /**
  * This encompasses all the data that should be in the cache *when the page
@@ -171,10 +172,19 @@ const VampProvider: React.FunctionComponent<VampProviderProps> = ({
     subscribeToMore: vampSubscribeToMore,
     data: vampData,
     error: vampError,
-    loading: vampLoading
+    loading: vampLoading,
+    refetch
   } = useQuery<GetVamp>(VAMP_QUERY, {
     variables: { id: vampId }
   });
+
+  const previousVampId = usePrevious(vampId);
+
+  useEffect(() => {
+    if (previousVampId !== vampId) {
+      refetch({ vampId });
+    }
+  }, [vampId, previousVampId, refetch]);
 
   if (vampData) {
     client.writeQuery({

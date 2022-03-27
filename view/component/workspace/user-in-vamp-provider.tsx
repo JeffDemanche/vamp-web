@@ -3,6 +3,7 @@ import { gql, useApolloClient, useQuery } from "@apollo/client";
 import { useEffect } from "react";
 import { GetUserInVamp, UserInVampSubscription } from "../../state/apollotypes";
 import { ViewLoading } from "../loading/view-loading";
+import { usePrevious } from "../../util/react-hooks";
 
 const USER_IN_VAMP_QUERY = gql`
   query GetUserInVamp($vampId: ID!, $userId: ID!) {
@@ -74,10 +75,20 @@ const UserInVampProvider: React.FunctionComponent<UserInVampProviderProps> = ({
 }: UserInVampProviderProps) => {
   const client = useApolloClient();
 
-  const { subscribeToMore, data, error, loading } = useQuery<GetUserInVamp>(
-    USER_IN_VAMP_QUERY,
-    { variables: { userId, vampId } }
-  );
+  const { subscribeToMore, data, error, loading, refetch } = useQuery<
+    GetUserInVamp
+  >(USER_IN_VAMP_QUERY, { variables: { userId, vampId } });
+
+  const prev = usePrevious({
+    vampId,
+    userId
+  });
+
+  useEffect(() => {
+    if (userId !== prev?.userId || vampId !== prev?.vampId) {
+      refetch({ vampId, userId });
+    }
+  }, [prev, refetch, userId, vampId]);
 
   if (data) {
     client.writeQuery({

@@ -7,7 +7,7 @@ class VampAudioStream {
   private _stream: Promise<MediaStream>;
 
   constructor() {
-    Promise.all([this.setUpMedia(), this.sendAlert()]);
+    Promise.all([this.setUpMedia()]);
   }
 
   private setUpMedia = (): Promise<boolean> => {
@@ -20,40 +20,8 @@ class VampAudioStream {
     return Promise.resolve(true);
   };
 
-  public sendAlert = (): Promise<boolean> => {
-    navigator.permissions
-      .query({ name: "microphone" })
-      .then(permissionStatus => {
-        switch (permissionStatus.state) {
-          case "granted":
-            break;
-          case "denied":
-            alert(
-              // eslint-disable-next-line max-len
-              "You accidently blocked us from using your mic! You'll have to manually change your mic permissions in your browser so that we can help you record.  We only record you when you ask us to."
-            );
-            break;
-          default:
-            alert(
-              // eslint-disable-next-line max-len
-              "Vamp needs a microphone to record your audio tracks.  Help us help you by giving us permission to use your microphone.  We only record you when you ask us to."
-            );
-        }
-
-        // TODO
-        permissionStatus.onchange = function(): void {
-          console.log("mic permission has changed to ", this.state);
-        };
-      })
-      .catch(() => {
-        // If permissions API is not available
-        alert(
-          // eslint-disable-next-line max-len
-          "Vamp needs a microphone to record your audio tracks.  Help us help you by giving us permission to use your microphone.  We only record you when you ask us to."
-        );
-      });
-
-    return Promise.resolve(true);
+  sendAlert = (): void => {
+    alert("Couldn't get user media :(");
   };
 
   getAudioStream = (): Promise<MediaStream> => this._stream;

@@ -1,34 +1,26 @@
 import * as React from "react";
 
-import { RouteComponentProps } from "react-router";
-
 import { HotKeysWrapper } from "../wrapper/hotkeys-wrapper";
 import { SpeechControl } from "../../speech-recognition/speech-control-wrapper";
 import UserInVampProvider from "./user-in-vamp-provider";
 import { useCurrentUserId } from "../../util/react-hooks";
 import VampProvider from "./vamp-provider";
 import { WorkspaceContent } from "./workspace-content";
-
-interface MatchParams {
-  vampid: string;
-}
-
-type ViewWorkspaceProps = RouteComponentProps<MatchParams>;
+import { useParams } from "react-router";
 
 /**
  * The "workspace page." Everything below the header on the page for a Vamp,
  * essentially. In practice, this is where we're putting a lot of wrapper
  * components, and the layout should be done in the WorkspaceContent component.
  */
-const ViewWorkspace: React.FunctionComponent<ViewWorkspaceProps> = (
-  props: ViewWorkspaceProps
-) => {
-  const vampId = props.match.params.vampid;
+const ViewWorkspace: React.FC<{}> = () => {
+  const { vampid } = useParams();
+
   const userId = useCurrentUserId();
 
   return (
-    <VampProvider vampId={vampId}>
-      <UserInVampProvider vampId={vampId} userId={userId}>
+    <VampProvider vampId={vampid}>
+      <UserInVampProvider vampId={vampid} userId={userId}>
         <HotKeysWrapper>
           <SpeechControl>
             <WorkspaceContent />

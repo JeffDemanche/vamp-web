@@ -1,8 +1,7 @@
 import * as React from "react";
-import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
-import { useHistory } from "react-router-dom";
 import { vampURL } from "../../scripts/urls";
+import { useNavigate } from "react-router-dom";
 
 interface NewVampPropsType {
   creatorId: string;
@@ -18,22 +17,16 @@ export const NewVamp = (props: NewVampPropsType): JSX.Element => {
     }
   `;
 
-  const [redirect, setRedirect] = useState(false);
+  const [addVamp] = useMutation(ADD_VAMP);
 
-  const [addVamp, { data: newVampData }] = useMutation(ADD_VAMP);
-
-  const history = useHistory();
-
-  if (redirect && newVampData) {
-    history.push(vampURL(newVampData.addVamp.id));
-    setRedirect(false);
-  }
+  const navigate = useNavigate();
 
   return (
     <div
       onClick={(): void => {
-        addVamp({ variables: { creatorId: props.creatorId } });
-        setRedirect(true);
+        addVamp({ variables: { creatorId: props.creatorId } }).then(result => {
+          navigate(vampURL(result.data.addVamp.id));
+        });
       }}
     >
       {props.children}
