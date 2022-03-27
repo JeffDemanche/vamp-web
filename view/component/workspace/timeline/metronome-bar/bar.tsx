@@ -84,7 +84,6 @@ export const Bar: React.FC<BarProps> = ({
   };
 
   const { isOpen } = useContextMenu({
-    headerText: `Bar ${num}`,
     pos: menuPos,
     screens: barContextMenuScreens({ barNum: num }),
     initialScreen: BarScreens.MainOptionsList,

@@ -11,7 +11,7 @@ export const barContextMenuScreens = ({
   barNum
 }: {
   barNum: number;
-}): ContextMenuScreen[] => [
+}): ContextMenuScreen<object>[] => [
   {
     id: BarScreens.MainOptionsList,
     title: `Bar ${barNum}`,

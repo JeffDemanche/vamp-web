@@ -9,7 +9,7 @@ export const sectionContextMenuScreens = ({
   sectionName
 }: {
   sectionName?: string;
-}): ContextMenuScreen[] => [
+}): ContextMenuScreen<object>[] => [
   {
     id: SectionScreens.MainOptionsList,
     title: sectionName ?? "Section",

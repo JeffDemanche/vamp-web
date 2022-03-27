@@ -46,7 +46,6 @@ export const SectionHandle: React.FC<SectionHandleProps> = ({
   };
 
   const { isOpen } = useContextMenu({
-    headerText: name ? `Section ${name}` : "Section",
     pos: menuPos,
     target: sectionRef,
     screens: sectionContextMenuScreens({ sectionName: name }),

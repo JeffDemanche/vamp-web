@@ -1,13 +1,13 @@
 import * as React from "react";
 import { VampButton } from "../element/button";
-import { VampPopover } from "../element/popover";
-import { useMutation } from "@apollo/client";
-import { NewVamp } from "../wrapper/new-vamp";
 import { User } from "../../state/queries/user-queries";
-import { LOGOUT_SERVER } from "../../state/queries/user-mutations";
-import { LogoutServer } from "../../state/apollotypes";
 
-import * as styles from "./logged-in-user-button.less";
+import { useContextMenu } from "../element/menu/context-menu";
+import { useRef } from "react";
+import {
+  userContextMenuScreens,
+  UserMenuScreens
+} from "./user-menu/user-context-menu";
 
 interface LoggedInUserButtonProps {
   style?: React.CSSProperties;
@@ -15,37 +15,29 @@ interface LoggedInUserButtonProps {
 }
 
 const LoggedInUserButton = (props: LoggedInUserButtonProps): JSX.Element => {
-  // Data contains the user data resulting from the logout mutation.
-  const [logout, logoutResponse] = useMutation<LogoutServer>(LOGOUT_SERVER);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const { openMenu } = useContextMenu({
+    disableContextMenuEvent: true,
+    target: buttonRef,
+    screens: userContextMenuScreens({ userId: props.me.id }),
+    initialScreen: UserMenuScreens.MainScreen
+  });
 
   return (
-    <VampPopover
-      id="popover-logged-in-user-button"
-      placement="bottom"
-      content={
-        <>
-          <NewVamp creatorId={props.me.id}>
-            <a href="#" style={styles["a"]}>
-              New Vamp
-            </a>
-          </NewVamp>
-          <a
-            href="/"
-            onClick={(): void => {
-              logout({ variables: {} });
-            }}
-            style={styles["a"]}
-          >
-            Logout
-          </a>
-        </>
-      }
-      title="User Settings"
+    <VampButton
+      style={props.style}
+      onClick={(e: React.MouseEvent): void => {
+        e.stopPropagation();
+        const buttonBounding = buttonRef.current?.getBoundingClientRect();
+        if (!buttonBounding) openMenu({ x: 0, y: 0 });
+        else openMenu({ x: buttonBounding.x, y: buttonBounding.bottom + 5 });
+      }}
+      buttonRef={buttonRef}
+      variant="primary"
     >
-      <VampButton style={props.style} variant="primary">
-        {props.me.username}
-      </VampButton>
-    </VampPopover>
+      {props.me.username}
+    </VampButton>
   );
 };
 

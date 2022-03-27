@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Button } from "react-bootstrap";
 
 import { Link } from "react-router-dom";
 
@@ -39,24 +38,21 @@ const VampButton = ({
   style,
   variant,
   onClick,
+  buttonRef,
   children
 }: {
   style?: React.CSSProperties;
   variant?: ButtonVariant;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler;
+  buttonRef?: React.MutableRefObject<HTMLButtonElement>;
   children?: React.ReactChildren | React.ReactChild;
 }): JSX.Element => {
   const classes = classnames(styles["btn"], variantToClassname(variant));
 
   return (
-    <Button
-      variant={variant}
-      className={classes}
-      style={style}
-      onClick={(): void => onClick && onClick()}
-    >
+    <button className={classes} style={style} ref={buttonRef} onClick={onClick}>
       {children}
-    </Button>
+    </button>
   );
 };
 

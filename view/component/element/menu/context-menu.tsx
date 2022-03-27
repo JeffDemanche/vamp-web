@@ -11,17 +11,17 @@ export interface ContextMenuScreenProps {
   pushScreen: (id: number) => void;
 }
 
-export interface ContextMenuScreen {
+export interface ContextMenuScreen<TScreenProps extends object> {
   id: number;
   title: string;
-  Component: (props: ContextMenuScreenProps) => JSX.Element;
+  Component: (props: ContextMenuScreenProps & TScreenProps) => JSX.Element;
+  componentProps?: TScreenProps;
 }
 
 export interface ContextMenuProps {
-  headerText?: string;
   screenPos: { x: number; y: number };
   target: React.MutableRefObject<unknown>;
-  screens: ContextMenuScreen[];
+  screens: ContextMenuScreen<object>[];
   initialScreen: number;
 }
 
@@ -29,7 +29,6 @@ export interface ContextMenuProps {
  * This is the actual component that gets rendered on context menu actions.
  */
 export const ContextMenu = ({
-  headerText,
   screenPos,
   target,
   screens,
@@ -61,8 +60,6 @@ export const ContextMenu = ({
 
   const renderBackButton = screenIdStack.length > 1;
 
-  console.log(screens, screenIdStack[0]);
-
   const CurrentScreen = screens.find(s => s.id === screenIdStack[0]);
 
   return (
@@ -81,12 +78,13 @@ export const ContextMenu = ({
               {"<"}
             </span>
           )}
-          {headerText && (
+          {CurrentScreen.title && (
             <span className={styles["header-text"]}>{CurrentScreen.title}</span>
           )}
         </div>
         <CurrentScreen.Component
           pushScreen={pushScreen}
+          {...CurrentScreen.componentProps}
         ></CurrentScreen.Component>
       </div>
     </div>
@@ -94,8 +92,6 @@ export const ContextMenu = ({
 };
 
 interface UseContextMenuArgs<T extends HTMLElement> {
-  headerText?: string;
-
   /**
    * Setting this as false disables opening the menu on the "contextmenu" DOM
    * event.
@@ -106,7 +102,7 @@ interface UseContextMenuArgs<T extends HTMLElement> {
   pos?: { x: number; y: number };
   target: React.MutableRefObject<T>;
 
-  screens: ContextMenuScreen[];
+  screens: ContextMenuScreen<object>[];
   initialScreen: number;
 
   onContextMenuOpened?: () => void;
@@ -124,7 +120,6 @@ interface UseContextMenuReturn {
  * up and rendering context menus.
  */
 export const useContextMenu = <T extends HTMLElement>({
-  headerText,
   disableContextMenuEvent,
   pos,
   target,
@@ -139,21 +134,20 @@ export const useContextMenu = <T extends HTMLElement>({
 
   const onClose = useCallback(() => {
     setIsOpen(false);
-    onContextMenuClosed();
+    onContextMenuClosed?.();
   }, [onContextMenuClosed]);
 
   const openMenu = useCallback(
     (pos: { x: number; y: number }): void => {
       setIsOpen(true);
-      onContextMenuOpened();
+      onContextMenuOpened?.();
       setContextMenu({
-        props: { headerText, screens, initialScreen, target },
+        props: { screens, initialScreen, target },
         pos,
         closeListener: onClose
       });
     },
     [
-      headerText,
       initialScreen,
       onClose,
       onContextMenuOpened,

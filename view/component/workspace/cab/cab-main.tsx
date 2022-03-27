@@ -183,7 +183,7 @@ const CabMain: React.FC = () => {
       <TimelineDraggable
         id="cabmain"
         left={`${left + deltaLeft}px`}
-        height={"125px"}
+        height={"105px"}
         width={loops ? `${width + deltaWidth}px` : "inherit"}
         style={loops ? undefined : { right: "0px" }}
         className={styles["cab-main-draggable"]}

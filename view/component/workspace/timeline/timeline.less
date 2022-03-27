@@ -1,3 +1,5 @@
+@import "../../../constants/sizes.less";
+
 .timeline-and-guidelines {
   position: relative;
   flex-grow: 1;
@@ -36,6 +38,5 @@
 
 .bottom-cell {
   // Should be at least as tall as the cab.
-  min-height: 145px;
-  padding-bottom: 25px;
+  min-height: calc(@cab-main-size + 15px);
 }
