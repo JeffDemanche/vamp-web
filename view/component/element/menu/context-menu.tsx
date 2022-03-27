@@ -7,11 +7,22 @@ export interface ContextMenuOption {
   component: JSX.Element;
 }
 
+export interface ContextMenuScreenProps {
+  pushScreen: (id: number) => void;
+}
+
+export interface ContextMenuScreen {
+  id: number;
+  title: string;
+  Component: (props: ContextMenuScreenProps) => JSX.Element;
+}
+
 export interface ContextMenuProps {
   headerText?: string;
   screenPos: { x: number; y: number };
   target: React.MutableRefObject<unknown>;
-  options: ContextMenuOption[];
+  screens: ContextMenuScreen[];
+  initialScreen: number;
 }
 
 /**
@@ -21,8 +32,39 @@ export const ContextMenu = ({
   headerText,
   screenPos,
   target,
-  options
+  screens,
+  initialScreen
 }: ContextMenuProps): JSX.Element => {
+  const [screenIdStack, setScreenIdStack] = useState<number[]>([
+    screens.find(s => s.id === initialScreen)?.id
+  ]);
+
+  if (screenIdStack[0] === undefined)
+    throw new Error("Tried to render context menu screen that didn't exist");
+
+  const pushScreen = useCallback(
+    (id: number) => {
+      const newScreen = screens.find(s => s.id === id);
+      if (newScreen === undefined) {
+        throw new Error("Tried to push context menu screen that didn't exist");
+      }
+      setScreenIdStack([id, ...screenIdStack]);
+    },
+    [screenIdStack, screens]
+  );
+
+  const goBack = useCallback(() => {
+    const shifted = [...screenIdStack];
+    shifted.shift();
+    setScreenIdStack(shifted);
+  }, [screenIdStack]);
+
+  const renderBackButton = screenIdStack.length > 1;
+
+  console.log(screens, screenIdStack[0]);
+
+  const CurrentScreen = screens.find(s => s.id === screenIdStack[0]);
+
   return (
     <div
       data-test-id="context-menu-div"
@@ -33,12 +75,19 @@ export const ContextMenu = ({
       className={styles["menu-container"]}
     >
       <div className={styles["context-menu"]}>
-        {headerText && <div className={styles["menu-title"]}>{headerText}</div>}
-        {options.map((option, i) => (
-          <span className={styles["menu-item"]} key={i}>
-            {option.component}
-          </span>
-        ))}
+        <div className={styles["menu-title"]}>
+          {renderBackButton && (
+            <span onClick={goBack} className={styles["back-button"]}>
+              {"<"}
+            </span>
+          )}
+          {headerText && (
+            <span className={styles["header-text"]}>{CurrentScreen.title}</span>
+          )}
+        </div>
+        <CurrentScreen.Component
+          pushScreen={pushScreen}
+        ></CurrentScreen.Component>
       </div>
     </div>
   );
@@ -56,7 +105,10 @@ interface UseContextMenuArgs<T extends HTMLElement> {
   /** Will default to cursor location. */
   pos?: { x: number; y: number };
   target: React.MutableRefObject<T>;
-  options: ContextMenuOption[];
+
+  screens: ContextMenuScreen[];
+  initialScreen: number;
+
   onContextMenuOpened?: () => void;
   onContextMenuClosed?: () => void;
 }
@@ -76,7 +128,8 @@ export const useContextMenu = <T extends HTMLElement>({
   disableContextMenuEvent,
   pos,
   target,
-  options,
+  screens,
+  initialScreen,
   onContextMenuOpened,
   onContextMenuClosed
 }: UseContextMenuArgs<T>): UseContextMenuReturn => {
@@ -94,12 +147,20 @@ export const useContextMenu = <T extends HTMLElement>({
       setIsOpen(true);
       onContextMenuOpened();
       setContextMenu({
-        props: { headerText, options, target },
+        props: { headerText, screens, initialScreen, target },
         pos,
         closeListener: onClose
       });
     },
-    [headerText, onClose, onContextMenuOpened, options, setContextMenu, target]
+    [
+      headerText,
+      initialScreen,
+      onClose,
+      onContextMenuOpened,
+      screens,
+      setContextMenu,
+      target
+    ]
   );
 
   const closeMenu = useCallback((): void => {

@@ -4,8 +4,9 @@ import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import { useContextMenu } from "../../../element/menu/context-menu";
 import { useMetronomeDimensions } from "../../context/metronome-context";
 import { WorkspaceScrollContext } from "../../context/workspace-scroll-context";
-import { MetronomeMenuContext } from "./metronome";
-import * as styles from "./metronome.less";
+import { MetronomeMenuContext } from "../metronome/metronome";
+import { barContextMenuScreens, BarScreens } from "./bar-context-menu";
+import * as styles from "./bar.less";
 
 interface BarProps {
   num: number;
@@ -84,8 +85,9 @@ export const Bar: React.FC<BarProps> = ({
 
   const { isOpen } = useContextMenu({
     headerText: `Bar ${num}`,
-    options: [{ component: <a>Add section after</a> }],
     pos: menuPos,
+    screens: barContextMenuScreens({ barNum: num }),
+    initialScreen: BarScreens.MainOptionsList,
     target: barRef,
     onContextMenuOpened: () => {
       setOpenBarMenu(num, true);
@@ -124,7 +126,6 @@ export const Bar: React.FC<BarProps> = ({
       }}
       ref={barRef}
       className={classNames(styles["bar"], {
-        [styles["variant"]]: depth !== 0,
         [styles["menu-open"]]: isOpen,
         [styles["highlighted"]]: menuOpen || highlighted
       })}

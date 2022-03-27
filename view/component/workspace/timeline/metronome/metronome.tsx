@@ -6,9 +6,9 @@ import {
   useWorkspaceTime,
   useWorkspaceWidth
 } from "../../../../util/workspace-hooks";
-import { Bar } from "./bar";
+import { Bar } from "../metronome-bar/bar";
 import * as styles from "./metronome.less";
-import { SectionHandle } from "./section-handle";
+import { SectionHandle } from "../metronome-section/section-handle";
 import Playhead from "../../../element/playhead";
 import {
   Measure,

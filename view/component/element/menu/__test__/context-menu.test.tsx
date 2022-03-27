@@ -5,6 +5,10 @@ import { act } from "react-dom/test-utils";
 import { useContextMenu } from "../context-menu";
 import { ContextMenuProvider } from "../context-menu-context";
 
+const MockMainScreen = () => {
+  return <div>Mock main screen</div>;
+};
+
 const ContextMenuHookComponent = ({
   onContextMenuOpened,
   onContextMenuClosed,
@@ -20,7 +24,8 @@ const ContextMenuHookComponent = ({
 
   const { openMenu, closeMenu } = useContextMenu({
     target: targetRef,
-    options: [],
+    screens: [{ id: 0, title: "Test", Component: MockMainScreen }],
+    initialScreen: 0,
     onContextMenuOpened,
     onContextMenuClosed
   });

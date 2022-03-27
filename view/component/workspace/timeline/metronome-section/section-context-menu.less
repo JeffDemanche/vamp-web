@@ -1,0 +1,30 @@
+@import "../../../../constants/colors.less";
+@import "../../../../constants/transitions.less";
+
+.main-screen-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-handle-container {
+  cursor: pointer;
+  position: absolute;
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+
+  .section-handle {
+    background-color: @blue-purple-75;
+
+    &.highlighted {
+      background-color: @blue-purple-100;
+    }
+  }
+
+  .variant {
+    background-color: @blue-purple-75;
+
+    &.highlighted {
+      background-color: @blue-purple-100;
+    }
+  }
+}

@@ -4,7 +4,6 @@
 .menu-container {
   z-index: @z-context-menu;
   position: absolute;
-  height: 100px;
 }
 
 .context-menu {
@@ -16,12 +15,21 @@
   backdrop-filter: blur(2px);
   display: flex;
   flex-flow: column;
+  padding: 10px;
+  padding-top: 0px;
 
   .menu-title {
     color: @white-100;
     font-weight: bold;
     padding: 5px;
     padding-bottom: 0px;
+
+    .back-button {
+      float: left;
+    }
+
+    .header-text {
+    }
   }
 
   .menu-item {

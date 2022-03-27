@@ -2,8 +2,12 @@ import classNames from "classnames";
 import * as React from "react";
 import { useContext, useRef, useState } from "react";
 import { useContextMenu } from "../../../element/menu/context-menu";
-import { MetronomeMenuContext } from "./metronome";
-import * as styles from "./metronome.less";
+import { MetronomeMenuContext } from "../metronome/metronome";
+import * as styles from "./section-context-menu.less";
+import {
+  sectionContextMenuScreens,
+  SectionScreens
+} from "./section-context-menu";
 
 interface SectionHandleProps {
   id: string;
@@ -43,12 +47,10 @@ export const SectionHandle: React.FC<SectionHandleProps> = ({
 
   const { isOpen } = useContextMenu({
     headerText: name ? `Section ${name}` : "Section",
-    options: [
-      { component: <a>Edit section</a> },
-      { component: <a>Delete section</a> }
-    ],
     pos: menuPos,
     target: sectionRef,
+    screens: sectionContextMenuScreens({ sectionName: name }),
+    initialScreen: SectionScreens.MainOptionsList,
     onContextMenuOpened: () => {
       setOpenSectionMenu(id, true);
       setMenuOpen(true);

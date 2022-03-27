@@ -1,0 +1,58 @@
+@import "../../../../constants/gradients.less";
+@import "../../../../constants/transitions.less";
+
+.bar {
+  display: flex;
+  position: absolute;
+  height: 30px;
+  width: 200px;
+  background: @timepiece-reverse-vertical;
+  opacity: 0.5;
+  overflow: hidden;
+  cursor: pointer;
+
+  transition: @timeline-left-transition, @timeline-width-transition;
+  -webkit-transition: @timeline-left-transition, @timeline-width-transition;
+
+  &.highlighted {
+    opacity: 1;
+  }
+
+  .menu-open {
+    opacity: 1;
+  }
+
+  .label {
+    float: left;
+    padding-left: 9px;
+    font-size: 14pt;
+    height: 19px;
+    line-height: 100%;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+
+  .beat-marker {
+    position: absolute;
+    width: 2px;
+    bottom: 0px;
+    height: 100%;
+    background-color: black;
+
+    &.first-beat {
+      opacity: 0.7;
+    }
+
+    &.other-beat {
+      opacity: 0.4;
+    }
+  }
+
+  .mouseCursorLine {
+    position: absolute;
+    width: 2px;
+    bottom: 0px;
+    height: 100%;
+    background-color: white;
+  }
+}
